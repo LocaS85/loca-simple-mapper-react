@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { X, Car, Walking, Bike, Bus } from 'lucide-react';
+import { X } from 'lucide-react';
 import { TransportMode, Category } from '../types';
 import CategorySelector from './CategorySelector';
 
@@ -19,11 +18,11 @@ interface FilterPanelProps {
   onUnitChange: (unit: 'km' | 'mi') => void;
 }
 
-const transportModes: { id: TransportMode; name: string; icon: React.ElementType; color: string }[] = [
-  { id: 'driving', name: 'Voiture', icon: Car, color: 'bg-blue-100 text-blue-800' },
-  { id: 'walking', name: 'À pied', icon: Walking, color: 'bg-green-100 text-green-800' },
-  { id: 'cycling', name: 'Vélo', icon: Bike, color: 'bg-purple-100 text-purple-800' },
-  { id: 'transit', name: 'Transport', icon: Bus, color: 'bg-yellow-100 text-yellow-800' },
+const transportModes: { id: TransportMode; name: string; icon: React.ElementType | string; color: string }[] = [
+  { id: 'driving', name: 'Voiture', icon: '🚗', color: 'bg-blue-100 text-blue-800' },
+  { id: 'walking', name: 'À pied', icon: '🚶', color: 'bg-green-100 text-green-800' },
+  { id: 'cycling', name: 'Vélo', icon: '🚴', color: 'bg-purple-100 text-purple-800' },
+  { id: 'transit', name: 'Transport', icon: '🚌', color: 'bg-yellow-100 text-yellow-800' },
 ];
 
 const FilterPanel: React.FC<FilterPanelProps> = ({

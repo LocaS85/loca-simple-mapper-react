@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Place, TransportMode } from '../types';
+import * as turf from '@turf/turf';
 
 interface MapComponentProps {
   center: [number, number] | null;
@@ -15,6 +16,7 @@ interface MapComponentProps {
 const MapComponent: React.FC<MapComponentProps> = ({ 
   center, 
   results, 
+  transportMode,
   radius, 
   unit 
 }) => {
@@ -177,7 +179,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         }
       });
     }
-  }, [radius, unit, mapLoaded]);
+  }, [radius, unit, mapLoaded, center]);
 
   // If no token is available, show input form
   if (!mapboxToken) {
