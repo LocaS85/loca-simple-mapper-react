@@ -1,12 +1,28 @@
 
-export interface Location {
+export type TransportMode = 'driving' | 'walking' | 'cycling' | 'transit';
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+export interface Place {
   id: string;
   name: string;
   address: string;
-  description: string;
-  price?: number;
   coordinates: [number, number]; // [longitude, latitude]
-  image?: string;
+  distance?: number;
+  duration?: number;
+  category?: string;
+}
+
+export interface SearchParams {
+  query: string;
+  proximity: [number, number];
+  limit: number;
+  radius: number;
+  categories?: string[];
 }
 
 export interface MapboxConfig {
