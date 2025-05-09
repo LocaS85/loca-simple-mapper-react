@@ -1,42 +1,43 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import Map from "react-map-gl";
-import { NavigationControl, Marker } from "react-map-gl";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Mic as FaMicrophone,
-  Navigation as FaLocationArrow,
-  Car as FaCar,
-  User as FaUsers,
-  Star as FaStar,
-  Share2 as FaShareAlt,
-  Printer as FaPrint,
-  Ship as FaShip,
-  Bus as FaBus,
-  Bike as FaBicycle,
-  Train as FaTrain,
-  UserWalking as FaWalking,
+  Mic,
+  Navigation,
+  Car,
+  User,
+  Star,
+  Share2,
+  Printer,
+  Ship,
+  Bus,
+  Bike,
+  Train,
+  User as UserIcon,
 } from "lucide-react";
 
 const categories = [
-  { name: "Divertissement", color: "#9f7aea", icon: <FaStar /> },
-  { name: "Santé", color: "#48bb78", icon: <FaWalking /> },
-  { name: "Travail", color: "#4299e1", icon: <FaCar /> },
+  { name: "Divertissement", color: "#9f7aea", icon: <Star /> },
+  { name: "Santé", color: "#48bb78", icon: <UserIcon /> },
+  { name: "Travail", color: "#4299e1", icon: <Car /> },
 ];
 
 const transportModes = [
-  { name: "Voiture", icon: <FaCar />, color: "#f56565" },
-  { name: "À pied", icon: <FaWalking />, color: "#48bb78" },
-  { name: "Vélo", icon: <FaBicycle />, color: "#ed8936" },
-  { name: "Train", icon: <FaTrain />, color: "#4299e1" },
-  { name: "Bateau", icon: <FaShip />, color: "#38b2ac" },
-  { name: "Férie", icon: <FaBus />, color: "#805ad5" },
-  { name: "Co-voiturage", icon: <FaUsers />, color: "#d69e2e" },
+  { name: "Voiture", icon: <Car />, color: "#f56565" },
+  { name: "À pied", icon: <UserIcon />, color: "#48bb78" },
+  { name: "Vélo", icon: <Bike />, color: "#ed8936" },
+  { name: "Train", icon: <Train />, color: "#4299e1" },
+  { name: "Bateau", icon: <Ship />, color: "#38b2ac" },
+  { name: "Férie", icon: <Bus />, color: "#805ad5" },
+  { name: "Co-voiturage", icon: <User />, color: "#d69e2e" },
 ];
 
 export default function GeoSearchPage() {
@@ -46,6 +47,8 @@ export default function GeoSearchPage() {
   const [distance, setDistance] = useState(5);
   const [transport, setTransport] = useState("À pied");
   const [mapboxToken, setMapboxToken] = useState<string>('');
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
   
   useEffect(() => {
     // Try to get token from localStorage or environment variable
@@ -78,6 +81,53 @@ export default function GeoSearchPage() {
       setMapboxToken(token);
     }
   };
+
+  // Initialize map when component mounts and token is available
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken) return;
+    
+    mapboxgl.accessToken = mapboxToken;
+    
+    if (!map.current) {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [2.35, 48.85], // Paris coordinates
+        zoom: 12
+      });
+      
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    }
+    
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, [mapboxToken]);
+
+  // Update markers when results change
+  useEffect(() => {
+    if (!map.current || !places.length) return;
+    
+    // Clear existing markers
+    const markers = document.querySelectorAll('.mapboxgl-marker');
+    markers.forEach(marker => marker.remove());
+    
+    // Add new markers
+    places.forEach(place => {
+      const color = transportModes.find(m => m.name === transport)?.color || "#f56565";
+      
+      new mapboxgl.Marker({ color })
+        .setLngLat([place.longitude, place.latitude])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`<h3 class="font-medium">${place.name}</h3><p>${place.type}</p>`)
+        )
+        .addTo(map.current!);
+    });
+  }, [places, transport]);
 
   // If no token is available, show input form
   if (!mapboxToken) {
@@ -124,10 +174,10 @@ export default function GeoSearchPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <Button variant="outline">
-            <FaMicrophone className="h-4 w-4" />
+            <Mic className="h-4 w-4" />
           </Button>
           <Button variant="outline">
-            <FaLocationArrow className="h-4 w-4" />
+            <Navigation className="h-4 w-4" />
           </Button>
         </div>
 
@@ -207,22 +257,7 @@ export default function GeoSearchPage() {
       </div>
 
       <div className="flex-1 relative">
-        <Map
-          mapboxAccessToken={mapboxToken}
-          mapStyle="mapbox://styles/mapbox/streets-v11"
-          initialViewState={{ longitude: 2.35, latitude: 48.85, zoom: 12 }}
-          style={{ width: "100%", height: "100%" }}
-        >
-          <NavigationControl position="top-right" />
-          {places?.map((place) => (
-            <Marker
-              key={place.id}
-              longitude={place.longitude}
-              latitude={place.latitude}
-              color={transportModes.find((t) => t.name === transport)?.color}
-            />
-          ))}
-        </Map>
+        <div ref={mapContainer} className="absolute inset-0" />
       </div>
     </div>
   );
