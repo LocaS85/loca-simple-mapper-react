@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import MapComponent from './components/MapComponent';
 import SearchBar from './components/SearchBar';
@@ -12,6 +12,7 @@ import ResultsList from './components/ResultsList';
 import { TransportMode, Category, Place } from './types';
 import { fetchPlaces } from './api/mapbox';
 import GeoSearchPage from './pages/GeoSearch';
+import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
 
@@ -80,78 +81,67 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <div className="flex flex-col h-screen bg-gray-50">
-            {/* Header with Search */}
-            <header className="bg-white shadow-sm z-10">
-              <div className="container mx-auto">
+            {/* Header with Navigation */}
+            <div className="bg-white shadow-sm z-10">
+              <div className="container mx-auto px-4">
                 <Header />
-                <div className="px-4 py-3">
-                  <SearchBar 
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    onSearch={handleSearch}
-                    onUseMyLocation={handleUseMyLocation}
-                  />
-                </div>
               </div>
-            </header>
+            </div>
 
             {/* Main Content */}
-            <div className="flex flex-1 overflow-hidden">
-              {/* Map */}
-              <div className="flex-1 relative">
-                <Routes>
-                  <Route path="/" element={
-                    <MapComponent 
-                      center={userLocation}
-                      results={results}
-                      transportMode={transportMode}
-                      radius={radius}
-                      unit={unit}
-                    />
-                  } />
-                  <Route path="/geo" element={<GeoSearchPage />} />
-                  <Route path="/locations" element={
-                    <MapComponent 
-                      center={userLocation}
-                      results={results}
-                      transportMode={transportMode}
-                      radius={radius}
-                      unit={unit}
-                    />
-                  } />
-                  <Route path="/about" element={
-                    <div className="p-8 text-center">
-                      <h1 className="text-2xl">À propos de LocaSimple</h1>
-                      <p className="mt-4">Cette page est en cours de développement.</p>
+            <div className="flex-1 overflow-hidden">
+              <Routes>
+                <Route path="/" element={
+                  <div className="flex flex-col h-full">
+                    <div className="p-4">
+                      <SearchBar 
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        onSearch={handleSearch}
+                        onUseMyLocation={handleUseMyLocation}
+                      />
                     </div>
-                  } />
-                </Routes>
-              </div>
-
-              {/* Filter Panel (mobile: bottom sheet, desktop: sidebar) */}
-              <FilterPanel
-                isOpen={isFilterOpen}
-                onClose={() => setIsFilterOpen(false)}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                transportMode={transportMode}
-                onTransportModeChange={setTransportMode}
-                radius={radius}
-                onRadiusChange={setRadius}
-                maxResults={maxResults}
-                onMaxResultsChange={setMaxResults}
-                unit={unit}
-                onUnitChange={setUnit}
-              />
-
-              {/* Results List */}
-              {results.length > 0 && (
-                <ResultsList 
-                  results={results}
-                  transportMode={transportMode}
-                  onSelectResult={handleSelectResult}
-                />
-              )}
+                    <div className="flex flex-1 overflow-hidden">
+                      <MapComponent 
+                        center={userLocation}
+                        results={results}
+                        transportMode={transportMode}
+                        radius={radius}
+                        unit={unit}
+                      />
+                      {results.length > 0 && (
+                        <ResultsList 
+                          results={results}
+                          transportMode={transportMode}
+                          onSelectResult={handleSelectResult}
+                        />
+                      )}
+                    </div>
+                  </div>
+                } />
+                <Route path="/geo" element={<GeoSearchPage />} />
+                <Route path="/about" element={
+                  <div className="container mx-auto p-8">
+                    <h1 className="text-3xl font-bold mb-6">À propos de LocaSimple</h1>
+                    <p className="text-lg mb-4">
+                      LocaSimple est une application de géolocalisation qui vous permet de trouver facilement des lieux d'intérêt autour de vous.
+                    </p>
+                    <p className="text-lg mb-4">
+                      Utilisez la recherche pour trouver des lieux spécifiques, filtrez par catégorie, distance ou mode de transport.
+                    </p>
+                    <h2 className="text-2xl font-semibold mt-8 mb-4">Fonctionnalités</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>Recherche de lieux par nom ou type</li>
+                      <li>Filtrage par catégorie (divertissement, santé, travail, etc.)</li>
+                      <li>Sélection du nombre de résultats affichés</li>
+                      <li>Définition du rayon de recherche</li>
+                      <li>Choix du mode de transport</li>
+                      <li>Visualisation des résultats sur une carte interactive</li>
+                    </ul>
+                  </div>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
             </div>
 
             {/* Floating Action Button for Filters */}
@@ -164,6 +154,22 @@ const App = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
             </button>
+
+            {/* Filter Panel (mobile: bottom sheet, desktop: sidebar) */}
+            <FilterPanel
+              isOpen={isFilterOpen}
+              onClose={() => setIsFilterOpen(false)}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              transportMode={transportMode}
+              onTransportModeChange={setTransportMode}
+              radius={radius}
+              onRadiusChange={setRadius}
+              maxResults={maxResults}
+              onMaxResultsChange={setMaxResults}
+              unit={unit}
+              onUnitChange={setUnit}
+            />
           </div>
         </BrowserRouter>
       </TooltipProvider>

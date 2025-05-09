@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -46,72 +45,26 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   // Initialize map when component mounts and token is available
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || !center) return;
+    if (!mapContainer.current || !mapboxToken) return;
     
     mapboxgl.accessToken = mapboxToken;
     
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: center,
-      zoom: 12
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    
-    // Add user location marker
-    if (center) {
-      const el = document.createElement('div');
-      el.className = 'flex h-6 w-6 items-center justify-center';
-      el.innerHTML = `
-        <div class="h-4 w-4 rounded-full bg-blue-500 ring-2 ring-white"></div>
-      `;
+    if (!map.current) {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: center,
+        zoom: 12
+      });
       
-      new mapboxgl.Marker(el)
-        .setLngLat(center)
-        .addTo(map.current);
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     }
     
-    map.current.on('load', () => {
-      setMapLoaded(true);
-      
-      // Add circle showing search radius
-      if (center && map.current) {
-        const radiusInMeters = unit === 'km' ? radius * 1000 : radius * 1609.34;
-        
-        map.current.addSource('radius', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: center
-            },
-            properties: {
-              radius: radiusInMeters
-            }
-          }
-        });
-        
-        map.current.addLayer({
-          id: 'radius-circle',
-          type: 'circle',
-          source: 'radius',
-          paint: {
-            'circle-radius': ['get', 'radius'],
-            'circle-color': '#4287f5',
-            'circle-opacity': 0.2,
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#4287f5',
-            'circle-stroke-opacity': 0.6,
-            'circle-radius-units': 'meters'
-          }
-        });
-      }
-    });
-
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, [mapboxToken, center]);
 
@@ -160,7 +113,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       });
     }
   }, [results, mapLoaded]);
-  
+
   // Update radius circle when radius or unit changes
   useEffect(() => {
     if (!map.current || !mapLoaded || !center) return;
