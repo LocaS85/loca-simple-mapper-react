@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import MapComponent from './components/MapComponent';
 import SearchBar from './components/SearchBar';
 import FilterPanel from './components/FilterPanel';
@@ -15,6 +16,17 @@ import { fetchPlaces } from './api/mapbox';
 import GeoSearchPage from './pages/GeoSearch';
 import NotFound from './pages/NotFound';
 import { useIsMobile } from './hooks/use-mobile';
+import FAQ from './pages/FAQ';
+import Categories from './pages/Categories';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import Account from './pages/Account';
+import Payment from './pages/Payment';
+import Favorites from './pages/Favorites';
+import Saved from './pages/Saved';
+import Contact from './pages/Contact';
+import TermsOfService from './pages/TermsOfService';
+import Privacy from './pages/Privacy';
 
 const queryClient = new QueryClient();
 
@@ -93,7 +105,7 @@ const AppContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header with Navigation */}
       <div className="bg-white shadow-sm z-10">
         <div className="container mx-auto px-4">
@@ -164,6 +176,7 @@ const AppContent = () => {
               </div>
             </div>
           } />
+          {/* Add all new page routes */}
           <Route path="/geo" element={<GeoSearchPage />} />
           <Route path="/about" element={
             <div className="container mx-auto p-4 md:p-8">
@@ -187,20 +200,38 @@ const AppContent = () => {
               </div>
             </div>
           } />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/saved" element={<Saved />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/cgu" element={<TermsOfService />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
 
+      {/* Footer - Only show on pages where it makes sense */}
+      {location.pathname !== '/' && location.pathname !== '/geo' && (
+        <Footer />
+      )}
+
       {/* Floating Action Button for Filters */}
-      <button
-        onClick={() => setIsFilterOpen(!isFilterOpen)}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-10"
-        aria-label="Toggle filters"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-        </svg>
-      </button>
+      {(location.pathname === '/' || location.pathname === '/geo') && (
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className="fixed bottom-6 right-6 bg-blue-600 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-10"
+          aria-label="Toggle filters"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+        </button>
+      )}
 
       {/* Filter Panel (mobile: bottom sheet, desktop: sidebar) */}
       <FilterPanel

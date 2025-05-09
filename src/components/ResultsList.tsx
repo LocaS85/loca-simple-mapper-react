@@ -31,7 +31,7 @@ const ResultsList: React.FC<ResultsListProps> = ({
 
   return (
     <div className={`
-      ${isMobile ? 'fixed bottom-0 left-0 right-0 z-20 max-h-[60vh] rounded-t-lg' : 'hidden md:block w-80 border-l'} 
+      ${isMobile ? 'fixed bottom-0 left-0 right-0 z-20 max-h-[70vh] rounded-t-lg' : 'hidden md:block w-80 border-l'} 
       border-gray-200 bg-white overflow-y-auto shadow-lg
     `}>
       <div className="sticky top-0 p-3 md:p-4 border-b border-gray-200 bg-white z-10 flex justify-between items-center">
@@ -46,21 +46,38 @@ const ResultsList: React.FC<ResultsListProps> = ({
           </button>
         )}
       </div>
-      <div>
+      <div className="divide-y divide-gray-100">
         {results.map((place) => (
           <div
             key={place.id}
-            className="p-3 md:p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+            className="p-3 md:p-4 hover:bg-gray-50 cursor-pointer transition-colors"
             onClick={() => onSelectResult(place)}
           >
-            <h3 className="font-medium text-blue-600">{place.name}</h3>
-            <p className="text-xs md:text-sm text-gray-500 mt-1">{place.address}</p>
+            <h3 className="font-medium text-blue-600 mb-1">{place.name}</h3>
+            <p className="text-xs md:text-sm text-gray-500 mb-2">{place.address}</p>
             {place.distance !== undefined && place.duration !== undefined && (
-              <div className="mt-2 flex items-center text-xs md:text-sm text-gray-600">
+              <div className="mt-1 flex items-center text-xs md:text-sm text-gray-600">
                 <span className="mr-2">{getTransportIcon(transportMode)}</span>
                 <span>{place.distance} m • {place.duration} min</span>
               </div>
             )}
+            <div className="flex justify-between items-center mt-2">
+              {place.category && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
+                  {place.category}
+                </span>
+              )}
+              <button 
+                className="text-xs text-blue-600 hover:underline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(`${place.name}, ${place.address}`);
+                  alert('Adresse copiée !');
+                }}
+              >
+                Copier l'adresse
+              </button>
+            </div>
           </div>
         ))}
       </div>
