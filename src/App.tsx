@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,6 +11,7 @@ import FilterPanel from './components/FilterPanel';
 import ResultsList from './components/ResultsList';
 import { TransportMode, Category, Place } from './types';
 import { fetchPlaces } from './api/mapbox';
+import GeoSearchPage from './pages/GeoSearch';
 
 const queryClient = new QueryClient();
 
@@ -109,6 +109,7 @@ const App = () => {
                       unit={unit}
                     />
                   } />
+                  <Route path="/geo" element={<GeoSearchPage />} />
                   <Route path="/locations" element={
                     <MapComponent 
                       center={userLocation}
