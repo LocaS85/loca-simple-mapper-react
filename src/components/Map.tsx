@@ -1,7 +1,7 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Location } from '../types';
+import { useToast } from '@/hooks/use-toast';
 
 interface MapProps {
   locations?: Location[];
@@ -19,6 +19,7 @@ const Map: React.FC<MapProps> = ({
   const markers = useRef<{ [key: string]: mapboxgl.Marker }>({});
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapboxToken, setMapboxToken] = useState<string>('');
+  const { toast } = useToast();
 
   // Function to handle token input
   const handleTokenSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -28,6 +29,10 @@ const Map: React.FC<MapProps> = ({
     if (token) {
       localStorage.setItem('mapbox_token', token);
       setMapboxToken(token);
+      toast({
+        title: 'Token sauvegardé',
+        description: 'Votre token Mapbox a été enregistré avec succès.',
+      });
     }
   };
 
@@ -117,14 +122,14 @@ const Map: React.FC<MapProps> = ({
     return (
       <div className="h-full flex items-center justify-center bg-gray-50 p-6">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Mapbox Token Required</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Clé API Mapbox Requise</h2>
           <p className="text-gray-600 mb-4">
-            Please enter your Mapbox public token. You can find this in your Mapbox account dashboard.
+            Veuillez saisir votre clé API publique Mapbox. Vous pouvez la trouver dans votre tableau de bord Mapbox.
           </p>
           <form onSubmit={handleTokenSubmit} className="space-y-4">
             <div>
               <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
-                Mapbox Token
+                Clé API Mapbox
               </label>
               <input
                 type="text"
@@ -132,14 +137,14 @@ const Map: React.FC<MapProps> = ({
                 name="token"
                 required
                 placeholder="pk.eyJ1IjoieW91..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-locasimple-blue"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-locasimple-blue text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
-              Save Token
+              Enregistrer la clé
             </button>
           </form>
         </div>

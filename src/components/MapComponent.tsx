@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Place, TransportMode } from '../types';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 
 interface MapComponentProps {
   center: [number, number] | null;
@@ -25,6 +26,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   // Function to handle token input
   const handleTokenSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,12 +36,16 @@ const MapComponent: React.FC<MapComponentProps> = ({
     if (token) {
       localStorage.setItem('mapbox_token', token);
       setMapboxToken(token);
+      toast({
+        title: 'Token sauvegardé',
+        description: 'Votre token Mapbox a été enregistré avec succès.',
+      });
     }
   };
 
   useEffect(() => {
     // Try to get token from localStorage or environment variable
-    const savedToken = localStorage.getItem('mapbox_token') || import.meta.env.VITE_MAPBOX_TOKEN;
+    const savedToken = localStorage.getItem('mapbox_token');
     if (savedToken) {
       setMapboxToken(savedToken);
     }
@@ -194,14 +200,14 @@ const MapComponent: React.FC<MapComponentProps> = ({
     return (
       <div className="h-full flex items-center justify-center bg-gray-50 p-4 md:p-6">
         <div className="max-w-md w-full bg-white rounded-lg shadow-md p-4 md:p-6">
-          <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">Mapbox Token Required</h2>
+          <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">Clé API Mapbox Requise</h2>
           <p className="text-sm md:text-base text-gray-600 mb-3 md:mb-4">
-            Please enter your Mapbox public token. You can find this in your Mapbox account dashboard.
+            Veuillez saisir votre clé API publique Mapbox. Vous pouvez la trouver dans votre tableau de bord Mapbox.
           </p>
           <form onSubmit={handleTokenSubmit} className="space-y-3 md:space-y-4">
             <div>
               <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
-                Mapbox Token
+                Clé API Mapbox
               </label>
               <input
                 type="text"
@@ -216,7 +222,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               type="submit"
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
-              Save Token
+              Enregistrer la clé
             </button>
           </form>
         </div>

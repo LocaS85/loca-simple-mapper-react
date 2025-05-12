@@ -3,6 +3,7 @@ import React from 'react';
 import { Place, TransportMode } from '../types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ResultsListProps {
   results: Place[];
@@ -28,6 +29,7 @@ const ResultsList: React.FC<ResultsListProps> = ({
   onClose 
 }) => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   return (
     <div className={`
@@ -72,7 +74,10 @@ const ResultsList: React.FC<ResultsListProps> = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   navigator.clipboard.writeText(`${place.name}, ${place.address}`);
-                  alert('Adresse copiée !');
+                  toast({
+                    title: 'Adresse copiée',
+                    description: 'L\'adresse a été copiée dans le presse-papier',
+                  });
                 }}
               >
                 Copier l'adresse
