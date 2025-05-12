@@ -35,4 +35,15 @@ export const categoriesData: Category[] = [
       { id: 'bar', name: 'Bar', icon: '🍻' }
     ]
   },
+  {
+    id: 'quotidien',
+    name: 'Quotidien',
+    icon: '📍',
+    color: '#3498db',
+    subcategories: [
+      { id: 'maison', name: 'Maison', icon: '🏠' },
+      { id: 'travail', name: 'Travail', icon: '🏢' },
+      { id: 'autre', name: 'Autre', icon: '📌' }
+    ]
+  },
 ];

@@ -29,6 +29,9 @@ export default function MapboxMap({
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Get Mapbox token from environment variables
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
   // Obtain the user's position
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -63,11 +66,20 @@ export default function MapboxMap({
     }
   };
 
+  // Check if Mapbox token is available
+  if (!mapboxToken) {
+    return (
+      <div className="p-4 text-red-600 font-bold">
+        ❌ Le token Mapbox est manquant dans votre fichier .env
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full h-full rounded-2xl shadow-xl overflow-hidden border border-gray-200">
       <Map
         ref={mapRef}
-        mapboxAccessToken="pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg"
+        mapboxAccessToken={mapboxToken}
         initialViewState={viewport}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         style={{ width: '100%', height: '100%' }}

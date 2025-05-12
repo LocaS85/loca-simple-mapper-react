@@ -13,7 +13,7 @@ import CategoryCard3D from '@/components/CategoryCard3D';
 import SubcategoryCard3D from '@/components/SubcategoryCard3D';
 import DailyAddressForm from '@/components/DailyAddressForm';
 import { useToast } from '@/hooks/use-toast';
-import { convertToCategory } from '@/utils/categoryConverter';
+import { convertCategories } from '@/utils/categoryConverter';
 
 const Categories = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
@@ -22,6 +22,23 @@ const Categories = () => {
   const [editingAddress, setEditingAddress] = useState<DailyAddressItem | null>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+  // Convert categories once on component mount
+  const [convertedCategories, setConvertedCategories] = useState<CategoryItem[]>([]);
+  useEffect(() => {
+    setConvertedCategories(convertCategories(categoriesData));
+  }, []);
+
+  // Check if Mapbox token is available
+  if (!mapboxToken) {
+    return (
+      <div className="p-4 text-red-600 font-bold">
+        ❌ Le token Mapbox est manquant dans votre fichier .env
+      </div>
+    );
+  }
 
   // Load saved daily addresses from local storage
   useEffect(() => {
@@ -162,16 +179,12 @@ const Categories = () => {
       <h1 className="text-2xl md:text-3xl font-bold mb-6">Catégories</h1>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {categoriesData.map((category) => (
+        {convertedCategories.map((category) => (
           <CategoryCard3D
             key={category.id}
             category={category}
             isSelected={selectedCategory?.id === category.id}
-            onClick={() => {
-              // Convert Category to CategoryItem before setting state
-              const categoryItem = convertToCategory(category);
-              setSelectedCategory(categoryItem);
-            }}
+            onClick={() => setSelectedCategory(category)}
           />
         ))}
       </div>

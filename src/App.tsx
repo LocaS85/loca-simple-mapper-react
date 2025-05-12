@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import Index from "./pages/Index";
 import GeoSearch from "./pages/GeoSearch";
 import ModernGeoSearch from "./pages/ModernGeoSearch";
 import GeoSearchApp from "./pages/GeoSearchApp";
+import Categories from "./pages/Categories";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,7 @@ function App() {
               <Route path="/geosearch" element={<GeoSearch />} />
               <Route path="/moderngeo" element={<ModernGeoSearch />} />
               <Route path="/geosearchapp" element={<GeoSearchApp />} />
+              <Route path="/categories" element={<Categories />} />
             </Routes>
           </div>
           <Footer />
