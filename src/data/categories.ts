@@ -1,5 +1,5 @@
 
-import { Category, Subcategory } from "../types";
+import { Category } from "../types";
 
 export const categoriesData: Category[] = [
   {
