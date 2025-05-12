@@ -59,11 +59,11 @@ export default function GeoSearchPage() {
   const { data: places = [], refetch } = useQuery({
     queryKey: ["places", search, category, resultsCount, distance, transport],
     queryFn: async () => {
-      // Mock data - to be replaced with real API call
+      // Fixed mock data to include the required 'address' property
       return [
-        { id: '1', name: 'Cinéma Gaumont', longitude: 2.34, latitude: 48.86, type: 'Divertissement', coordinates: [2.34, 48.86] as [number, number] },
-        { id: '2', name: 'Hôpital Saint-Louis', longitude: 2.37, latitude: 48.87, type: 'Santé', coordinates: [2.37, 48.87] as [number, number] },
-        { id: '3', name: 'Tour Eiffel', longitude: 2.29, latitude: 48.86, type: 'Divertissement', coordinates: [2.29, 48.86] as [number, number] }
+        { id: '1', name: 'Cinéma Gaumont', address: '123 Rue de Cinema, Paris', longitude: 2.34, latitude: 48.86, type: 'Divertissement', coordinates: [2.34, 48.86] as [number, number] },
+        { id: '2', name: 'Hôpital Saint-Louis', address: '1 Avenue Claude Vellefaux, Paris', longitude: 2.37, latitude: 48.87, type: 'Santé', coordinates: [2.37, 48.87] as [number, number] },
+        { id: '3', name: 'Tour Eiffel', address: 'Champ de Mars, Paris', longitude: 2.29, latitude: 48.86, type: 'Divertissement', coordinates: [2.29, 48.86] as [number, number] }
       ];
     },
     enabled: true
