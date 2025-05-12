@@ -1,7 +1,7 @@
 
 import React from "react";
 
-// Add TypeScript declaration for Vite's import.meta.env
+// Déclaration de l'interface pour TypeScript avec Vite
 interface ImportMeta {
   env: {
     VITE_MAPBOX_TOKEN?: string;
