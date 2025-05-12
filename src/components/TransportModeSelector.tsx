@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Car, Walking, Bike, Train, Boat, Bus, Users } from "lucide-react";
+import { Car, User as Walking, Bike, Train, Ship as Boat, Bus, Users } from "lucide-react";
 
 interface TransportModeSelectorProps {
   mode: string;
