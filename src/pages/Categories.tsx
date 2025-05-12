@@ -1,141 +1,228 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
-
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-  subcategories: Subcategory[];
-}
-
-interface Subcategory {
-  id: string;
-  name: string;
-  description: string;
-}
-
-const categoriesData: Category[] = [
-  {
-    id: 'restaurants',
-    name: 'Restaurants',
-    icon: '🍽️',
-    subcategories: [
-      { id: 'french', name: 'Cuisine française', description: 'Restaurants proposant des plats traditionnels français' },
-      { id: 'italian', name: 'Cuisine italienne', description: 'Pizzerias et restaurants italiens' },
-      { id: 'asian', name: 'Cuisine asiatique', description: 'Restaurants japonais, chinois, thaïlandais, etc.' },
-      { id: 'fast-food', name: 'Fast-Food', description: 'Restauration rapide et chaînes internationales' }
-    ]
-  },
-  {
-    id: 'entertainment',
-    name: 'Divertissement',
-    icon: '🎭',
-    subcategories: [
-      { id: 'cinema', name: 'Cinémas', description: 'Salles de projection et cinémas' },
-      { id: 'theater', name: 'Théâtres', description: 'Salles de spectacles et théâtres' },
-      { id: 'museum', name: 'Musées', description: 'Musées et galeries d\'art' },
-      { id: 'park', name: 'Parcs', description: 'Parcs d\'attractions et espaces verts' }
-    ]
-  },
-  {
-    id: 'shopping',
-    name: 'Shopping',
-    icon: '🛍️',
-    subcategories: [
-      { id: 'mall', name: 'Centres commerciaux', description: 'Grands centres commerciaux et galeries marchandes' },
-      { id: 'clothing', name: 'Vêtements', description: 'Boutiques de mode et magasins de vêtements' },
-      { id: 'tech', name: 'Électronique', description: 'Magasins d\'électronique et de high-tech' },
-      { id: 'grocery', name: 'Supermarchés', description: 'Épiceries, supermarchés et hypermarchés' }
-    ]
-  },
-  {
-    id: 'health',
-    name: 'Santé',
-    icon: '⚕️',
-    subcategories: [
-      { id: 'hospital', name: 'Hôpitaux', description: 'Centres hospitaliers et cliniques' },
-      { id: 'pharmacy', name: 'Pharmacies', description: 'Pharmacies et parapharmacies' },
-      { id: 'doctor', name: 'Médecins', description: 'Cabinets médicaux et spécialistes' },
-      { id: 'emergency', name: 'Urgences', description: 'Services d\'urgence et d\'assistance médicale' }
-    ]
-  },
-  {
-    id: 'transport',
-    name: 'Transport',
-    icon: '🚌',
-    subcategories: [
-      { id: 'bus', name: 'Bus', description: 'Arrêts de bus et gares routières' },
-      { id: 'metro', name: 'Métro', description: 'Stations de métro et tramway' },
-      { id: 'train', name: 'Trains', description: 'Gares ferroviaires et services de train' },
-      { id: 'taxi', name: 'Taxis', description: 'Stations de taxis et services VTC' }
-    ]
-  }
-];
+import { AnimatePresence, motion } from 'framer-motion';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { categoriesData } from '../data/categories';
+import { CategoryItem, DailyAddressItem } from '../types/category';
+import CategoryCard3D from '@/components/CategoryCard3D';
+import SubcategoryCard3D from '@/components/SubcategoryCard3D';
+import DailyAddressForm from '@/components/DailyAddressForm';
+import { useToast } from '@/hooks/use-toast';
 
 const Categories = () => {
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
+  const [dailyAddresses, setDailyAddresses] = useState<DailyAddressItem[]>([]);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<DailyAddressItem | null>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6">Catégories</h1>
-      
-      <div className={`flex ${isMobile ? 'flex-col' : 'flex-row gap-8'}`}>
-        {/* Categories list */}
-        <div className={`${isMobile ? 'mb-6' : 'w-1/3'}`}>
-          <h2 className="text-lg font-semibold mb-3">Toutes les catégories</h2>
-          <div className="space-y-2">
-            {categoriesData.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category)}
-                className={`w-full text-left px-4 py-3 rounded-md flex items-center justify-between ${
-                  selectedCategory?.id === category.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                } transition-colors`}
-              >
-                <div className="flex items-center">
-                  <span className="text-xl mr-3">{category.icon}</span>
-                  <span>{category.name}</span>
-                </div>
-                <ChevronRight size={18} />
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        {/* Subcategories content */}
-        <div className={`${isMobile ? 'w-full' : 'w-2/3'}`}>
-          {selectedCategory ? (
-            <>
-              <h2 className="text-xl font-semibold mb-4">
-                <span className="mr-2">{selectedCategory.icon}</span>
-                {selectedCategory.name}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedCategory.subcategories.map((subcategory) => (
-                  <Link
-                    key={subcategory.id}
-                    to={`/search?category=${selectedCategory.id}&subcategory=${subcategory.id}`}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-white"
-                  >
-                    <h3 className="font-medium text-lg mb-2">{subcategory.name}</h3>
-                    <p className="text-gray-600 text-sm">{subcategory.description}</p>
-                  </Link>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-              <p className="text-lg">Sélectionnez une catégorie pour voir les sous-catégories</p>
-            </div>
+  // Load saved daily addresses from local storage
+  useEffect(() => {
+    const savedAddresses = localStorage.getItem('dailyAddresses');
+    if (savedAddresses) {
+      try {
+        setDailyAddresses(JSON.parse(savedAddresses));
+      } catch (error) {
+        console.error('Error parsing saved addresses:', error);
+      }
+    }
+  }, []);
+
+  // Save daily addresses to local storage when updated
+  useEffect(() => {
+    if (dailyAddresses.length > 0) {
+      localStorage.setItem('dailyAddresses', JSON.stringify(dailyAddresses));
+    }
+  }, [dailyAddresses]);
+
+  const handleSaveAddress = (addressData: Partial<DailyAddressItem>) => {
+    const newAddress = {
+      ...addressData,
+      id: editingAddress?.id || `addr_${Date.now()}`,
+      coordinates: [0, 0] as [number, number], // Placeholder, real coordinates would come from geocoding API
+      category: 'quotidien',
+      subcategory: addressData.subcategory || 'autre',
+    } as DailyAddressItem;
+
+    if (editingAddress) {
+      // Edit existing address
+      setDailyAddresses(prev => 
+        prev.map(addr => addr.id === editingAddress.id ? newAddress : addr)
+      );
+      toast({
+        title: "Adresse modifiée",
+        description: `L'adresse "${newAddress.name}" a été mise à jour`
+      });
+    } else {
+      // Add new address
+      if (dailyAddresses.length >= 10) {
+        toast({
+          title: "Limite atteinte",
+          description: "Vous ne pouvez pas enregistrer plus de 10 adresses",
+          variant: "destructive"
+        });
+        return;
+      }
+      setDailyAddresses(prev => [...prev, newAddress]);
+      toast({
+        title: "Adresse ajoutée",
+        description: `L'adresse "${newAddress.name}" a été enregistrée`
+      });
+    }
+    
+    setShowAddressForm(false);
+    setEditingAddress(null);
+  };
+
+  const handleEditAddress = (address: DailyAddressItem) => {
+    setEditingAddress(address);
+    setShowAddressForm(true);
+  };
+
+  const handleDeleteAddress = (addressId: string) => {
+    setDailyAddresses(prev => prev.filter(addr => addr.id !== addressId));
+    toast({
+      title: "Adresse supprimée",
+      description: "L'adresse a été supprimée avec succès"
+    });
+  };
+
+  const handleAddNewAddress = (subcategoryId: string) => {
+    setEditingAddress(null);
+    setShowAddressForm(true);
+  };
+
+  const renderDailyAddresses = (subcategoryId: string) => {
+    const filteredAddresses = dailyAddresses.filter(addr => addr.subcategory === subcategoryId);
+    
+    return (
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium">Adresses enregistrées</h3>
+          {filteredAddresses.length < 10 && (
+            <button
+              onClick={() => handleAddNewAddress(subcategoryId)}
+              className="text-blue-500 hover:text-blue-700 font-medium flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+              Ajouter
+            </button>
           )}
         </div>
+        
+        {filteredAddresses.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">Aucune adresse enregistrée dans cette catégorie</p>
+        ) : (
+          <div className="space-y-3">
+            {filteredAddresses.map(address => (
+              <div key={address.id} className="bg-white rounded-lg shadow p-3 flex justify-between items-center">
+                <div>
+                  <h4 className="font-medium">{address.name}</h4>
+                  <p className="text-sm text-gray-600 truncate max-w-[200px] md:max-w-[400px]">
+                    {address.address}
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => handleEditAddress(address)}
+                    className="text-gray-500 hover:text-blue-500"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l9.38-9.379-2.83-2.828z" />
+                    </svg>
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteAddress(address.id)}
+                    className="text-gray-500 hover:text-red-500"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+    );
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-6 min-h-screen">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6">Catégories</h1>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        {categoriesData.map((category) => (
+          <CategoryCard3D
+            key={category.id}
+            category={category}
+            isSelected={selectedCategory?.id === category.id}
+            onClick={() => setSelectedCategory(category)}
+          />
+        ))}
+      </div>
+      
+      <AnimatePresence>
+        {selectedCategory && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="mt-8"
+          >
+            <div className="flex items-center mb-4 space-x-3">
+              <span className="text-2xl">{selectedCategory.icon}</span>
+              <h2 className="text-xl md:text-2xl font-bold" style={{ color: selectedCategory.color }}>
+                {selectedCategory.name}
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              {selectedCategory.subcategories.map((subcategory) => (
+                <div key={subcategory.id} className="flex flex-col">
+                  <SubcategoryCard3D 
+                    subcategory={subcategory}
+                    parentCategoryId={selectedCategory.id}
+                    parentCategoryColor={selectedCategory.color}
+                  />
+                  
+                  {/* For Daily category, show saved addresses */}
+                  {selectedCategory.id === 'quotidien' && renderDailyAddresses(subcategory.id)}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Address form dialog */}
+      <Dialog open={showAddressForm} onOpenChange={setShowAddressForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingAddress ? 'Modifier l\'adresse' : 'Ajouter une nouvelle adresse'}
+            </DialogTitle>
+          </DialogHeader>
+          <DailyAddressForm 
+            onSave={handleSaveAddress}
+            onCancel={() => {
+              setShowAddressForm(false);
+              setEditingAddress(null);
+            }}
+            initialData={editingAddress || {}}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
