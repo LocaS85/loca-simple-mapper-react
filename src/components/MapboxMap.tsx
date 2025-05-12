@@ -14,8 +14,8 @@ interface MapboxMapProps {
 }
 
 export default function MapboxMap({ 
-  results = [],
-  transport = "Voiture",
+  results = [], 
+  transport = "Voiture", 
   radius = 5,
   category = ""
 }: MapboxMapProps) {

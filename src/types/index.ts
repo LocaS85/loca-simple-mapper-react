@@ -11,7 +11,7 @@ export interface Category {
   id: string;
   name: string;
   icon: string;
-  color?: string;
+  color: string;  // Make color required instead of optional
   subcategories?: Subcategory[];
 }
 

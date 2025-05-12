@@ -4,17 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Map, Marker } from "react-map-gl";
-import { TransportModeSelector } from "@/components/TransportModeSelector";
 import { useToast } from "@/hooks/use-toast";
+import MapboxMap from "@/components/MapboxMap";
+import { TransportModeSelector } from "@/components/TransportModeSelector";
 import "mapbox-gl/dist/mapbox-gl.css";
-
-// Using the imported Mapbox token
-const MAPBOX_TOKEN = "pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg";
 
 const categories = ["Divertissement", "Travail", "Santé"];
 
-export default function GeolocApp() {
+export default function ModernGeoSearch() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [radius, setRadius] = useState(5);
@@ -162,36 +159,12 @@ export default function GeolocApp() {
       </div>
 
       <div className="relative h-screen">
-        <Map
-          mapboxAccessToken={MAPBOX_TOKEN}
-          initialViewState={{ 
-            longitude: userLocation[0], 
-            latitude: userLocation[1], 
-            zoom: 12 
-          }}
-          mapStyle="mapbox://styles/mapbox/streets-v11"
-          style={{ width: "100%", height: "100%" }}
-        >
-          {/* User location marker */}
-          <Marker
-            longitude={userLocation[0]}
-            latitude={userLocation[1]}
-            color="#4299e1"
-          />
-          
-          {/* Results markers */}
-          {results.map((item) => (
-            <Marker 
-              key={item.id} 
-              longitude={item.lng} 
-              latitude={item.lat} 
-              color={
-                item.type === "Divertissement" ? "#9f7aea" :
-                item.type === "Santé" ? "#48bb78" : "#4299e1"
-              }
-            />
-          ))}
-        </Map>
+        <MapboxMap 
+          results={results} 
+          radius={radius}
+          category={category || ""}
+          transport={mode}
+        />
       </div>
     </div>
   );
