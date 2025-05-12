@@ -1,6 +1,13 @@
 
 import React from "react";
 
+// Add TypeScript declaration for Vite's import.meta.env
+interface ImportMeta {
+  env: {
+    VITE_MAPBOX_TOKEN?: string;
+  };
+}
+
 // ✅ 1. Récupération sécurisée du token (priorité à l'environnement)
 const ENV_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const FALLBACK_TOKEN = "pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg";
