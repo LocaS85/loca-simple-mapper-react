@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AnimatePresence, motion } from 'framer-motion';
 import { 
@@ -20,6 +20,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Utensils, ShoppingBag } from 'lucide-react';
 import { Loader } from "@/components/ui/loader";
+import { FilterBar } from '@/components/FilterBar';
+import { TransportMode } from '@/lib/data/transportModes';
 
 // Interface pour les locations
 interface CategoryLocation {
@@ -40,7 +42,16 @@ const Categories = () => {
   // État pour le mode d'affichage (carte ou liste)
   const [showMap, setShowMap] = useState(false);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
-  const mapContainerRef = React.useRef<HTMLDivElement>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    category: 'food',
+    transportMode: 'car' as TransportMode,
+    maxDistance: 5,
+    maxDuration: 15
+  });
 
   // Convert categories once on component mount
   const [convertedCategories, setConvertedCategories] = useState<CategoryItem[]>([]);
@@ -81,12 +92,34 @@ const Categories = () => {
     initMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
     
     setMap(initMap);
+    mapRef.current = initMap;
 
     return () => {
       initMap.remove();
       setMap(null);
+      mapRef.current = null;
     };
   }, [showMap]);
+
+  const handleFiltersChange = (newFilters: {
+    category: string;
+    transportMode: TransportMode;
+    maxDistance: number;
+    maxDuration: number;
+  }) => {
+    setFilters(newFilters);
+    console.log("Filters updated:", newFilters);
+    
+    // Here you can apply filters to the map
+    // For example, you might want to update markers or change the view
+    if (map) {
+      // Apply filters logic here
+      toast({
+        title: "Filtres appliqués",
+        description: `Catégorie: ${newFilters.category}, Transport: ${newFilters.transportMode}, Distance: ${newFilters.maxDistance}km, Durée: ${newFilters.maxDuration}min`
+      });
+    }
+  };
 
   const handleSaveAddress = (addressData: Partial<DailyAddressItem>) => {
     const newAddress = {
@@ -234,11 +267,22 @@ const Categories = () => {
         </div>
       </div>
       
-      {showMap ? (
-        <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden">
-          <div ref={mapContainerRef} className="w-full h-full" />
-        </div>
-      ) : (
+      {showMap && (
+        <>
+          {/* Filter Bar for Map View */}
+          <div className="mb-4">
+            <FilterBar 
+              mapRef={mapRef} 
+              onFiltersChange={handleFiltersChange} 
+            />
+          </div>
+          <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden">
+            <div ref={mapContainerRef} className="w-full h-full" />
+          </div>
+        </>
+      )}
+
+      {!showMap && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {convertedCategories.map((category) => (
