@@ -2,13 +2,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-
-interface Category {
-  name: string;
-  color: string;
-  icon: string;
-  sub: string[];
-}
+import { Category } from "../types";
 
 interface CategorySelectorProps {
   categories: Category[];
@@ -25,7 +19,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
     <div className="flex flex-wrap gap-2">
       {categories.map((cat) => (
         <Button
-          key={cat.name}
+          key={cat.id}
           style={{ backgroundColor: cat.color }}
           className="text-white px-4 py-2 rounded-xl"
           onClick={() => onCategorySelect(cat)}

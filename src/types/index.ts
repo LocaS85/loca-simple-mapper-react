@@ -1,18 +1,18 @@
 
 export type TransportMode = 'driving' | 'walking' | 'cycling' | 'transit';
 
+export interface Subcategory {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 export interface Category {
   id: string;
   name: string;
   icon: string;
   color?: string;
   subcategories?: Subcategory[];
-}
-
-export interface Subcategory {
-  id: string;
-  name: string;
-  icon: string;
 }
 
 export interface Location {

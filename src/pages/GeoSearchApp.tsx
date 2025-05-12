@@ -9,25 +9,36 @@ import TransportSelector from "@/components/TransportSelector";
 import ResultsList from "@/components/ResultsList";
 import MapboxMap from "@/components/MapboxMap";
 import { motion } from "framer-motion";
+import { categoriesData } from "@/data/categories";
+import { Category } from "@/types";
 
-// Data constants
-const categories = [
-  { name: "Divertissement", color: "#8e44ad", icon: "🎬", sub: ["Cinéma", "Concert", "Théâtre"] },
-  { name: "Santé", color: "#27ae60", icon: "🧘", sub: ["Pharmacie", "Clinique", "Yoga"] },
-  { name: "Alimentation", color: "#e67e22", icon: "🍔", sub: ["Café", "Restaurant", "Bar"] },
+// Mock data for demonstration
+const mockData = [
+  { id: '1', name: 'Cinéma Gaumont', address: '123 Rue de Cinema, Paris', lng: 2.34, lat: 48.86, type: 'Divertissement' },
+  { id: '2', name: 'Centre médical', address: '1 Avenue Claude Vellefaux, Paris', lng: 2.37, lat: 48.87, type: 'Santé' },
+  { id: '3', name: 'Café Parisien', address: '45 Boulevard Saint-Germain, Paris', lng: 2.35, lat: 48.85, type: 'Alimentation' },
+  { id: '4', name: 'Théâtre de la Ville', address: '8 Avenue des Champs-Élysées, Paris', lng: 2.31, lat: 48.87, type: 'Divertissement' },
+  { id: '5', name: 'Restaurant Le Bon', address: '15 Rue de Rivoli, Paris', lng: 2.33, lat: 48.85, type: 'Alimentation' },
 ];
 
+// Map the mock categories to our Category type
+const categories: Category[] = [
+  { id: "divertissement", name: "Divertissement", color: "#8e44ad", icon: "🎬", subcategories: [] },
+  { id: "sante", name: "Santé", color: "#27ae60", icon: "🧘", subcategories: [] },
+  { id: "alimentation", name: "Alimentation", color: "#e67e22", icon: "🍔", subcategories: [] },
+];
+
+// Transport modes data
 const transportModes = [
-  { name: "Voiture", icon: "🚗", color: "#2980b9" },
-  { name: "À pied", icon: "🚶", color: "#2ecc71" },
-  { name: "Vélo", icon: "🚴", color: "#e67e22" },
-  { name: "Train", icon: "🚆", color: "#9b59b6" },
-  { name: "Bateau", icon: "⛵", color: "#16a085" },
+  { id: "driving", name: "Voiture", icon: "🚗", color: "#2980b9" },
+  { id: "walking", name: "À pied", icon: "🚶", color: "#2ecc71" },
+  { id: "cycling", name: "Vélo", icon: "🚴", color: "#e67e22" },
+  { id: "transit", name: "Train", icon: "🚆", color: "#9b59b6" },
 ];
 
 export default function GeoSearchApp() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
   const [results, setResults] = useState<any[]>([]);
   const [transport, setTransport] = useState("Voiture");
@@ -35,21 +46,13 @@ export default function GeoSearchApp() {
   const [resultCount, setResultCount] = useState(3);
   const { toast } = useToast();
 
-  const handleCategoryClick = (cat: any) => {
+  const handleCategoryClick = (cat: Category) => {
     setSelectedCategory(cat);
-    setSelectedSubcategories(cat.sub);
+    // If the category has subcategories, set them
+    setSelectedSubcategories(cat.subcategories?.map(sub => sub.name) || []);
   };
 
   const handleSearch = () => {
-    // Mock data for demonstration
-    const mockData = [
-      { id: '1', name: 'Cinéma Gaumont', address: '123 Rue de Cinema, Paris', lng: 2.34, lat: 48.86, type: 'Divertissement' },
-      { id: '2', name: 'Centre médical', address: '1 Avenue Claude Vellefaux, Paris', lng: 2.37, lat: 48.87, type: 'Santé' },
-      { id: '3', name: 'Café Parisien', address: '45 Boulevard Saint-Germain, Paris', lng: 2.35, lat: 48.85, type: 'Alimentation' },
-      { id: '4', name: 'Théâtre de la Ville', address: '8 Avenue des Champs-Élysées, Paris', lng: 2.31, lat: 48.87, type: 'Divertissement' },
-      { id: '5', name: 'Restaurant Le Bon', address: '15 Rue de Rivoli, Paris', lng: 2.33, lat: 48.85, type: 'Alimentation' },
-    ];
-    
     // Filter by category if selected
     let filtered = mockData;
     if (selectedCategory) {
@@ -121,7 +124,7 @@ export default function GeoSearchApp() {
         />
         
         <TransportSelector 
-          transportModes={transportModes}
+          transportModes={transportModes.map(t => ({ name: t.name, icon: t.icon, color: t.color }))}
           selectedTransport={transport}
           onTransportSelect={setTransport}
         />

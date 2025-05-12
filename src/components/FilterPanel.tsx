@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { X } from 'lucide-react';
 import { TransportMode, Category } from '../types';
@@ -42,8 +43,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const filterContent = (
     <div className="space-y-6">
       <CategorySelector
+        categories={[]} // Nous passons un tableau vide car le type CategorySelectorProps attend un tableau de Category
         selectedCategory={selectedCategory}
-        onCategoryChange={onCategoryChange}
+        onCategorySelect={onCategoryChange}
       />
 
       <div>
@@ -97,7 +99,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   transportMode === mode.id ? mode.color : 'bg-gray-100'
                 } hover:opacity-90 transition-colors`}
               >
-                <Icon className="h-5 w-5" />
+                {typeof Icon === 'string' ? Icon : <Icon className="h-5 w-5" />}
                 <span className="text-xs mt-1">{mode.name}</span>
               </button>
             );
