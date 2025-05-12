@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
 import { LocateFixed, MapPin } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { getMapboxToken, isMapboxTokenValid, MapboxErrorMessage } from '@/utils/mapboxConfig';
 
 interface MapboxMapProps {
   results?: any[];
@@ -30,7 +31,7 @@ export default function MapboxMap({
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Get Mapbox token from environment variables
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  const mapboxToken = getMapboxToken();
 
   // Obtain the user's position
   useEffect(() => {
@@ -67,12 +68,8 @@ export default function MapboxMap({
   };
 
   // Check if Mapbox token is available
-  if (!mapboxToken) {
-    return (
-      <div className="p-4 text-red-600 font-bold">
-        ❌ Le token Mapbox est manquant dans votre fichier .env
-      </div>
-    );
+  if (!isMapboxTokenValid()) {
+    return <MapboxErrorMessage />;
   }
 
   return (

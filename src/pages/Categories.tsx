@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,6 +15,19 @@ import SubcategoryCard3D from '@/components/SubcategoryCard3D';
 import DailyAddressForm from '@/components/DailyAddressForm';
 import { useToast } from '@/hooks/use-toast';
 import { convertCategories } from '@/utils/categoryConverter';
+import { isMapboxTokenValid, MapboxErrorMessage } from '@/utils/mapboxConfig';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { MapPin, Utensils, ShoppingBag } from 'lucide-react';
+import { Loader } from "@/components/ui/loader";
+
+// Interface pour les locations
+interface CategoryLocation {
+  id: string;
+  name: string;
+  coordinates: [number, number];
+  category: string;
+}
 
 const Categories = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
@@ -22,23 +36,17 @@ const Categories = () => {
   const [editingAddress, setEditingAddress] = useState<DailyAddressItem | null>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
-
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  
+  // État pour le mode d'affichage (carte ou liste)
+  const [showMap, setShowMap] = useState(false);
+  const [map, setMap] = useState<mapboxgl.Map | null>(null);
+  const mapContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Convert categories once on component mount
   const [convertedCategories, setConvertedCategories] = useState<CategoryItem[]>([]);
   useEffect(() => {
     setConvertedCategories(convertCategories(categoriesData));
   }, []);
-
-  // Check if Mapbox token is available
-  if (!mapboxToken) {
-    return (
-      <div className="p-4 text-red-600 font-bold">
-        ❌ Le token Mapbox est manquant dans votre fichier .env
-      </div>
-    );
-  }
 
   // Load saved daily addresses from local storage
   useEffect(() => {
@@ -58,6 +66,27 @@ const Categories = () => {
       localStorage.setItem('dailyAddresses', JSON.stringify(dailyAddresses));
     }
   }, [dailyAddresses]);
+  
+  // Initialize map if showMap is true
+  useEffect(() => {
+    if (!showMap || !mapContainerRef.current || !isMapboxTokenValid()) return;
+
+    const initMap = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [2.3522, 48.8566], // Paris par défaut
+      zoom: 12
+    });
+
+    initMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    
+    setMap(initMap);
+
+    return () => {
+      initMap.remove();
+      setMap(null);
+    };
+  }, [showMap]);
 
   const handleSaveAddress = (addressData: Partial<DailyAddressItem>) => {
     const newAddress = {
@@ -173,54 +202,89 @@ const Categories = () => {
       </div>
     );
   };
+  
+  // Check if Mapbox token is available
+  if (!isMapboxTokenValid()) {
+    return <MapboxErrorMessage />;
+  }
+  
+  const getIconForCategory = (name: string) => {
+    if (name.includes("Alimentation")) return <Utensils className="text-rose-500" />;
+    if (name.includes("Achats")) return <ShoppingBag className="text-emerald-500" />;
+    return <MapPin className="text-gray-400" />;
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 min-h-screen">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6">Catégories</h1>
-      
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {convertedCategories.map((category) => (
-          <CategoryCard3D
-            key={category.id}
-            category={category}
-            isSelected={selectedCategory?.id === category.id}
-            onClick={() => setSelectedCategory(category)}
-          />
-        ))}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold">Catégories</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowMap(false)}
+            className={`py-2 px-4 rounded ${!showMap ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          >
+            Liste
+          </button>
+          <button
+            onClick={() => setShowMap(true)}
+            className={`py-2 px-4 rounded ${showMap ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          >
+            Carte
+          </button>
+        </div>
       </div>
       
-      <AnimatePresence>
-        {selectedCategory && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="mt-8"
-          >
-            <div className="flex items-center mb-4 space-x-3">
-              <span className="text-2xl">{selectedCategory.icon}</span>
-              <h2 className="text-xl md:text-2xl font-bold" style={{ color: selectedCategory.color }}>
-                {selectedCategory.name}
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {selectedCategory.subcategories.map((subcategory) => (
-                <div key={subcategory.id} className="flex flex-col">
-                  <SubcategoryCard3D 
-                    subcategory={subcategory}
-                    parentCategoryId={selectedCategory.id}
-                    parentCategoryColor={selectedCategory.color}
-                  />
-                  
-                  {/* For Daily category, show saved addresses */}
-                  {selectedCategory.id === 'quotidien' && renderDailyAddresses(subcategory.id)}
+      {showMap ? (
+        <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden">
+          <div ref={mapContainerRef} className="w-full h-full" />
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {convertedCategories.map((category) => (
+              <CategoryCard3D
+                key={category.id}
+                category={category}
+                isSelected={selectedCategory?.id === category.id}
+                onClick={() => setSelectedCategory(category)}
+              />
+            ))}
+          </div>
+          
+          <AnimatePresence>
+            {selectedCategory && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="mt-8"
+              >
+                <div className="flex items-center mb-4 space-x-3">
+                  <span className="text-2xl">{selectedCategory.icon}</span>
+                  <h2 className="text-xl md:text-2xl font-bold" style={{ color: selectedCategory.color }}>
+                    {selectedCategory.name}
+                  </h2>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                  {selectedCategory.subcategories.map((subcategory) => (
+                    <div key={subcategory.id} className="flex flex-col">
+                      <SubcategoryCard3D 
+                        subcategory={subcategory}
+                        parentCategoryId={selectedCategory.id}
+                        parentCategoryColor={selectedCategory.color}
+                      />
+                      
+                      {/* For Daily category, show saved addresses */}
+                      {selectedCategory.id === 'quotidien' && renderDailyAddresses(subcategory.id)}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
       
       {/* Address form dialog */}
       <Dialog open={showAddressForm} onOpenChange={setShowAddressForm}>

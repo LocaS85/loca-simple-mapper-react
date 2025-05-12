@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import UserLocationMarker from './UserLocationMarker';
 import MapMarker from './MapMarker';
 import RadiusCircle from './RadiusCircle';
+import { getMapboxToken, isMapboxTokenValid, MapboxErrorMessage } from '@/utils/mapboxConfig';
 
 interface MapComponentProps {
   center: [number, number] | null;
@@ -30,12 +31,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
-  // Définir le token Mapbox directement
-  const mapboxToken = 'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg';
+  // Définir le token Mapbox
+  const mapboxToken = getMapboxToken();
 
   // Initialize map when component mounts
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !isMapboxTokenValid()) return;
     
     mapboxgl.accessToken = mapboxToken;
     
@@ -82,6 +83,10 @@ const MapComponent: React.FC<MapComponentProps> = ({
       maxZoom: isMobile ? 13 : 15
     });
   }, [results, mapLoaded, center, isMobile]);
+
+  if (!isMapboxTokenValid()) {
+    return <MapboxErrorMessage />;
+  }
 
   return (
     <div ref={mapContainer} className="h-full w-full">
