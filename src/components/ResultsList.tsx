@@ -1,91 +1,45 @@
 
-import React from 'react';
-import { Place, TransportMode } from '../types';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Heart, Share2, Printer } from "lucide-react";
 
-interface ResultsListProps {
-  results: Place[];
-  transportMode: TransportMode;
-  onSelectResult: (result: Place) => void;
-  onClose?: () => void;
+interface Result {
+  id: string;
+  name: string;
+  address: string;
 }
 
-const getTransportIcon = (mode: TransportMode) => {
-  switch (mode) {
-    case 'driving': return '🚗';
-    case 'walking': return '🚶';
-    case 'cycling': return '🚴';
-    case 'transit': return '🚌';
-    default: return '🚶';
-  }
-};
+interface ResultsListProps {
+  results: Result[];
+}
 
-const ResultsList: React.FC<ResultsListProps> = ({ 
-  results, 
-  transportMode, 
-  onSelectResult,
-  onClose 
-}) => {
-  const isMobile = useIsMobile();
-  const { toast } = useToast();
-
+const ResultsList: React.FC<ResultsListProps> = ({ results }) => {
+  if (!results.length) return <div className="text-center text-gray-500 py-4">Aucun résultat à afficher</div>;
+  
   return (
-    <div className={`
-      ${isMobile ? 'fixed bottom-0 left-0 right-0 z-20 max-h-[70vh] rounded-t-lg' : 'hidden md:block w-80 border-l'} 
-      border-gray-200 bg-white overflow-y-auto shadow-lg
-    `}>
-      <div className="sticky top-0 p-3 md:p-4 border-b border-gray-200 bg-white z-10 flex justify-between items-center">
-        <h2 className="text-base md:text-lg font-semibold">Résultats ({results.length})</h2>
-        {isMobile && onClose && (
-          <button 
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-100"
-            aria-label="Close results"
-          >
-            <X size={20} />
-          </button>
-        )}
-      </div>
-      <div className="divide-y divide-gray-100">
-        {results.map((place) => (
-          <div
-            key={place.id}
-            className="p-3 md:p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-            onClick={() => onSelectResult(place)}
-          >
-            <h3 className="font-medium text-blue-600 mb-1">{place.name}</h3>
-            <p className="text-xs md:text-sm text-gray-500 mb-2">{place.address}</p>
-            {place.distance !== undefined && place.duration !== undefined && (
-              <div className="mt-1 flex items-center text-xs md:text-sm text-gray-600">
-                <span className="mr-2">{getTransportIcon(transportMode)}</span>
-                <span>{place.distance} m • {place.duration} min</span>
+    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {results.map((res) => (
+        <motion.div
+          key={res.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="rounded-2xl shadow-sm">
+            <CardContent className="p-4 flex flex-col gap-2">
+              <div className="text-lg font-semibold">{res.name}</div>
+              <div className="text-sm text-gray-500">{res.address}</div>
+              <div className="flex gap-2 mt-2">
+                <Button variant="outline" size="icon"><Heart size={16} /></Button>
+                <Button variant="outline" size="icon"><Share2 size={16} /></Button>
+                <Button variant="outline" size="icon"><Printer size={16} /></Button>
               </div>
-            )}
-            <div className="flex justify-between items-center mt-2">
-              {place.category && (
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
-                  {place.category}
-                </span>
-              )}
-              <button 
-                className="text-xs text-blue-600 hover:underline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigator.clipboard.writeText(`${place.name}, ${place.address}`);
-                  toast({
-                    title: 'Adresse copiée',
-                    description: 'L\'adresse a été copiée dans le presse-papier',
-                  });
-                }}
-              >
-                Copier l'adresse
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
     </div>
   );
 };

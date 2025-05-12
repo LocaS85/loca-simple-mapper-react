@@ -1,38 +1,45 @@
 
-import React, { useRef, useEffect, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import 'mapbox-gl/dist/mapbox-gl.css';
+import React, { useRef, useState, useEffect } from 'react';
+import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
+import { LocateFixed, MapPin } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface MapboxMapProps {
-  results: any[];
-  transport: string;
-  radius: number;
-  count: number;
-  category: string;
+  results?: any[];
+  transport?: string;
+  radius?: number;
+  count?: number;
+  category?: string;
 }
 
-const MapboxMap: React.FC<MapboxMapProps> = ({ results, transport, radius, category }) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const markers = useRef<mapboxgl.Marker[]>([]);
-  const [userLocation, setUserLocation] = useState<[number, number]>([2.35, 48.85]); // Default to Paris
+export default function MapboxMap({ 
+  results = [],
+  transport = "Voiture",
+  radius = 5,
+  category = ""
+}: MapboxMapProps) {
+  const [viewport, setViewport] = useState({
+    longitude: 2.3522,
+    latitude: 48.8566,
+    zoom: 12,
+  });
+
+  const mapRef = useRef<any>(null);
   const { toast } = useToast();
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Définir le token Mapbox directement
-  const mapboxToken = 'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg';
-
-  // Initialize map when component mounts
+  // Obtain the user's position
   useEffect(() => {
-    if (!mapContainer.current) return;
-
-    // Get user's location
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setUserLocation([position.coords.longitude, position.coords.latitude]);
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setViewport({ ...viewport, latitude: lat, longitude: lng });
+        setUserLocation({ lat, lng });
       },
-      (error) => {
-        console.error("Error getting location", error);
+      (err) => {
+        console.error('Erreur géolocalisation :', err);
         toast({
           title: "Localisation",
           description: "Impossible d'obtenir votre position, utilisation de Paris par défaut",
@@ -40,138 +47,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({ results, transport, radius, categ
         });
       }
     );
-    
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: userLocation,
-      zoom: 12
-    });
-
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    // Clean up on unmount
-    return () => {
-      if (map.current) {
-        map.current.remove();
-      }
-    };
   }, [toast]);
-
-  // Update map when user location changes
-  useEffect(() => {
-    if (map.current) {
-      map.current.flyTo({
-        center: userLocation,
-        zoom: 12,
-        essential: true
-      });
-
-      // Add user marker
-      new mapboxgl.Marker({ color: "#3B82F6" })
-        .setLngLat(userLocation)
-        .addTo(map.current);
-    }
-  }, [userLocation]);
-
-  // Update markers when results change
-  useEffect(() => {
-    if (!map.current || !results.length) return;
-
-    // Clear previous markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
-
-    // Add new markers
-    results.forEach(result => {
-      if (result.lng && result.lat) {
-        const marker = new mapboxgl.Marker({ color: getColorForCategory(category) })
-          .setLngLat([result.lng, result.lat])
-          .addTo(map.current!);
-        markers.current.push(marker);
-      }
-    });
-
-    // Draw radius circle if we have user location
-    if (map.current.getSource('radius-circle')) {
-      map.current.removeSource('radius-circle');
-    }
-
-    if (map.current.getLayer('radius-fill')) {
-      map.current.removeLayer('radius-fill');
-    }
-
-    if (map.current.getLayer('radius-border')) {
-      map.current.removeLayer('radius-border');
-    }
-
-    // Create a circle showing search radius
-    if (radius > 0) {
-      const circleGeoJSON = createGeoJSONCircle(userLocation, radius);
-      
-      map.current.addSource('radius-circle', {
-        type: 'geojson',
-        data: circleGeoJSON as GeoJSON.FeatureCollection
-      });
-
-      map.current.addLayer({
-        id: 'radius-fill',
-        type: 'fill',
-        source: 'radius-circle',
-        paint: {
-          'fill-color': '#4299e1',
-          'fill-opacity': 0.1
-        }
-      });
-
-      map.current.addLayer({
-        id: 'radius-border',
-        type: 'line',
-        source: 'radius-circle',
-        paint: {
-          'line-color': '#4299e1',
-          'line-width': 2
-        }
-      });
-    }
-  }, [results, radius, category, userLocation]);
-
-  // Helper function to create a GeoJSON circle
-  const createGeoJSONCircle = (center: [number, number], radiusInKm: number) => {
-    const points = 64;
-    const coords = {
-      latitude: center[1],
-      longitude: center[0]
-    };
-    
-    const km = radiusInKm;
-    const ret = [];
-    const distanceX = km / (111.320 * Math.cos(coords.latitude * Math.PI / 180));
-    const distanceY = km / 110.574;
-
-    let theta, x, y;
-    for (let i = 0; i < points; i++) {
-      theta = (i / points) * (2 * Math.PI);
-      x = distanceX * Math.cos(theta);
-      y = distanceY * Math.sin(theta);
-      ret.push([coords.longitude + x, coords.latitude + y]);
-    }
-    ret.push(ret[0]); // Close the loop
-
-    return {
-      type: "FeatureCollection" as const,
-      features: [{
-        type: "Feature" as const,
-        geometry: {
-          type: "Polygon" as const,
-          coordinates: [ret]
-        },
-        properties: {}
-      }]
-    };
-  };
 
   // Helper to get color based on category
   const getColorForCategory = (cat: string) => {
@@ -187,7 +63,63 @@ const MapboxMap: React.FC<MapboxMapProps> = ({ results, transport, radius, categ
     }
   };
 
-  return <div ref={mapContainer} className="w-full h-full" />;
-};
+  return (
+    <div className="relative w-full h-full rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+      <Map
+        ref={mapRef}
+        mapboxAccessToken="pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg"
+        initialViewState={viewport}
+        mapStyle="mapbox://styles/mapbox/streets-v12"
+        style={{ width: '100%', height: '100%' }}
+        onMove={(evt) => setViewport(evt.viewState)}
+      >
+        {/* Navigation (zoom) */}
+        <NavigationControl position="top-left" />
+        
+        {/* User location control */}
+        <GeolocateControl
+          position="top-left"
+          trackUserLocation
+          showAccuracyCircle={false}
+        />
 
-export default MapboxMap;
+        {/* User position marker */}
+        {userLocation && (
+          <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="bottom">
+            <MapPin className="text-blue-500 w-6 h-6" />
+          </Marker>
+        )}
+
+        {/* Result markers */}
+        {results.map((result, index) => (
+          result.lng && result.lat && (
+            <Marker 
+              key={index}
+              longitude={result.lng} 
+              latitude={result.lat} 
+              anchor="bottom"
+            >
+              <MapPin 
+                className="w-6 h-6" 
+                style={{ color: getColorForCategory(result.type || category) }} 
+              />
+            </Marker>
+          )
+        ))}
+      </Map>
+
+      {/* Floating "my position" button */}
+      <button
+        className="absolute bottom-4 right-4 z-10 p-3 rounded-full bg-white shadow-md hover:bg-gray-100 transition"
+        onClick={() => {
+          if (userLocation && mapRef.current) {
+            mapRef.current.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 14 });
+          }
+        }}
+        aria-label="Centrer sur ma position"
+      >
+        <LocateFixed className="w-5 h-5 text-gray-700" />
+      </button>
+    </div>
+  );
+}

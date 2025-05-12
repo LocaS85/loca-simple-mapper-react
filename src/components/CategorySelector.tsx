@@ -1,44 +1,38 @@
 
-import React from 'react';
-import { Category } from '../types';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
-interface CategorySelectorProps {
-  selectedCategory: Category | null;
-  onCategoryChange: (category: Category | null) => void;
+interface Category {
+  name: string;
+  color: string;
+  icon: string;
+  sub: string[];
 }
 
-// Sample categories - in a real app these might come from an API
-const categories: Category[] = [
-  { id: 'restaurant', name: 'Restaurants', icon: '🍽️' },
-  { id: 'cafe', name: 'Cafés', icon: '☕' },
-  { id: 'bar', name: 'Bars', icon: '🍸' },
-  { id: 'park', name: 'Parcs', icon: '🌳' },
-  { id: 'hotel', name: 'Hôtels', icon: '🏨' },
-  { id: 'shop', name: 'Commerces', icon: '🛍️' },
-  { id: 'attraction', name: 'Attractions', icon: '🎡' },
-  { id: 'museum', name: 'Musées', icon: '🏛️' },
-];
+interface CategorySelectorProps {
+  categories: Category[];
+  selectedCategory: Category | null;
+  onCategorySelect: (cat: Category) => void;
+}
 
-const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, onCategoryChange }) => {
+const CategorySelector: React.FC<CategorySelectorProps> = ({
+  categories,
+  selectedCategory,
+  onCategorySelect,
+}) => {
   return (
-    <div className="space-y-2">
-      <h3 className="font-medium mb-2">Catégorie</h3>
-      <div className="grid grid-cols-4 gap-2">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => onCategoryChange(selectedCategory?.id === category.id ? null : category)}
-            className={`flex flex-col items-center p-3 rounded-lg ${
-              selectedCategory?.id === category.id 
-                ? 'bg-blue-100 ring-2 ring-blue-500' 
-                : 'bg-gray-100 hover:bg-gray-200'
-            }`}
-          >
-            <span className="text-xl">{category.icon}</span>
-            <span className="text-xs mt-1 text-center">{category.name}</span>
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-wrap gap-2">
+      {categories.map((cat) => (
+        <Button
+          key={cat.name}
+          style={{ backgroundColor: cat.color }}
+          className="text-white px-4 py-2 rounded-xl"
+          onClick={() => onCategorySelect(cat)}
+        >
+          {cat.icon} {cat.name}
+        </Button>
+      ))}
     </div>
   );
 };
