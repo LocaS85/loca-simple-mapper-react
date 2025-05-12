@@ -2,6 +2,7 @@
 /**
  * Configuration centralisée pour Mapbox
  */
+import React from 'react';
 
 export const getMapboxToken = (): string => {
   const token = import.meta.env.VITE_MAPBOX_TOKEN;
