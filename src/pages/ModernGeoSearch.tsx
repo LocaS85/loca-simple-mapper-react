@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import MapboxMap from "@/components/MapboxMap";
 import { isMapboxTokenValid, MapboxErrorMessage, getMapboxToken } from "@/utils/mapboxConfig";
 import { TransportModeSelector } from "@/components/TransportModeSelector";
+import YourMapComponent from "@/components/YourMapComponent";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const categories = ["Divertissement", "Travail", "Santé"];
@@ -171,11 +173,12 @@ export default function ModernGeoSearch() {
       </div>
 
       <div className="relative h-screen">
-        <MapboxMap 
-          results={results} 
-          radius={radius}
-          category={category || ""}
-          transport={mode}
+        <YourMapComponent 
+          initialViewState={{
+            latitude: userLocation[1],
+            longitude: userLocation[0],
+            zoom: 12
+          }}
         />
       </div>
     </div>
