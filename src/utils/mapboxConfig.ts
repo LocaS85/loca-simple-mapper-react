@@ -16,7 +16,7 @@ export const isMapboxTokenValid = (): boolean => {
   return !!getMapboxToken();
 };
 
-export const MapboxErrorMessage = () => (
+export const MapboxErrorMessage: React.FC = () => (
   <div className="p-4 text-red-600 font-bold">
     ❌ Le token Mapbox est manquant dans votre fichier .env
   </div>
