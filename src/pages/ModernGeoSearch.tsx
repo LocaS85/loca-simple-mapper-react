@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isMapboxTokenValid, MapboxErrorMessage, getMapboxToken } from "@/utils/mapboxConfig";
 import { TransportModeSelector } from "@/components/TransportModeSelector";
 import YourMapComponent from "@/components/YourMapComponent";
+import MapboxSearchBar from "@/components/MapboxSearchBar";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const categories = ["Divertissement", "Travail", "Santé"];
@@ -22,6 +22,7 @@ export default function ModernGeoSearch() {
   const [userLocation, setUserLocation] = useState<[number, number]>([2.35, 48.85]); // Default to Paris
   const { toast } = useToast();
   const [mapboxTokenValid, setMapboxTokenValid] = useState(true);
+  const mapRef = useRef(null);
 
   // Vérification de la validité du token Mapbox
   useEffect(() => {
@@ -102,6 +103,16 @@ export default function ModernGeoSearch() {
     );
   };
 
+  // Handle search results from MapboxSearchBar
+  const handleSearchResult = (location: { lng: number; lat: number; place_name: string }) => {
+    setUserLocation([location.lng, location.lat]);
+    toast({
+      title: "Lieu trouvé",
+      description: `Position définie sur: ${location.place_name}`,
+      variant: "default",
+    });
+  };
+
   // Convert results to POIs format for the map
   const pois = results.map(item => ({
     id: item.id,
@@ -118,17 +129,24 @@ export default function ModernGeoSearch() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-screen">
       <div className="flex flex-col p-4 space-y-4 overflow-auto">
-        <div className="flex items-center gap-2">
-          <Input
-            placeholder="Rechercher un lieu..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1"
+        <div className="flex flex-col space-y-2">
+          <MapboxSearchBar 
+            mapRef={mapRef} 
+            onResult={handleSearchResult}
           />
-          <Button variant="outline" size="icon" onClick={handleLocationRequest}>
-            <span className="sr-only">Localisation</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-          </Button>
+          
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Rechercher un lieu..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1"
+            />
+            <Button variant="outline" size="icon" onClick={handleLocationRequest}>
+              <span className="sr-only">Localisation</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-navigation"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2">
