@@ -49,3 +49,14 @@ export interface MapboxConfig {
   center: [number, number]; // [longitude, latitude]
   zoom: number;
 }
+
+// Ajout de l'interface MapResult
+export interface MapResult {
+  id: string;
+  name: string;
+  address: string;
+  distance?: string;
+  duration?: string;
+  coordinates: [number, number];
+  category?: string;
+}
