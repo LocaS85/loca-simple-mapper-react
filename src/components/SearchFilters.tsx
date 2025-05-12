@@ -3,7 +3,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Mic, Navigation } from "lucide-react";
+import { Mic, Navigation, Car, Users, Bike, Train, Ship, Bus } from "lucide-react";
 
 interface SearchFiltersProps {
   search: string;
@@ -33,19 +33,19 @@ interface TransportMode {
 }
 
 const categories: Category[] = [
-  { name: "Divertissement", color: "#9f7aea", icon: <span>🎭</span> },
-  { name: "Santé", color: "#48bb78", icon: <span>⚕️</span> },
-  { name: "Travail", color: "#4299e1", icon: <span>💼</span> },
+  { name: "Divertissement", color: "#9f7aea", icon: <span role="img" aria-label="Divertissement">🎭</span> },
+  { name: "Santé", color: "#48bb78", icon: <span role="img" aria-label="Santé">⚕️</span> },
+  { name: "Travail", color: "#4299e1", icon: <span role="img" aria-label="Travail">💼</span> },
 ];
 
 const transportModes: TransportMode[] = [
-  { name: "Voiture", icon: <span>🚗</span>, color: "#f56565" },
-  { name: "À pied", icon: <span>🚶</span>, color: "#48bb78" },
-  { name: "Vélo", icon: <span>🚴</span>, color: "#ed8936" },
-  { name: "Train", icon: <span>🚆</span>, color: "#4299e1" },
-  { name: "Bateau", icon: <span>🚢</span>, color: "#38b2ac" },
-  { name: "Bus", icon: <span>🚌</span>, color: "#805ad5" },
-  { name: "Co-voiturage", icon: <span>👥</span>, color: "#d69e2e" },
+  { name: "Voiture", icon: <Car className="h-5 w-5" />, color: "#f56565" },
+  { name: "À pied", icon: <span role="img" aria-label="À pied">🚶</span>, color: "#48bb78" },
+  { name: "Vélo", icon: <Bike className="h-5 w-5" />, color: "#ed8936" },
+  { name: "Train", icon: <Train className="h-5 w-5" />, color: "#4299e1" },
+  { name: "Bateau", icon: <Ship className="h-5 w-5" />, color: "#38b2ac" },
+  { name: "Bus", icon: <Bus className="h-5 w-5" />, color: "#805ad5" },
+  { name: "Co-voiturage", icon: <Users className="h-5 w-5" />, color: "#d69e2e" },
 ];
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({
