@@ -109,9 +109,11 @@ const MapboxMap: React.FC<MapboxMapProps> = ({ results, transport, radius, categ
 
     // Create a circle showing search radius
     if (radius > 0) {
+      const circleGeoJSON = createGeoJSONCircle(userLocation, radius);
+      
       map.current.addSource('radius-circle', {
         type: 'geojson',
-        data: createGeoJSONCircle(userLocation, radius)
+        data: circleGeoJSON as GeoJSON.FeatureCollection
       });
 
       map.current.addLayer({
@@ -159,11 +161,11 @@ const MapboxMap: React.FC<MapboxMapProps> = ({ results, transport, radius, categ
     ret.push(ret[0]); // Close the loop
 
     return {
-      type: 'FeatureCollection',
+      type: "FeatureCollection" as const,
       features: [{
-        type: 'Feature',
+        type: "Feature" as const,
         geometry: {
-          type: 'Polygon',
+          type: "Polygon" as const,
           coordinates: [ret]
         },
         properties: {}

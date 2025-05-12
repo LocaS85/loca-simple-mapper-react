@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -17,6 +18,10 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      'mapbox-gl': 'mapbox-gl/dist/mapbox-gl.js',
     },
+  },
+  optimizeDeps: {
+    include: ['react-map-gl'],
   },
 }));
