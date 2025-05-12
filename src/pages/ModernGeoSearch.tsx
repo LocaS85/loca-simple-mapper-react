@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import MapboxMap from "@/components/MapboxMap";
 import { isMapboxTokenValid, MapboxErrorMessage, getMapboxToken } from "@/utils/mapboxConfig";
 import { TransportModeSelector } from "@/components/TransportModeSelector";
 import YourMapComponent from "@/components/YourMapComponent";
@@ -103,6 +102,14 @@ export default function ModernGeoSearch() {
     );
   };
 
+  // Convert results to POIs format for the map
+  const pois = results.map(item => ({
+    id: item.id,
+    name: item.name,
+    category: item.type,
+    coordinates: [item.lng, item.lat] as [number, number]
+  }));
+
   // Si le token Mapbox est invalide, afficher le message d'erreur
   if (!mapboxTokenValid) {
     return <MapboxErrorMessage />;
@@ -179,6 +186,7 @@ export default function ModernGeoSearch() {
             longitude: userLocation[0],
             zoom: 12
           }}
+          pois={pois}
         />
       </div>
     </div>
