@@ -1,11 +1,11 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import MapboxMap from "@/components/MapboxMap";
+import { isMapboxTokenValid, MapboxErrorMessage, getMapboxToken } from "@/utils/mapboxConfig";
 import { TransportModeSelector } from "@/components/TransportModeSelector";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -20,9 +20,16 @@ export default function ModernGeoSearch() {
   const [results, setResults] = useState<any[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number]>([2.35, 48.85]); // Default to Paris
   const { toast } = useToast();
+  const [mapboxTokenValid, setMapboxTokenValid] = useState(true);
+
+  // Vérification de la validité du token Mapbox
+  useEffect(() => {
+    const valid = isMapboxTokenValid();
+    setMapboxTokenValid(valid);
+  }, []);
 
   // Get user location on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation([position.coords.longitude, position.coords.latitude]);
@@ -93,6 +100,11 @@ export default function ModernGeoSearch() {
       }
     );
   };
+
+  // Si le token Mapbox est invalide, afficher le message d'erreur
+  if (!mapboxTokenValid) {
+    return <MapboxErrorMessage />;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-screen">
