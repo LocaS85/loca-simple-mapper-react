@@ -1,27 +1,35 @@
 
+import React from "react";
+
+// ✅ 1. Récupération sécurisée du token (priorité à l'environnement)
+const ENV_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const FALLBACK_TOKEN = "pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg";
+
 /**
- * Configuration centralisée pour Mapbox
+ * ✅ Retourne le token Mapbox en priorisant la variable d'environnement
  */
-import React from 'react';
-
-// Your Mapbox token
-const MAPBOX_TOKEN = "pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg";
-
 export const getMapboxToken = (): string => {
-  // Use the imported token directly, or fall back to environment variable if available
-  const token = MAPBOX_TOKEN || import.meta.env.VITE_MAPBOX_TOKEN;
-  if (!token) {
-    console.error("Mapbox token is missing");
+  const token = ENV_TOKEN?.trim() || FALLBACK_TOKEN;
+  if (!token || token.length < 60) {
+    console.warn("⚠️ Mapbox token invalide ou absent.");
   }
-  return token || "";
+  return token;
 };
 
+/**
+ * ✅ Vérifie si le token est a priori utilisable
+ */
 export const isMapboxTokenValid = (): boolean => {
-  return !!getMapboxToken();
+  const token = getMapboxToken();
+  return !!token && token.length > 60;
 };
 
+/**
+ * ✅ Composant visuel d'erreur si Mapbox échoue à se charger
+ */
 export const MapboxErrorMessage: React.FC = () => (
-  <div className="p-4 text-red-600 font-bold">
-    ❌ Le token Mapbox est manquant
+  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl">
+    <strong className="font-bold">Erreur :</strong>
+    <span className="block sm:inline"> le token Mapbox est manquant ou invalide.</span>
   </div>
 );
