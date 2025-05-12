@@ -159,12 +159,15 @@ const MapboxMap: React.FC<MapboxMapProps> = ({ results, transport, radius, categ
     ret.push(ret[0]); // Close the loop
 
     return {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [ret]
-      },
-      properties: {}
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [ret]
+        },
+        properties: {}
+      }]
     };
   };
 
