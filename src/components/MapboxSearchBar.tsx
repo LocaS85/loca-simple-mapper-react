@@ -16,6 +16,7 @@ type MapboxSearchBarProps = {
 
 const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) => {
   const geocoderContainerRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || !geocoderContainerRef.current) return;
@@ -32,8 +33,27 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
     geocoder.on("result", (e) => {
       const { center, place_name } = e.result;
       const [lng, lat] = center;
+      
+      // Call the onResult callback if provided
       onResult?.({ lng, lat, place_name });
+      
+      // Fly to location
       mapRef.current?.flyTo({ center: [lng, lat], zoom: 14 });
+
+      // Remove previous marker if exists
+      if (markerRef.current) {
+        markerRef.current.remove();
+      }
+
+      // Create new marker with popup
+      const popup = new mapboxgl.Popup({ offset: 25 }).setText(place_name);
+
+      markerRef.current = new mapboxgl.Marker({ color: "#3B82F6" }) // blue color
+        .setLngLat([lng, lat])
+        .setPopup(popup)
+        .addTo(mapRef.current);
+
+      markerRef.current.togglePopup(); // Open popup immediately
     });
 
     return () => geocoder.clear();
