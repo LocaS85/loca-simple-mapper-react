@@ -10,8 +10,12 @@ interface ImportMeta {
 
 // Extending mapbox types
 declare module "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions" {
-  export default class MapboxDirections {
+  import mapboxgl from "mapbox-gl";
+  
+  export default class MapboxDirections implements mapboxgl.IControl {
     constructor(options: any);
+    onAdd(map: mapboxgl.Map): HTMLElement;
+    onRemove(map: mapboxgl.Map): void;
     setOrigin(coordinates: [number, number]): void;
     setDestination(coordinates: [number, number]): void;
   }
@@ -23,7 +27,7 @@ declare module "@mapbox/mapbox-gl-geocoder" {
   
   interface MapboxGeocoderOptions {
     accessToken: string;
-    mapboxgl: any;
+    mapboxgl: typeof mapboxgl;
     marker?: boolean;
     proximity?: { longitude: number; latitude: number };
     placeholder?: string;
@@ -32,8 +36,10 @@ declare module "@mapbox/mapbox-gl-geocoder" {
     [key: string]: any;
   }
   
-  class MapboxGeocoder {
+  class MapboxGeocoder implements mapboxgl.IControl {
     constructor(options: MapboxGeocoderOptions);
+    onAdd(map: mapboxgl.Map): HTMLElement;
+    onRemove(map: mapboxgl.Map): void;
     addTo(container: HTMLElement): void;
     on(event: string, callback: Function): void;
     clear(): void;

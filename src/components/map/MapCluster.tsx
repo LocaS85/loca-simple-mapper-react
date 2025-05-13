@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Marker } from "react-map-gl";
-import { BBox } from "geojson";
+import { BBox, Feature, Point } from "geojson";
 import useSupercluster from "use-supercluster";
 import { POI } from "@/types/map";
 import POIMarker from "./POIMarker";
@@ -29,9 +29,9 @@ const MapCluster: React.FC<MapClusterProps> = ({
   onClusterClick,
   onPopupClose,
 }) => {
-  // Prepare points for clustering
-  const points = pointsOfInterest.map(poi => ({
-    type: "Feature" as const,
+  // Prepare points for clustering with proper GeoJSON typing
+  const points: Feature<Point>[] = pointsOfInterest.map(poi => ({
+    type: "Feature",
     properties: { 
       cluster: false, 
       poiId: poi.id, 
@@ -39,7 +39,7 @@ const MapCluster: React.FC<MapClusterProps> = ({
       poiCategory: poi.category 
     },
     geometry: {
-      type: "Point" as const,
+      type: "Point",
       coordinates: poi.coordinates
     }
   }));
@@ -56,9 +56,12 @@ const MapCluster: React.FC<MapClusterProps> = ({
     <>
       {clusters.map(cluster => {
         const [longitude, latitude] = cluster.geometry.coordinates;
-        const { cluster: isCluster, point_count: pointCount } = cluster.properties || {};
+        const { cluster: isCluster } = cluster.properties || {};
 
         if (isCluster) {
+          // Access point_count safely with type checking
+          const pointCount = cluster.properties?.point_count as number || 0;
+          
           return (
             <Marker
               key={`cluster-${cluster.id}`}
@@ -73,7 +76,7 @@ const MapCluster: React.FC<MapClusterProps> = ({
                 }}
                 onClick={() => {
                   const expansionZoom = Math.min(
-                    supercluster?.getClusterExpansionZoom(cluster.id as number) || 0,
+                    supercluster?.getClusterExpansionZoom(Number(cluster.id)) || 0,
                     20
                   );
                   onClusterClick(longitude, latitude, expansionZoom);

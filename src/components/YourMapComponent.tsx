@@ -3,6 +3,7 @@ import React, { useRef, useState, useCallback } from "react";
 import Map, {
   Marker,
   MapRef,
+  MapLayerMouseEvent
 } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css";
@@ -12,6 +13,7 @@ import { getMapboxToken } from "@/utils/mapboxConfig";
 import { POI } from "@/types/map";
 import MapControls from "./map/MapControls";
 import MapCluster from "./map/MapCluster";
+import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions";
 
 type YourMapComponentProps = {
   initialViewState?: {
@@ -71,7 +73,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
     ];
   };
 
-  const handleMapClick = useCallback((event: any) => {
+  const handleMapClick = useCallback((event: MapLayerMouseEvent) => {
     // Close popup if it's open
     if (showPopup) {
       setShowPopup(false);
@@ -90,14 +92,17 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
   const handleDirectionsClick = (coordinates: [number, number]) => {
     if (!mapRef.current) return;
     
-    // Get the directions control and set the destination
-    const directionsControl = mapRef.current.getMap()._controls.find(
+    // Get the directions control
+    const map = mapRef.current.getMap();
+    const directionsControl = map._controls.find(
       (control: any) => control instanceof MapboxDirections
     );
     
     if (directionsControl) {
-      directionsControl.setOrigin([selectedLocation.longitude, selectedLocation.latitude]);
-      directionsControl.setDestination(coordinates);
+      // Type assertion for the MapboxDirections instance
+      const directions = directionsControl as unknown as MapboxDirections;
+      directions.setOrigin([selectedLocation.longitude, selectedLocation.latitude]);
+      directions.setDestination(coordinates);
     }
   };
 

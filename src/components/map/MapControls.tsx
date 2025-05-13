@@ -28,7 +28,7 @@ const MapControls: React.FC<MapControlsProps> = ({ mapRef, initialViewState }) =
 
     const map = mapRef.current.getMap();
 
-    // Add directions control
+    // Add directions control with proper typing
     const directionsControl = new MapboxDirections({
       accessToken: getMapboxToken(),
       unit: 'metric',
@@ -46,10 +46,10 @@ const MapControls: React.FC<MapControlsProps> = ({ mapRef, initialViewState }) =
     // Use type assertion to handle type incompatibility
     map.addControl(directionsControl as unknown as mapboxgl.IControl, 'top-left');
 
-    // Add geocoder control for searching addresses
+    // Add geocoder control for searching addresses with proper typing
     const geocoder = new MapboxGeocoder({
       accessToken: getMapboxToken(),
-      mapboxgl: mapboxgl as any,
+      mapboxgl: mapboxgl as typeof import("mapbox-gl"),
       placeholder: 'Rechercher une adresse...',
       language: 'fr-FR',
       countries: 'fr',
