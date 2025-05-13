@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import UserLocationMarker from './UserLocationMarker';
 import MapMarker from './MapMarker';
 import RadiusCircle from './RadiusCircle';
-import { getMapboxToken, isMapboxTokenValid, MapboxErrorMessage } from '@/utils/mapboxConfig';
+import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { MapboxError } from '@/components/MapboxError';
 
 interface MapComponentProps {
   center: [number, number] | null;
@@ -85,7 +86,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   }, [results, mapLoaded, center, isMobile]);
 
   if (!isMapboxTokenValid()) {
-    return <MapboxErrorMessage />;
+    return <MapboxError />;
   }
 
   return (

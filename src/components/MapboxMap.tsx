@@ -4,7 +4,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
 import { LocateFixed, MapPin } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { getMapboxToken, isMapboxTokenValid, MapboxErrorMessage } from '@/utils/mapboxConfig';
+import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { MapboxError } from '@/components/MapboxError';
 
 interface MapboxMapProps {
   results?: any[];
@@ -69,7 +70,7 @@ export default function MapboxMap({
 
   // Check if Mapbox token is available
   if (!isMapboxTokenValid()) {
-    return <MapboxErrorMessage />;
+    return <MapboxError />;
   }
 
   return (

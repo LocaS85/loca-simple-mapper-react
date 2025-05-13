@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { isMapboxTokenValid, MapboxErrorMessage, getMapboxToken } from "@/utils/mapboxConfig";
+import { isMapboxTokenValid, getMapboxToken } from "@/utils/mapboxConfig";
+import { MapboxError } from "@/components/MapboxError";
 import { TransportModeSelector } from "@/components/TransportModeSelector";
 import YourMapComponent from "@/components/YourMapComponent";
 import MapboxSearchBar from "@/components/MapboxSearchBar";
@@ -123,7 +124,7 @@ export default function ModernGeoSearch() {
 
   // Si le token Mapbox est invalide, afficher le message d'erreur
   if (!mapboxTokenValid) {
-    return <MapboxErrorMessage />;
+    return <MapboxError />;
   }
 
   return (
