@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -22,6 +23,7 @@ import { Loader } from "@/components/ui/loader";
 import { FilterBar } from '@/components/FilterBar';
 import { TransportMode } from '@/lib/data/transportModes';
 import { MapboxError } from '@/components/MapboxError';
+import { MapRef } from 'react-map-gl';
 
 // Interface pour les locations
 interface CategoryLocation {
@@ -43,7 +45,9 @@ const Categories = () => {
   const [showMap, setShowMap] = useState(false);
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  
+  // Change the type to make it compatible with the FilterBar component
+  const mapRef = useRef<MapRef | null>(null);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -92,7 +96,13 @@ const Categories = () => {
     initMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
     
     setMap(initMap);
-    mapRef.current = initMap;
+    
+    // Use an adapter pattern to make the mapboxgl.Map compatible with MapRef
+    const mapRefAdapter: MapRef = {
+      getMap: () => initMap
+    };
+    
+    mapRef.current = mapRefAdapter;
 
     return () => {
       initMap.remove();
