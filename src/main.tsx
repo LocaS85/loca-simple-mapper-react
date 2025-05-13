@@ -1,46 +1,48 @@
 
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// S'assurer que l'élément racine existe
-const rootElement = document.getElementById("root");
+// Get the root element
+const rootElement = document.getElementById('root');
 
-if (!rootElement) {
-  // Créer l'élément s'il n'existe pas
-  const newRootElement = document.createElement("div");
-  newRootElement.id = "root";
-  document.body.appendChild(newRootElement);
-  
-  console.warn("L'élément root n'a pas été trouvé, un nouvel élément a été créé.");
-
-  // Créer le root et render l'app
-  const root = createRoot(newRootElement);
-  root.render(<App />);
-} else {
-  // Utiliser l'élément existant
+// Create a function to handle the rendering
+const renderApp = () => {
   try {
-    const root = createRoot(rootElement);
-    root.render(<App />);
-  } catch (error) {
-    console.error("Erreur lors du rendu de l'application:", error);
-    
-    // Essai de récupération en cas d'erreur
-    const errorDiv = document.createElement("div");
-    errorDiv.innerHTML = `
-      <div style="padding: 20px; background-color: #f8d7da; color: #721c24; text-align: center; margin: 20px;">
-        <h2>Erreur de rendu</h2>
-        <p>Une erreur est survenue lors du chargement de l'application.</p>
-        <button onclick="window.location.reload()" style="padding: 8px 16px; background: #721c24; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Recharger la page
-        </button>
-      </div>
-    `;
-    
-    // Vider et ajouter le message d'erreur
-    while (rootElement.firstChild) {
-      rootElement.removeChild(rootElement.firstChild);
+    if (!rootElement) {
+      console.error("Root element not found!");
+      return;
     }
-    rootElement.appendChild(errorDiv);
+
+    const root = createRoot(rootElement);
+    
+    root.render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
+    
+    console.log("App successfully rendered");
+  } catch (error) {
+    console.error("Error rendering application:", error);
+    
+    // Show a fallback UI if rendering fails
+    if (rootElement) {
+      rootElement.innerHTML = `
+        <div style="padding: 20px; text-align: center; font-family: system-ui, -apple-system, sans-serif;">
+          <h2 style="color: #e11d48;">Something went wrong</h2>
+          <p>The application could not be loaded. Please try refreshing the page.</p>
+          <button onclick="window.location.reload()" 
+            style="margin-top: 16px; padding: 8px 16px; background-color: #2563eb; color: white; 
+            border: none; border-radius: 4px; cursor: pointer;">
+            Reload Page
+          </button>
+        </div>
+      `;
+    }
   }
-}
+};
+
+// Execute the render function
+renderApp();

@@ -1,6 +1,6 @@
 
-import { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Suspense } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/hooks/theme-provider";
@@ -13,8 +13,18 @@ import GeoSearch from "./pages/GeoSearch";
 import ModernGeoSearch from "./pages/ModernGeoSearch";
 import GeoSearchApp from "./pages/GeoSearchApp";
 import Categories from "./pages/Categories";
+import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Favorites from "./pages/Favorites";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  }
+});
 
 function App() {
   return (
@@ -22,14 +32,20 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <Router>
           <Header />
-          <div className="min-h-screen">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/geosearch" element={<GeoSearch />} />
-              <Route path="/moderngeo" element={<ModernGeoSearch />} />
-              <Route path="/geosearchapp" element={<GeoSearchApp />} />
-              <Route path="/categories" element={<Categories />} />
-            </Routes>
+          <div className="min-h-screen pt-16">
+            <Suspense fallback={<div className="flex justify-center items-center h-screen">Chargement...</div>}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/geosearch" element={<GeoSearch />} />
+                <Route path="/moderngeo" element={<ModernGeoSearch />} />
+                <Route path="/geosearchapp" element={<GeoSearchApp />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/favorites" element={<Favorites />} />
+                <Route path="/404" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
+            </Suspense>
           </div>
           <Footer />
         </Router>

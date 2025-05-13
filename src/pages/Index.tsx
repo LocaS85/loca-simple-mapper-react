@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
-import Header from '../components/Header';
+import React, { useState, useEffect } from 'react';
 import Map from '../components/Map';
 import Sidebar from '../components/Sidebar';
 import { Location } from '../types';
+import { useToast } from "@/hooks/use-toast";
 
 // Sample data - normally this would come from an API
 const sampleLocations: Location[] = [
@@ -40,9 +40,21 @@ const Index = () => {
   const [locations] = useState<Location[]>(sampleLocations);
   const [selectedLocationId, setSelectedLocationId] = useState<string | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    console.log("Index page loaded");
+    
+    // Show toast to confirm the page is loaded
+    toast({
+      title: "Bienvenue",
+      description: "Application de cartographie chargée avec succès",
+    });
+  }, [toast]);
 
   const handleSelectLocation = (locationId: string) => {
     setSelectedLocationId(locationId);
+    console.log("Selected location:", locationId);
   };
 
   const toggleSidebar = () => {
@@ -50,9 +62,7 @@ const Index = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Header />
-      
+    <div className="flex flex-col h-[calc(100vh-64px)]">
       <div className="flex flex-grow relative">
         {/* Sidebar toggle button for mobile */}
         <button 
@@ -80,7 +90,7 @@ const Index = () => {
           className={`
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
             md:translate-x-0 transform transition-transform duration-300 ease-in-out
-            fixed md:relative z-20 md:z-0 md:w-96 w-3/4 h-[calc(100vh-64px)] top-16
+            fixed md:relative z-20 md:z-0 md:w-96 w-3/4 h-full bg-white
           `}
         >
           <Sidebar 
