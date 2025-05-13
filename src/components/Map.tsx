@@ -3,7 +3,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Location } from '../types';
 import { useToast } from '@/hooks/use-toast';
-import { getMapboxToken, isMapboxTokenValid, MapboxErrorMessage } from '@/utils/mapboxConfig';
+import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { MapboxError } from '@/components/MapboxError';
 
 interface MapProps {
   locations?: Location[];
@@ -99,7 +100,7 @@ const Map: React.FC<MapProps> = ({
   }, [selectedLocationId, locations, mapLoaded]);
 
   if (!isMapboxTokenValid()) {
-    return <MapboxErrorMessage />;
+    return <MapboxError />;
   }
 
   return <div ref={mapContainer} className="h-full w-full" />;
