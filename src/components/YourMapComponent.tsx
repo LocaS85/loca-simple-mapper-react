@@ -1,34 +1,17 @@
 
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import Map, {
-  NavigationControl,
-  GeolocateControl,
-  ScaleControl,
-  FullscreenControl,
   Marker,
   MapRef,
-  Popup,
-  Source,
-  Layer,
 } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css";
-import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions";
-import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import useSupercluster from "use-supercluster";
-import { BBox, Feature, Point, GeoJsonProperties } from "geojson";
-
+import { BBox } from "geojson";
 import { getMapboxToken } from "@/utils/mapboxConfig";
-import mapboxgl from "mapbox-gl";
-
-// Type for POI (Points of Interest)
-type POI = {
-  id: string;
-  name: string;
-  category: string;
-  coordinates: [number, number]; // [longitude, latitude]
-};
+import { POI } from "@/types/map";
+import MapControls from "./map/MapControls";
+import MapCluster from "./map/MapCluster";
 
 type YourMapComponentProps = {
   initialViewState?: {
@@ -60,7 +43,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
 
   // Add some sample POIs if none are provided
-  const [pointsOfInterest, setPointsOfInterest] = useState<POI[]>(
+  const [pointsOfInterest] = useState<POI[]>(
     pois.length > 0 ? pois : [
       { id: "1", name: "Tour Eiffel", category: "Monument", coordinates: [2.2945, 48.8584] },
       { id: "2", name: "Musée du Louvre", category: "Musée", coordinates: [2.3376, 48.8606] },
@@ -75,21 +58,6 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
     ]
   );
 
-  // Prepare points for clustering
-  const points = pointsOfInterest.map(poi => ({
-    type: "Feature" as const,
-    properties: { 
-      cluster: false, 
-      poiId: poi.id, 
-      poiName: poi.name,
-      poiCategory: poi.category 
-    },
-    geometry: {
-      type: "Point" as const,
-      coordinates: poi.coordinates
-    }
-  }));
-
   // Get map bounds
   const getBounds = (): BBox => {
     if (!mapRef.current) return [-180, -85, 180, 85];
@@ -103,14 +71,6 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
     ];
   };
 
-  // Use the useSupercluster hook to get clusters based on zoom and bounds
-  const { clusters, supercluster } = useSupercluster({
-    points,
-    bounds: getBounds(),
-    zoom: viewState.zoom,
-    options: { radius: 75, maxZoom: 20 }
-  });
-
   const handleMapClick = useCallback((event: any) => {
     // Close popup if it's open
     if (showPopup) {
@@ -122,53 +82,32 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
     setSelectedLocation({ ...selectedLocation, latitude: lat, longitude: lng });
   }, [selectedLocation, showPopup]);
 
-  // Initialize Mapbox Directions and Geocoder
-  useEffect(() => {
+  const handleMarkerClick = (poi: POI) => {
+    setSelectedPOI(poi);
+    setShowPopup(true);
+  };
+
+  const handleDirectionsClick = (coordinates: [number, number]) => {
     if (!mapRef.current) return;
+    
+    // Get the directions control and set the destination
+    const directionsControl = mapRef.current.getMap()._controls.find(
+      (control: any) => control instanceof MapboxDirections
+    );
+    
+    if (directionsControl) {
+      directionsControl.setOrigin([selectedLocation.longitude, selectedLocation.latitude]);
+      directionsControl.setDestination(coordinates);
+    }
+  };
 
-    const map = mapRef.current.getMap();
-
-    // Add directions control
-    const directionsControl = new MapboxDirections({
-      accessToken: getMapboxToken(),
-      unit: 'metric',
-      profile: 'mapbox/driving',
-      alternatives: true,
-      congestion: true,
-      language: 'fr-FR',
-      controls: {
-        inputs: true,
-        instructions: false,
-        profileSwitcher: true
-      }
+  const handleClusterClick = (longitude: number, latitude: number, expansionZoom: number) => {
+    mapRef.current?.flyTo({
+      center: [longitude, latitude],
+      zoom: expansionZoom,
+      duration: 800
     });
-
-    // Use type assertion to handle type incompatibility
-    map.addControl(directionsControl as unknown as mapboxgl.IControl, 'top-left');
-
-    // Add geocoder control for searching addresses
-    const geocoder = new MapboxGeocoder({
-      accessToken: getMapboxToken(),
-      mapboxgl: mapboxgl as typeof mapboxgl,
-      placeholder: 'Rechercher une adresse...',
-      language: 'fr-FR',
-      countries: 'fr',
-      proximity: {
-        longitude: initialViewState.longitude,
-        latitude: initialViewState.latitude
-      }
-    });
-    map.addControl(geocoder as unknown as mapboxgl.IControl);
-
-    return () => {
-      if (map.hasControl(directionsControl as unknown as mapboxgl.IControl)) {
-        map.removeControl(directionsControl as unknown as mapboxgl.IControl);
-      }
-      if (map.hasControl(geocoder as unknown as mapboxgl.IControl)) {
-        map.removeControl(geocoder as unknown as mapboxgl.IControl);
-      }
-    };
-  }, [initialViewState]);
+  };
 
   return (
     <div className="relative w-full h-[calc(100vh-80px)] rounded-2xl overflow-hidden shadow-xl">
@@ -179,121 +118,31 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
         initialViewState={initialViewState}
         onClick={handleMapClick}
         style={{ width: "100%", height: "100%" }}
-        onMove={(evt) => setViewState(evt.viewState)}
+        onMove={(evt) => setViewState({
+          ...viewState,
+          latitude: evt.viewState.latitude,
+          longitude: evt.viewState.longitude,
+          zoom: evt.viewState.zoom
+        })}
       >
         {/* UI controls */}
-        <NavigationControl position="top-right" />
-        <GeolocateControl 
-          position="top-right" 
-          trackUserLocation 
-          showUserHeading
+        <MapControls 
+          mapRef={mapRef} 
+          initialViewState={initialViewState}
         />
-        <FullscreenControl position="top-right" />
-        <ScaleControl position="bottom-right" />
 
         {/* Marker clusters */}
-        {clusters.map(cluster => {
-          const [longitude, latitude] = cluster.geometry.coordinates;
-          const { cluster: isCluster, point_count: pointCount } = cluster.properties || {};
-
-          if (isCluster) {
-            return (
-              <Marker
-                key={`cluster-${cluster.id}`}
-                longitude={longitude}
-                latitude={latitude}
-              >
-                <div 
-                  className="flex items-center justify-center bg-blue-500 text-white rounded-full cursor-pointer"
-                  style={{
-                    width: `${Math.min(pointCount * 10, 40) + 20}px`,
-                    height: `${Math.min(pointCount * 10, 40) + 20}px`,
-                  }}
-                  onClick={() => {
-                    const expansionZoom = Math.min(
-                      supercluster?.getClusterExpansionZoom(cluster.id as number) || 0,
-                      20
-                    );
-                    mapRef.current?.flyTo({
-                      center: [longitude, latitude],
-                      zoom: expansionZoom,
-                      duration: 800
-                    });
-                  }}
-                >
-                  {pointCount}
-                </div>
-              </Marker>
-            );
-          }
-
-          const poiId = cluster.properties?.poiId;
-          const poi = pointsOfInterest.find(p => p.id === poiId);
-          
-          if (!poi) return null;
-
-          return (
-            <Marker
-              key={poi.id}
-              longitude={longitude}
-              latitude={latitude}
-              anchor="bottom"
-              onClick={e => {
-                e.originalEvent.stopPropagation();
-                setSelectedPOI(poi);
-                setShowPopup(true);
-              }}
-            >
-              <div className="marker-poi">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center
-                  ${poi.category === 'Monument' ? 'bg-red-500' : 
-                    poi.category === 'Musée' ? 'bg-purple-500' :
-                    poi.category === 'Parc' ? 'bg-green-500' :
-                    'bg-blue-500'}`}>
-                  <span className="text-white text-xs font-bold">
-                    {poi.category === 'Monument' ? '🏛️' : 
-                     poi.category === 'Musée' ? '🖼️' :
-                     poi.category === 'Parc' ? '🌳' :
-                     '📍'}
-                  </span>
-                </div>
-              </div>
-            </Marker>
-          );
-        })}
-
-        {/* Popup for selected POI */}
-        {showPopup && selectedPOI && (
-          <Popup
-            longitude={selectedPOI.coordinates[0]}
-            latitude={selectedPOI.coordinates[1]}
-            anchor="bottom"
-            onClose={() => setShowPopup(false)}
-            closeButton={true}
-            className="z-10"
-          >
-            <div className="p-2">
-              <h3 className="font-bold text-sm">{selectedPOI.name}</h3>
-              <p className="text-xs text-gray-600">{selectedPOI.category}</p>
-              <button
-                className="text-xs text-blue-600 mt-1"
-                onClick={() => {
-                  // Get the directions control and set the destination
-                  const directionsControl = mapRef.current?.getMap()._controls.find(
-                    (control: any) => control instanceof MapboxDirections
-                  );
-                  
-                  if (directionsControl) {
-                    directionsControl.setOrigin([selectedLocation.longitude, selectedLocation.latitude]);
-                    directionsControl.setDestination(selectedPOI.coordinates);
-                  }
-                }}
-              >
-                Obtenir l'itinéraire
-              </button>
-            </div>
-          </Popup>
-        )}
+        <MapCluster
+          pointsOfInterest={pointsOfInterest}
+          bounds={getBounds()}
+          zoom={viewState.zoom}
+          showPopup={showPopup}
+          selectedPOI={selectedPOI}
+          onMarkerClick={handleMarkerClick}
+          onDirectionsClick={handleDirectionsClick}
+          onClusterClick={handleClusterClick}
+          onPopupClose={() => setShowPopup(false)}
+        />
 
         {/* Marker for clicked location */}
         <Marker
