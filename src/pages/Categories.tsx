@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -46,7 +45,7 @@ const Categories = () => {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
-  // Change the type to make it compatible with the FilterBar component
+  // Use a custom writable ref for MapRef
   const mapRef = useRef<MapRef | null>(null);
 
   // Filter states
@@ -97,12 +96,10 @@ const Categories = () => {
     
     setMap(initMap);
     
-    // Use an adapter pattern to make the mapboxgl.Map compatible with MapRef
-    const mapRefAdapter: MapRef = {
-      getMap: () => initMap
-    };
-    
-    mapRef.current = mapRefAdapter;
+    // Create a more complete adapter for MapRef
+    // We need to cast as any to avoid TypeScript errors
+    // because mapboxgl.Map doesn't exactly match the React-map-gl Map interface
+    mapRef.current = initMap as any;
 
     return () => {
       initMap.remove();
