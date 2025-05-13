@@ -28,6 +28,7 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
       marker: false,
     });
 
+    geocoderContainerRef.current.innerHTML = "";
     geocoder.addTo(geocoderContainerRef.current);
 
     geocoder.on("result", (e) => {
@@ -56,7 +57,12 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
       markerRef.current.togglePopup(); // Open popup immediately
     });
 
-    return () => geocoder.clear();
+    return () => {
+      geocoder.clear();
+      if (markerRef.current) {
+        markerRef.current.remove();
+      }
+    };
   }, [mapRef, onResult]);
 
   return (

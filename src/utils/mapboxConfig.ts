@@ -31,6 +31,6 @@ export const isMapboxTokenValid = (): boolean => {
  */
 export const MapboxErrorMessage: React.FC = () => (
   <div className="p-4 text-red-600 font-semibold text-sm bg-red-100 rounded-md">
-    ❌ Le token Mapbox est manquant ou invalide. Veuillez vérifier vos variables d'environnement.
+    ❌ Le token Mapbox est manquant ou invalide. Veuillez vérifier vos variables d&apos;environnement.
   </div>
 );
