@@ -6,6 +6,7 @@ import { MapRef } from 'react-map-gl';
 import { FilterBar } from '@/components/FilterBar';
 import { TransportMode } from '@/lib/data/transportModes';
 import { useToast } from '@/hooks/use-toast';
+import { getMapboxToken } from '@/utils/mapboxConfig';
 
 interface CategoryMapViewProps {
   onFiltersChange?: (filters: {
@@ -19,7 +20,7 @@ interface CategoryMapViewProps {
 const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) => {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapRef | null>(null);
+  const mapRef = useRef<any>(null);
   const { toast } = useToast();
 
   const [filters, setFilters] = useState({
@@ -29,32 +30,68 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
     maxDuration: 15
   });
 
-  // Initialize map
+  // Initialize map with error handling
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    const initMap = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [2.3522, 48.8566], // Paris par défaut
-      zoom: 12
-    });
+    try {
+      const token = getMapboxToken();
+      
+      if (!token) {
+        console.error('Mapbox token not found');
+        toast({
+          title: "Erreur de carte",
+          description: "Token Mapbox non trouvé. Veuillez configurer votre token Mapbox.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      mapboxgl.accessToken = token;
+      
+      const initMap = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [2.3522, 48.8566], // Paris par défaut
+        zoom: 12
+      });
 
-    initMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    
-    setMap(initMap);
-    
-    // Create a more complete adapter for MapRef
-    // We need to cast as any to avoid TypeScript errors
-    // because mapboxgl.Map doesn't exactly match the React-map-gl Map interface
-    mapRef.current = initMap as any;
+      initMap.on('load', () => {
+        console.log('Map loaded successfully');
+      });
 
-    return () => {
-      initMap.remove();
-      setMap(null);
-      mapRef.current = null;
-    };
-  }, []);
+      initMap.on('error', (e) => {
+        console.error('Map error:', e);
+        toast({
+          title: "Erreur de carte",
+          description: "Une erreur est survenue lors du chargement de la carte",
+          variant: "destructive"
+        });
+      });
+
+      initMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      
+      setMap(initMap);
+      
+      // Créer un adaptateur compatible avec MapRef
+      mapRef.current = {
+        getMap: () => initMap
+      };
+
+      return () => {
+        initMap.remove();
+        setMap(null);
+        mapRef.current = null;
+      };
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      toast({
+        title: "Erreur de carte",
+        description: "Impossible d'initialiser la carte Mapbox",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
 
   const handleFiltersChange = (newFilters: {
     category: string;
@@ -65,10 +102,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
     setFilters(newFilters);
     console.log("Filters updated:", newFilters);
     
-    // Here you can apply filters to the map
-    // For example, you might want to update markers or change the view
+    // Apply filters to the map if available
     if (map) {
-      // Apply filters logic here
       toast({
         title: "Filtres appliqués",
         description: `Catégorie: ${newFilters.category}, Transport: ${newFilters.transportMode}, Distance: ${newFilters.maxDistance}km, Durée: ${newFilters.maxDuration}min`
@@ -90,8 +125,16 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
           onFiltersChange={handleFiltersChange} 
         />
       </div>
-      <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden">
+      <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden relative">
         <div ref={mapContainerRef} className="w-full h-full" />
+        {!map && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-700">Chargement de la carte...</p>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
