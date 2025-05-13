@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MapRef } from 'react-map-gl';
 import { FilterBar } from '@/components/FilterBar';
 import { TransportMode } from '@/lib/data/transportModes';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +21,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [filters, setFilters] = useState({
     category: 'food',
@@ -36,14 +37,17 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
 
     try {
       const token = getMapboxToken();
+      setIsLoading(true);
       
       if (!token) {
         console.error('Mapbox token not found');
+        setError('Token Mapbox manquant');
         toast({
           title: "Erreur de carte",
           description: "Token Mapbox non trouvé. Veuillez configurer votre token Mapbox.",
           variant: "destructive"
         });
+        setIsLoading(false);
         return;
       }
       
@@ -58,15 +62,18 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
 
       initMap.on('load', () => {
         console.log('Map loaded successfully');
+        setIsLoading(false);
       });
 
       initMap.on('error', (e) => {
         console.error('Map error:', e);
+        setError('Erreur de chargement de la carte');
         toast({
           title: "Erreur de carte",
           description: "Une erreur est survenue lors du chargement de la carte",
           variant: "destructive"
         });
+        setIsLoading(false);
       });
 
       initMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -85,11 +92,13 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
       };
     } catch (error) {
       console.error('Error initializing map:', error);
+      setError('Erreur d\'initialisation de la carte');
       toast({
         title: "Erreur de carte",
         description: "Impossible d'initialiser la carte Mapbox",
         variant: "destructive"
       });
+      setIsLoading(false);
     }
   }, [toast]);
 
@@ -127,11 +136,22 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
       </div>
       <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden relative">
         <div ref={mapContainerRef} className="w-full h-full" />
-        {!map && (
+        {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
               <p className="text-gray-700">Chargement de la carte...</p>
+            </div>
+          </div>
+        )}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80">
+            <div className="text-center bg-white p-4 rounded-lg shadow-md max-w-md">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p className="text-lg font-semibold text-red-700">{error}</p>
+              <p className="text-gray-600 mt-2">Veuillez vérifier votre token Mapbox ou réessayer plus tard.</p>
             </div>
           </div>
         )}
