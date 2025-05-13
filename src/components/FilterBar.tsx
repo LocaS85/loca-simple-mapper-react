@@ -3,14 +3,13 @@ import { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapRef } from "react-map-gl";
-import { categories } from "@/lib/data/categories";
 import { TransportMode, transportModes } from "@/lib/data/transportModes";
 import { CategoryItem } from "@/types/categories";
 import { MapPin, Utensils, ShoppingBag, Home, Briefcase } from "lucide-react";
+import { categories } from "@/lib/data/categories";
 
 interface FilterBarProps {
-  mapRef: React.RefObject<MapRef>;
+  mapRef: React.RefObject<any>;
   onFiltersChange: (filters: {
     category: string;
     transportMode: TransportMode;
@@ -48,47 +47,98 @@ export function FilterBar({ mapRef, onFiltersChange }: FilterBarProps) {
   }, [category, transportMode, maxDistance, maxDuration, onFiltersChange]);
 
   return (
-    <div className="w-full p-4 rounded-2xl shadow-lg bg-white dark:bg-neutral-900 flex flex-col md:flex-row gap-4 items-center justify-between">
-      <div className="w-full md:w-auto">
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Catégorie" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat: CategoryItem) => {
-              const IconComponent = getIconComponent(cat.icon);
+    <div className="w-full p-4 rounded-2xl shadow-lg bg-white dark:bg-neutral-900">
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* Catégorie */}
+        <div className="w-full md:w-auto flex-shrink-0">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Catégorie
+          </label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat: CategoryItem) => {
+                const IconComponent = getIconComponent(cat.icon);
+                return (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    <div className="flex items-center gap-2">
+                      <IconComponent className="w-4 h-4" style={{ color: cat.color }} />
+                      {cat.label}
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Mode de transport */}
+        <div className="w-full">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Mode de transport
+          </label>
+          <ToggleGroup 
+            type="single" 
+            value={transportMode} 
+            onValueChange={(val: TransportMode) => val && setTransportMode(val)}
+            className="justify-start flex-wrap"
+          >
+            {transportModes.map((mode) => {
+              const Icon = mode.icon;
               return (
-                <SelectItem key={cat.id} value={cat.id}>
-                  <div className="flex items-center gap-2">
-                    <IconComponent className="w-4 h-4" style={{ color: cat.color }} />
-                    {cat.label}
+                <ToggleGroupItem 
+                  key={mode.value} 
+                  value={mode.value} 
+                  aria-label={mode.label}
+                  className="flex-1 max-w-[80px] data-[state=on]:bg-blue-600 data-[state=on]:text-white"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <Icon className="w-5 h-5" />
+                    <span className="text-xs mt-1">{mode.label}</span>
                   </div>
-                </SelectItem>
+                </ToggleGroupItem>
               );
             })}
-          </SelectContent>
-        </Select>
+          </ToggleGroup>
+        </div>
       </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        {/* Distance maximale */}
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Distance max
+            </label>
+            <span className="text-sm font-medium">{maxDistance} km</span>
+          </div>
+          <Slider 
+            min={1} 
+            max={50} 
+            step={1} 
+            value={[maxDistance]} 
+            onValueChange={(val) => setMaxDistance(val[0])} 
+          />
+        </div>
 
-      <ToggleGroup type="single" value={transportMode} onValueChange={(val: TransportMode) => val && setTransportMode(val)}>
-        {transportModes.map((mode) => {
-          const Icon = mode.icon;
-          return (
-            <ToggleGroupItem key={mode.value} value={mode.value} aria-label={mode.label}>
-              <Icon className="w-5 h-5" />
-            </ToggleGroupItem>
-          );
-        })}
-      </ToggleGroup>
-
-      <div className="flex flex-col gap-1 w-full md:w-1/3">
-        <label className="text-sm text-muted-foreground">Distance max (km): {maxDistance}</label>
-        <Slider min={1} max={50} step={1} value={[maxDistance]} onValueChange={(val) => setMaxDistance(val[0])} />
-      </div>
-
-      <div className="flex flex-col gap-1 w-full md:w-1/3">
-        <label className="text-sm text-muted-foreground">Durée max (min): {maxDuration}</label>
-        <Slider min={1} max={60} step={1} value={[maxDuration]} onValueChange={(val) => setMaxDuration(val[0])} />
+        {/* Durée maximale */}
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Durée max
+            </label>
+            <span className="text-sm font-medium">{maxDuration} min</span>
+          </div>
+          <Slider 
+            min={1} 
+            max={60} 
+            step={1} 
+            value={[maxDuration]} 
+            onValueChange={(val) => setMaxDuration(val[0])} 
+          />
+        </div>
       </div>
     </div>
   );

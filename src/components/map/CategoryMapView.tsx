@@ -126,7 +126,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
   };
 
   return (
-    <>
+    <div className="flex flex-col space-y-4">
       {/* Filter Bar for Map View */}
       <div className="mb-4">
         <FilterBar 
@@ -134,10 +134,11 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
           onFiltersChange={handleFiltersChange} 
         />
       </div>
+      
       <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden relative">
         <div ref={mapContainerRef} className="w-full h-full" />
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80 z-10">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
               <p className="text-gray-700">Chargement de la carte...</p>
@@ -145,7 +146,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
           </div>
         )}
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80 z-10">
             <div className="text-center bg-white p-4 rounded-lg shadow-md max-w-md">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -156,7 +157,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 
