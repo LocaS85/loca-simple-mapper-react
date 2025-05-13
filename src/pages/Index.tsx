@@ -1,116 +1,85 @@
 
-import React, { useState, useEffect } from 'react';
-import Map from '../components/Map';
-import Sidebar from '../components/Sidebar';
-import { Location } from '../types';
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
-// Sample data - normally this would come from an API
-const sampleLocations: Location[] = [
-  {
-    id: '1',
-    name: 'Appartement au centre de Paris',
-    address: '15 Rue de Rivoli, 75004 Paris',
-    description: 'Magnifique appartement avec vue sur la Seine, proche des attractions touristiques et des transports en commun.',
-    price: 1200,
-    coordinates: [2.3522, 48.8566],
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: '2',
-    name: 'Studio à Montmartre',
-    address: '25 Rue des Abbesses, 75018 Paris',
-    description: 'Charmant studio au cœur de Montmartre, à quelques pas du Sacré-Cœur et de la Place du Tertre.',
-    price: 950,
-    coordinates: [2.3378, 48.8865],
-    image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    id: '3',
-    name: 'Loft dans le Marais',
-    address: '10 Rue des Archives, 75004 Paris',
-    description: 'Spacieux loft dans le quartier historique du Marais, rénové avec des finitions modernes et élégantes.',
-    price: 1500,
-    coordinates: [2.3582, 48.8566],
-    image: 'https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  }
-];
-
-const Index = () => {
-  const [locations] = useState<Location[]>(sampleLocations);
-  const [selectedLocationId, setSelectedLocationId] = useState<string | undefined>(undefined);
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    console.log("Index page loaded");
-    
-    // Show toast to confirm the page is loaded
-    toast({
-      title: "Bienvenue",
-      description: "Application de cartographie chargée avec succès",
-    });
-  }, [toast]);
-
-  const handleSelectLocation = (locationId: string) => {
-    setSelectedLocationId(locationId);
-    console.log("Selected location:", locationId);
-  };
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+export default function Index() {
+  const handleExplore = () => {
+    toast.success("Let's start exploring!");
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)]">
-      <div className="flex flex-grow relative">
-        {/* Sidebar toggle button for mobile */}
-        <button 
-          className="md:hidden fixed top-20 left-4 z-10 bg-white p-2 rounded-full shadow-md"
-          onClick={toggleSidebar}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            {sidebarOpen ? (
-              <>
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </>
-            ) : (
-              <>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </>
-            )}
-          </svg>
-        </button>
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted">
+          <Container>
+            <div className="space-y-6 text-center">
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                Loca Simple Mapper
+              </h1>
+              <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                A simple and powerful tool for mapping and exploring locations.
+              </p>
+              <div className="flex flex-col gap-4 sm:flex-row justify-center">
+                <Button asChild size="lg" onClick={handleExplore}>
+                  <Link to="/geosearchapp">Start Exploring</Link>
+                </Button>
+                <Button asChild variant="outline" size="lg">
+                  <Link to="/categories">View Categories</Link>
+                </Button>
+              </div>
+            </div>
+          </Container>
+        </section>
         
-        {/* Sidebar */}
-        <div 
-          className={`
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-            md:translate-x-0 transform transition-transform duration-300 ease-in-out
-            fixed md:relative z-20 md:z-0 md:w-96 w-3/4 h-full bg-white
-          `}
-        >
-          <Sidebar 
-            locations={locations}
-            selectedLocationId={selectedLocationId}
-            onSelectLocation={handleSelectLocation}
-          />
-        </div>
-        
-        {/* Map */}
-        <div className="flex-grow relative">
-          <Map 
-            locations={locations}
-            selectedLocationId={selectedLocationId}
-            onSelectLocation={handleSelectLocation}
-          />
-        </div>
-      </div>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
+          <Container>
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Features</h2>
+                <p className="text-muted-foreground">
+                  Our application provides various mapping and location search capabilities.
+                </p>
+                <ul className="grid gap-2">
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span>Interactive maps with custom markers</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span>Search for locations by category</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span>Filter search results</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span>Save favorite locations</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                <div className="p-6 space-y-4">
+                  <h3 className="text-2xl font-bold">Available Map Views</h3>
+                  <div className="grid gap-4">
+                    <Button asChild variant="secondary">
+                      <Link to="/geosearch">Basic GeoSearch</Link>
+                    </Button>
+                    <Button asChild variant="secondary">
+                      <Link to="/moderngeo">Modern GeoSearch</Link>
+                    </Button>
+                    <Button asChild variant="secondary">
+                      <Link to="/geosearchapp">Full GeoSearch App</Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Container>
+        </section>
+      </main>
     </div>
   );
-};
-
-export default Index;
+}
