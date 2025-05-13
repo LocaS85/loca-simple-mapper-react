@@ -49,7 +49,7 @@ const MapControls: React.FC<MapControlsProps> = ({ mapRef, initialViewState }) =
     // Add geocoder control for searching addresses with proper typing
     const geocoder = new MapboxGeocoder({
       accessToken: getMapboxToken(),
-      mapboxgl: mapboxgl as typeof import("mapbox-gl"),
+      mapboxgl: mapboxgl,
       placeholder: 'Rechercher une adresse...',
       language: 'fr-FR',
       countries: 'fr',

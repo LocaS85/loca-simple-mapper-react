@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -15,13 +14,14 @@ import SubcategoryCard3D from '@/components/SubcategoryCard3D';
 import DailyAddressForm from '@/components/DailyAddressForm';
 import { useToast } from '@/hooks/use-toast';
 import { convertCategories } from '@/utils/categoryConverter';
-import { isMapboxTokenValid, MapboxErrorMessage } from '@/utils/mapboxConfig';
+import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Utensils, ShoppingBag } from 'lucide-react';
 import { Loader } from "@/components/ui/loader";
 import { FilterBar } from '@/components/FilterBar';
 import { TransportMode } from '@/lib/data/transportModes';
+import { MapboxError } from '@/components/MapboxError';
 
 // Interface pour les locations
 interface CategoryLocation {
@@ -238,7 +238,7 @@ const Categories = () => {
   
   // Check if Mapbox token is available
   if (!isMapboxTokenValid()) {
-    return <MapboxErrorMessage />;
+    return <MapboxError />;
   }
   
   const getIconForCategory = (name: string) => {

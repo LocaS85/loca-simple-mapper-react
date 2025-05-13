@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import SearchBar from "@/components/SearchBar";
@@ -140,7 +139,15 @@ export default function GeoSearchApp() {
         />
       </div>
 
-      <ResultsList results={results} />
+      {/* Add the onSelect prop */}
+      <ResultsList 
+        results={results} 
+        onSelect={(result) => {
+          // Handle selection, e.g., fly to the result on map
+          console.log("Selected result:", result);
+          // Add implementation here
+        }} 
+      />
     </div>
   );
 }

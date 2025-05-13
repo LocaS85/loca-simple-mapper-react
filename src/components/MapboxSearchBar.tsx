@@ -23,7 +23,7 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
 
     const geocoder = new MapboxGeocoder({
       accessToken: getMapboxToken(),
-      mapboxgl: mapboxgl as typeof import("mapbox-gl"),
+      mapboxgl: mapboxgl,
       placeholder: "Rechercher un lieu...",
       marker: false,
     });
