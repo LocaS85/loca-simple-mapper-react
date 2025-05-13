@@ -7,3 +7,12 @@ interface ImportMeta {
     [key: string]: any;
   }
 }
+
+// Extending mapbox types
+declare module "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions" {
+  export default class MapboxDirections {
+    constructor(options: any);
+    setOrigin(coordinates: [number, number]): void;
+    setDestination(coordinates: [number, number]): void;
+  }
+}

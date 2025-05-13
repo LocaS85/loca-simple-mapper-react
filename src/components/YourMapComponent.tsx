@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import Map, {
   NavigationControl,
@@ -16,9 +17,10 @@ import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-direct
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import useSupercluster from "use-supercluster";
-import { BBox } from "geojson";
+import { BBox, Feature, Point, GeoJsonProperties } from "geojson";
 
 import { getMapboxToken } from "@/utils/mapboxConfig";
+import mapboxgl from "mapbox-gl";
 
 // Type for POI (Points of Interest)
 type POI = {
@@ -75,7 +77,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
 
   // Prepare points for clustering
   const points = pointsOfInterest.map(poi => ({
-    type: "Feature",
+    type: "Feature" as const,
     properties: { 
       cluster: false, 
       poiId: poi.id, 
@@ -83,7 +85,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
       poiCategory: poi.category 
     },
     geometry: {
-      type: "Point",
+      type: "Point" as const,
       coordinates: poi.coordinates
     }
   }));
@@ -140,12 +142,14 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
         profileSwitcher: true
       }
     });
-    map.addControl(directionsControl, 'top-left');
+
+    // Use type assertion to handle type incompatibility
+    map.addControl(directionsControl as unknown as mapboxgl.IControl, 'top-left');
 
     // Add geocoder control for searching addresses
     const geocoder = new MapboxGeocoder({
       accessToken: getMapboxToken(),
-      mapboxgl: mapRef.current.getMap().constructor,
+      mapboxgl: mapboxgl as typeof mapboxgl,
       placeholder: 'Rechercher une adresse...',
       language: 'fr-FR',
       countries: 'fr',
@@ -154,14 +158,14 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
         latitude: initialViewState.latitude
       }
     });
-    map.addControl(geocoder);
+    map.addControl(geocoder as unknown as mapboxgl.IControl);
 
     return () => {
-      if (map.hasControl(directionsControl)) {
-        map.removeControl(directionsControl);
+      if (map.hasControl(directionsControl as unknown as mapboxgl.IControl)) {
+        map.removeControl(directionsControl as unknown as mapboxgl.IControl);
       }
-      if (map.hasControl(geocoder)) {
-        map.removeControl(geocoder);
+      if (map.hasControl(geocoder as unknown as mapboxgl.IControl)) {
+        map.removeControl(geocoder as unknown as mapboxgl.IControl);
       }
     };
   }, [initialViewState]);
@@ -190,7 +194,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
         {/* Marker clusters */}
         {clusters.map(cluster => {
           const [longitude, latitude] = cluster.geometry.coordinates;
-          const { cluster: isCluster, point_count: pointCount } = cluster.properties;
+          const { cluster: isCluster, point_count: pointCount } = cluster.properties || {};
 
           if (isCluster) {
             return (
@@ -223,7 +227,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
             );
           }
 
-          const poiId = cluster.properties.poiId;
+          const poiId = cluster.properties?.poiId;
           const poi = pointsOfInterest.find(p => p.id === poiId);
           
           if (!poi) return null;
