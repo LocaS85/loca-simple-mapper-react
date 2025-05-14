@@ -28,11 +28,11 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
             onClick={() => onCategorySelect(cat)}
           >
             {isIconComponent ? (
-              // Render as component
+              // Correctly render component icons
               React.createElement(cat.icon as React.ComponentType<any>, { className: "h-4 w-4 mr-1" })
             ) : (
-              // Render as React node
-              cat.icon
+              // Render as React node if not a component
+              cat.icon || null
             )}
             {cat.name}
           </Button>

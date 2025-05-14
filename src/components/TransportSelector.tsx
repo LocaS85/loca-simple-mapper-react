@@ -34,11 +34,11 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
             onClick={() => onTransportSelect(mode.name)}
           >
             {isIconComponent ? (
-              // Render as component
+              // Correctly render component icons
               React.createElement(mode.icon as React.ComponentType<any>, { className: "h-4 w-4 mr-1" })
             ) : (
-              // Render as React node
-              mode.icon
+              // Render as React node if not a component
+              mode.icon || null
             )}
             {mode.name}
           </Button>
