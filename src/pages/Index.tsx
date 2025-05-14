@@ -73,6 +73,9 @@ export default function Index() {
                     <Button asChild variant="secondary">
                       <Link to="/geosearchapp">Full GeoSearch App</Link>
                     </Button>
+                    <Button asChild variant="secondary">
+                      <Link to="/favorites">My Favorites</Link>
+                    </Button>
                   </div>
                 </div>
               </div>

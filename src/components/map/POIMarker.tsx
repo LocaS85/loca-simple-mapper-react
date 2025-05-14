@@ -2,6 +2,7 @@
 import React from "react";
 import { Marker, Popup } from "react-map-gl";
 import { POI } from "@/types/map";
+import { Monument, PictureInPicture, Tree, MapPin } from "lucide-react";
 
 interface POIMarkerProps {
   poi: POI;
@@ -22,6 +23,19 @@ const POIMarker: React.FC<POIMarkerProps> = ({
 }) => {
   const isSelected = selectedPOI?.id === poi.id;
   
+  const renderIcon = () => {
+    switch (poi.category) {
+      case 'Monument':
+        return <Monument size={14} className="text-white" />;
+      case 'Musée':
+        return <PictureInPicture size={14} className="text-white" />;
+      case 'Parc':
+        return <Tree size={14} className="text-white" />;
+      default:
+        return <MapPin size={14} className="text-white" />;
+    }
+  };
+
   return (
     <>
       <Marker
@@ -40,12 +54,7 @@ const POIMarker: React.FC<POIMarkerProps> = ({
               poi.category === 'Musée' ? 'bg-purple-500' :
               poi.category === 'Parc' ? 'bg-green-500' :
               'bg-blue-500'}`}>
-            <span className="text-white text-xs font-bold">
-              {poi.category === 'Monument' ? '🏛️' : 
-               poi.category === 'Musée' ? '🖼️' :
-               poi.category === 'Parc' ? '🌳' :
-               '📍'}
-            </span>
+            {renderIcon()}
           </div>
         </div>
       </Marker>

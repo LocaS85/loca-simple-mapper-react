@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Car, User as Walking, Bike, Train, Ship as Boat, Bus, Users } from "lucide-react";
+import { Car, User, Bike, Train, Ship, Bus, Users } from "lucide-react";
 
 interface TransportModeSelectorProps {
   mode: string;
@@ -11,10 +11,10 @@ interface TransportModeSelectorProps {
 export const TransportModeSelector: React.FC<TransportModeSelectorProps> = ({ mode, setMode }) => {
   const transportModes = [
     { id: "driving", name: "Voiture", icon: <Car className="h-4 w-4" />, color: "#f56565" },
-    { id: "walking", name: "À pied", icon: <Walking className="h-4 w-4" />, color: "#48bb78" },
+    { id: "walking", name: "À pied", icon: <User className="h-4 w-4" />, color: "#48bb78" },
     { id: "cycling", name: "Vélo", icon: <Bike className="h-4 w-4" />, color: "#ed8936" },
     { id: "transit", name: "Train", icon: <Train className="h-4 w-4" />, color: "#4299e1" },
-    { id: "boat", name: "Bateau", icon: <Boat className="h-4 w-4" />, color: "#38b2ac" },
+    { id: "boat", name: "Bateau", icon: <Ship className="h-4 w-4" />, color: "#38b2ac" },
     { id: "bus", name: "Bus", icon: <Bus className="h-4 w-4" />, color: "#805ad5" },
     { id: "carpool", name: "Co-voiturage", icon: <Users className="h-4 w-4" />, color: "#d69e2e" },
   ];

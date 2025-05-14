@@ -1,15 +1,16 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { TransportMode } from "@/lib/data/transportModes";
 
-interface TransportMode {
+interface TransportModeItem {
   name: string;
-  icon: string;
+  icon: React.ReactNode;
   color: string;
 }
 
 interface TransportSelectorProps {
-  transportModes: TransportMode[];
+  transportModes: TransportModeItem[];
   selectedTransport: string;
   onTransportSelect: (transport: string) => void;
 }
@@ -28,7 +29,7 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
           className={`text-white rounded-xl ${selectedTransport === mode.name ? "ring-2 ring-black" : ""}`}
           onClick={() => onTransportSelect(mode.name)}
         >
-          {mode.icon} {mode.name}
+          {React.isValidElement(mode.icon) ? mode.icon : null} {mode.name}
         </Button>
       ))}
     </div>

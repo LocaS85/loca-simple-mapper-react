@@ -24,7 +24,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           className="text-white px-4 py-2 rounded-xl"
           onClick={() => onCategorySelect(cat)}
         >
-          {cat.icon} {cat.name}
+          <span className="mr-2">{cat.icon}</span> {cat.name}
         </Button>
       ))}
     </div>
