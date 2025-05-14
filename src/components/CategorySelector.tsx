@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import { Category } from "../types";
 
 interface CategorySelectorProps {
@@ -18,7 +17,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   return (
     <div className="flex flex-wrap gap-2">
       {categories.map((cat) => {
-        const IconComponent = typeof cat.icon === 'function' ? cat.icon : null;
+        const Icon = typeof cat.icon === 'function' ? cat.icon : null;
         
         return (
           <Button
@@ -27,8 +26,8 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
             className="text-white px-4 py-2 rounded-xl"
             onClick={() => onCategorySelect(cat)}
           >
-            {IconComponent ? (
-              <IconComponent className="h-4 w-4 mr-1" />
+            {Icon ? (
+              <Icon className="h-4 w-4 mr-1" />
             ) : (
               <span className="mr-2">{cat.icon}</span>
             )}
