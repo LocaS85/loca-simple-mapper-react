@@ -17,7 +17,8 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   return (
     <div className="flex flex-wrap gap-2">
       {categories.map((cat) => {
-        const Icon = cat.icon && typeof cat.icon === 'function' ? cat.icon : null;
+        // Check if icon is a component function
+        const isIconComponent = cat.icon && typeof cat.icon === 'function';
         
         return (
           <Button
@@ -26,9 +27,11 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
             className="text-white px-4 py-2 rounded-xl"
             onClick={() => onCategorySelect(cat)}
           >
-            {Icon ? (
-              <Icon className="h-4 w-4 mr-1" />
+            {isIconComponent ? (
+              // Render as component
+              React.createElement(cat.icon as React.ComponentType<any>, { className: "h-4 w-4 mr-1" })
             ) : (
+              // Render as React node
               cat.icon
             )}
             {cat.name}
