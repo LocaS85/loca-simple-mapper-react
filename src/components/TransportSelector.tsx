@@ -23,7 +23,7 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
   return (
     <div className="flex flex-wrap gap-2">
       {transportModes.map((mode) => {
-        const IconComponent = typeof mode.icon === 'function' ? mode.icon : null;
+        const IconComponent = mode.icon && typeof mode.icon === 'function' ? mode.icon : null;
         
         return (
           <Button
@@ -35,9 +35,7 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
             {IconComponent ? (
               <IconComponent className="h-4 w-4 mr-1" />
             ) : (
-              <React.Fragment>
-                {mode.icon}
-              </React.Fragment>
+              mode.icon
             )}
             {mode.name}
           </Button>

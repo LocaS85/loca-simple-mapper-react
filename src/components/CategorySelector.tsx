@@ -17,7 +17,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   return (
     <div className="flex flex-wrap gap-2">
       {categories.map((cat) => {
-        const Icon = typeof cat.icon === 'function' ? cat.icon : null;
+        const Icon = cat.icon && typeof cat.icon === 'function' ? cat.icon : null;
         
         return (
           <Button
@@ -29,7 +29,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
             {Icon ? (
               <Icon className="h-4 w-4 mr-1" />
             ) : (
-              <span className="mr-2">{cat.icon}</span>
+              cat.icon
             )}
             {cat.name}
           </Button>
