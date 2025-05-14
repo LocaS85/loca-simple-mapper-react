@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Car, User, Bike, Bus } from 'lucide-react';
 import { TransportMode } from '@/lib/data/transportModes';
 import CategorySelector from './CategorySelector';
 import { Category } from '../types';
@@ -21,10 +21,10 @@ interface FilterPanelProps {
 }
 
 const transportModes = [
-  { id: 'car' as TransportMode, name: 'Voiture', icon: () => <span className="text-lg">🚗</span>, color: 'bg-blue-100 text-blue-800' },
-  { id: 'walking' as TransportMode, name: 'À pied', icon: () => <span className="text-lg">🚶</span>, color: 'bg-green-100 text-green-800' },
-  { id: 'cycling' as TransportMode, name: 'Vélo', icon: () => <span className="text-lg">🚴</span>, color: 'bg-purple-100 text-purple-800' },
-  { id: 'bus' as TransportMode, name: 'Transport', icon: () => <span className="text-lg">🚌</span>, color: 'bg-yellow-100 text-yellow-800' },
+  { id: 'car' as TransportMode, name: 'Voiture', icon: () => <Car size={18} />, color: 'bg-blue-100 text-blue-800' },
+  { id: 'walking' as TransportMode, name: 'À pied', icon: () => <User size={18} />, color: 'bg-green-100 text-green-800' },
+  { id: 'cycling' as TransportMode, name: 'Vélo', icon: () => <Bike size={18} />, color: 'bg-purple-100 text-purple-800' },
+  { id: 'bus' as TransportMode, name: 'Transport', icon: () => <Bus size={18} />, color: 'bg-yellow-100 text-yellow-800' },
 ];
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
