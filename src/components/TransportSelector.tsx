@@ -23,7 +23,7 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
   return (
     <div className="flex flex-wrap gap-2">
       {transportModes.map((mode) => {
-        const Icon = typeof mode.icon === 'function' ? mode.icon : null;
+        const IconComponent = typeof mode.icon === 'function' ? mode.icon : null;
         
         return (
           <Button
@@ -32,7 +32,14 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
             className={`text-white rounded-xl ${selectedTransport === mode.name ? "ring-2 ring-black" : ""}`}
             onClick={() => onTransportSelect(mode.name)}
           >
-            {Icon ? <Icon className="h-4 w-4 mr-1" /> : mode.icon} {mode.name}
+            {IconComponent ? (
+              <IconComponent className="h-4 w-4 mr-1" />
+            ) : (
+              <React.Fragment>
+                {mode.icon}
+              </React.Fragment>
+            )}
+            {mode.name}
           </Button>
         );
       })}
