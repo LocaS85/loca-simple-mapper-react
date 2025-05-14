@@ -1,12 +1,11 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { TransportMode } from "@/lib/data/transportModes";
 import { LucideIcon } from "lucide-react";
 
 interface TransportModeItem {
   name: string;
-  icon: React.ReactNode | LucideIcon;
+  icon: React.ReactNode | React.ComponentType<any>;
   color: string;
 }
 
