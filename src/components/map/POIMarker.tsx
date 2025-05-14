@@ -2,7 +2,7 @@
 import React from "react";
 import { Marker, Popup } from "react-map-gl";
 import { POI } from "@/types/map";
-import { Monument, PictureInPicture, Tree, MapPin } from "lucide-react";
+import { Landmark, Image, Trees, MapPin } from "lucide-react";
 
 interface POIMarkerProps {
   poi: POI;
@@ -26,11 +26,11 @@ const POIMarker: React.FC<POIMarkerProps> = ({
   const renderIcon = () => {
     switch (poi.category) {
       case 'Monument':
-        return <Monument size={14} className="text-white" />;
+        return <Landmark size={14} className="text-white" />;
       case 'Musée':
-        return <PictureInPicture size={14} className="text-white" />;
+        return <Image size={14} className="text-white" />;
       case 'Parc':
-        return <Tree size={14} className="text-white" />;
+        return <Trees size={14} className="text-white" />;
       default:
         return <MapPin size={14} className="text-white" />;
     }

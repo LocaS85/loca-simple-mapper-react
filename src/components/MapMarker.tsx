@@ -2,7 +2,7 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Place } from '../types';
-import { Restaurant, Coffee, MapPin } from 'lucide-react';
+import { Utensils, Coffee, MapPin } from 'lucide-react';
 
 interface MapMarkerProps {
   place: Place;
@@ -13,6 +13,8 @@ const MapMarker: React.FC<MapMarkerProps> = ({ place, map }) => {
   React.useEffect(() => {
     const el = document.createElement('div');
     el.className = 'marker';
+    
+    // Create a safe HTML structure without emoji icons
     el.innerHTML = `
       <div class="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg cursor-pointer transition-shadow duration-200">
         <div class="h-6 w-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold">

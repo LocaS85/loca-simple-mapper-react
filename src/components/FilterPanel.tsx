@@ -19,11 +19,11 @@ interface FilterPanelProps {
   onUnitChange: (unit: 'km' | 'mi') => void;
 }
 
-const transportModes: { id: TransportMode; name: string; icon: React.ElementType | string; color: string }[] = [
-  { id: 'driving', name: 'Voiture', icon: '🚗', color: 'bg-blue-100 text-blue-800' },
-  { id: 'walking', name: 'À pied', icon: '🚶', color: 'bg-green-100 text-green-800' },
-  { id: 'cycling', name: 'Vélo', icon: '🚴', color: 'bg-purple-100 text-purple-800' },
-  { id: 'transit', name: 'Transport', icon: '🚌', color: 'bg-yellow-100 text-yellow-800' },
+const transportModes = [
+  { id: 'driving', name: 'Voiture', icon: () => <span className="text-lg">🚗</span>, color: 'bg-blue-100 text-blue-800' },
+  { id: 'walking', name: 'À pied', icon: () => <span className="text-lg">🚶</span>, color: 'bg-green-100 text-green-800' },
+  { id: 'cycling', name: 'Vélo', icon: () => <span className="text-lg">🚴</span>, color: 'bg-purple-100 text-purple-800' },
+  { id: 'transit', name: 'Transport', icon: () => <span className="text-lg">🚌</span>, color: 'bg-yellow-100 text-yellow-800' },
 ];
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -90,7 +90,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         <h3 className="font-medium mb-2">Mode de transport</h3>
         <div className="grid grid-cols-4 gap-2">
           {transportModes.map((mode) => {
-            const Icon = mode.icon;
+            const IconComponent = mode.icon;
             return (
               <button
                 key={mode.id}
@@ -99,7 +99,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   transportMode === mode.id ? mode.color : 'bg-gray-100'
                 } hover:opacity-90 transition-colors`}
               >
-                {typeof Icon === 'string' ? Icon : <Icon className="h-5 w-5" />}
+                <IconComponent />
                 <span className="text-xs mt-1">{mode.name}</span>
               </button>
             );

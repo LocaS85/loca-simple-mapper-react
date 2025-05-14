@@ -5,7 +5,7 @@ export type TransportMode = "car" | "walking" | "cycling" | "bus" | "train";
 
 export const transportModes = [
   { value: "car" as TransportMode, label: "Voiture", icon: Car },
-  { value: "walking" as TransportMode, label: "À pied", icon: User }, // Changed from Bike to User for walking
+  { value: "walking" as TransportMode, label: "À pied", icon: User },
   { value: "cycling" as TransportMode, label: "Vélo", icon: Bike },
   { value: "bus" as TransportMode, label: "Bus", icon: Bus },
   { value: "train" as TransportMode, label: "Train", icon: Train },

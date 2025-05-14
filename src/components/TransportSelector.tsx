@@ -2,10 +2,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TransportMode } from "@/lib/data/transportModes";
+import { LucideIcon } from "lucide-react";
 
 interface TransportModeItem {
   name: string;
-  icon: React.ReactNode;
+  icon: React.ReactNode | LucideIcon;
   color: string;
 }
 
@@ -22,16 +23,20 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
 }) => {
   return (
     <div className="flex flex-wrap gap-2">
-      {transportModes.map((mode) => (
-        <Button
-          key={mode.name}
-          style={{ backgroundColor: mode.color }}
-          className={`text-white rounded-xl ${selectedTransport === mode.name ? "ring-2 ring-black" : ""}`}
-          onClick={() => onTransportSelect(mode.name)}
-        >
-          {React.isValidElement(mode.icon) ? mode.icon : null} {mode.name}
-        </Button>
-      ))}
+      {transportModes.map((mode) => {
+        const IconComponent = typeof mode.icon === 'function' ? mode.icon : null;
+        
+        return (
+          <Button
+            key={mode.name}
+            style={{ backgroundColor: mode.color }}
+            className={`text-white rounded-xl ${selectedTransport === mode.name ? "ring-2 ring-black" : ""}`}
+            onClick={() => onTransportSelect(mode.name)}
+          >
+            {IconComponent ? <IconComponent className="h-4 w-4 mr-1" /> : mode.icon} {mode.name}
+          </Button>
+        );
+      })}
     </div>
   );
 };
