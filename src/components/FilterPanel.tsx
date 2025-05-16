@@ -4,6 +4,7 @@ import { X, Car, User, Bike, Bus } from 'lucide-react';
 import { TransportMode } from '@/lib/data/transportModes';
 import CategorySelector from './CategorySelector';
 import { Category } from '../types';
+import { categoriesData } from '@/data/categories';
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const filterContent = (
     <div className="space-y-6">
       <CategorySelector
-        categories={[]} // Nous passons un tableau vide car le type CategorySelectorProps attend un tableau de Category
+        categories={categoriesData} 
         selectedCategory={selectedCategory}
         onCategorySelect={onCategoryChange}
       />
