@@ -15,3 +15,13 @@ export interface SubcategoryItem {
   description: string;
   icon: string;
 }
+
+export interface DailyAddressItem {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  category: string;
+  subcategory: string;
+  transportMode?: string;
+}
