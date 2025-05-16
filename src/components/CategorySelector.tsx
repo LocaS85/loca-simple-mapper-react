@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Category } from "../types";
@@ -17,7 +16,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
   return (
     <div className="flex flex-wrap gap-2">
       {categories.map((cat) => {
-        // Check if icon is a component function
+        // Vérifie si l'icône est un composant React
         const isIconComponent = cat.icon && typeof cat.icon === 'function';
         
         return (
@@ -27,14 +26,16 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
             className="text-white px-4 py-2 rounded-xl"
             onClick={() => onCategorySelect(cat)}
           >
-            {isIconComponent ? (
-              // Correctly render component icons
-              React.createElement(cat.icon as React.ComponentType<any>, { className: "h-4 w-4 mr-1" })
-            ) : (
-              // Render as React node if not a component
-              cat.icon || null
-            )}
-            {cat.name}
+            <span className="flex items-center">
+              {isIconComponent ? (
+                // Rend correctement les icônes composants
+                React.createElement(cat.icon as React.ComponentType, { className: "h-4 w-4 mr-1" })
+              ) : (
+                // Rend l'icône directement si c'est un ReactNode (string, number, JSX, etc.)
+                cat.icon ? <span className="h-4 w-4 mr-1">{cat.icon}</span> : null
+              )}
+              {cat.name}
+            </span>
           </Button>
         );
       })}
