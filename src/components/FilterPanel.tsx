@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { X, Car, User, Bike, Bus } from 'lucide-react';
 import { TransportMode } from '@/lib/data/transportModes';
 import CategorySelector from './CategorySelector';
+import TransportSelector from './TransportSelector';
 import { Category } from '../types';
 import { categoriesData } from '@/data/categories';
 
@@ -22,10 +22,10 @@ interface FilterPanelProps {
 }
 
 const transportModes = [
-  { id: 'car' as TransportMode, name: 'Voiture', icon: Car, color: 'bg-blue-100 text-blue-800' },
-  { id: 'walking' as TransportMode, name: 'À pied', icon: User, color: 'bg-green-100 text-green-800' },
-  { id: 'cycling' as TransportMode, name: 'Vélo', icon: Bike, color: 'bg-purple-100 text-purple-800' },
-  { id: 'bus' as TransportMode, name: 'Transport', icon: Bus, color: 'bg-yellow-100 text-yellow-800' },
+  { id: 'car' as TransportMode, name: 'Voiture', icon: Car, color: '#3b82f6' },
+  { id: 'walking' as TransportMode, name: 'À pied', icon: User, color: '#22c55e' },
+  { id: 'cycling' as TransportMode, name: 'Vélo', icon: Bike, color: '#8b5cf6' },
+  { id: 'bus' as TransportMode, name: 'Transport', icon: Bus, color: '#eab308' },
 ];
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -44,11 +44,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   const filterContent = (
     <div className="space-y-6">
-      <CategorySelector
-        categories={categoriesData} 
-        selectedCategory={selectedCategory}
-        onCategorySelect={onCategoryChange}
-      />
+      <div>
+        <h3 className="font-medium mb-2">Catégorie</h3>
+        <CategorySelector
+          categories={categoriesData}
+          selectedCategory={selectedCategory}
+          onCategorySelect={onCategoryChange}
+        />
+      </div>
 
       <div>
         <h3 className="font-medium mb-2">Nombre de résultats</h3>
@@ -90,23 +93,18 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
       <div>
         <h3 className="font-medium mb-2">Mode de transport</h3>
-        <div className="grid grid-cols-4 gap-2">
-          {transportModes.map((mode) => {
-            const IconComponent = mode.icon;
-            return (
-              <button
-                key={mode.id}
-                onClick={() => onTransportModeChange(mode.id)}
-                className={`flex flex-col items-center p-2 rounded-lg ${
-                  transportMode === mode.id ? mode.color : 'bg-gray-100'
-                } hover:opacity-90 transition-colors`}
-              >
-                <IconComponent />
-                <span className="text-xs mt-1">{mode.name}</span>
-              </button>
-            );
-          })}
-        </div>
+        <TransportSelector
+          transportModes={transportModes.map(mode => ({
+            name: mode.name,
+            icon: mode.icon,
+            color: mode.color
+          }))}
+          selectedTransport={transportMode}
+          onTransportSelect={(modeName) => {
+            const mode = transportModes.find(m => m.name === modeName);
+            if (mode) onTransportModeChange(mode.id);
+          }}
+        />
       </div>
     </div>
   );

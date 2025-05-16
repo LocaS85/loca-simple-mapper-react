@@ -1,17 +1,19 @@
 
-export type TransportMode = 'driving' | 'walking' | 'cycling' | 'transit';
+import { ComponentType, ReactNode } from 'react';
+
+export type TransportMode = 'car' | 'walking' | 'cycling' | 'bus' | 'train';
 
 export interface Subcategory {
   id: string;
   name: string;
-  icon: string;
+  icon: string | ReactNode | ComponentType<any>;
 }
 
 export interface Category {
   id: string;
   name: string;
-  icon: string;
-  color: string;  // Make color required instead of optional
+  icon: string | ReactNode | ComponentType<any>;
+  color: string;
   subcategories?: Subcategory[];
 }
 
@@ -50,7 +52,6 @@ export interface MapboxConfig {
   zoom: number;
 }
 
-// Ajout de l'interface MapResult
 export interface MapResult {
   id: string;
   name: string;
@@ -59,4 +60,10 @@ export interface MapResult {
   duration?: string;
   coordinates: [number, number];
   category?: string;
+}
+
+export interface TransportModeItem {
+  name: string;
+  icon: string | ReactNode | ComponentType<any>;
+  color: string;
 }

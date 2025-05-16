@@ -23,17 +23,19 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
           <Button
             key={cat.id}
             style={{ backgroundColor: cat.color }}
-            className="text-white px-4 py-2 rounded-xl flex items-center gap-2"
+            className={`text-white px-4 py-2 rounded-xl flex items-center gap-2 ${
+              selectedCategory?.id === cat.id ? "ring-2 ring-black" : ""
+            }`}
             onClick={() => onCategorySelect(cat)}
           >
-            {/* Si c'est un composant React */}
             {typeof icon === "function"
               ? React.createElement(icon as ComponentType<any>, {
                   className: "h-4 w-4",
                 })
               : isValidElement(icon)
               ? icon // un élément JSX valide
-              : null}
+              : icon // string ou autre valeur
+            }
             {cat.name}
           </Button>
         );

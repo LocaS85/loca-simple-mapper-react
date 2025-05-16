@@ -1,12 +1,7 @@
 
 import React, { isValidElement, ComponentType } from "react";
 import { Button } from "@/components/ui/button";
-
-interface TransportModeItem {
-  name: string;
-  icon: React.ReactNode | React.ComponentType<any>;
-  color: string;
-}
+import { TransportModeItem } from "../types";
 
 interface TransportSelectorProps {
   transportModes: TransportModeItem[];
@@ -37,7 +32,8 @@ const TransportSelector: React.FC<TransportSelectorProps> = ({
                 })
               : isValidElement(icon)
               ? icon // un élément JSX valide
-              : null}
+              : icon // string ou autre valeur
+            }
             {mode.name}
           </Button>
         );
