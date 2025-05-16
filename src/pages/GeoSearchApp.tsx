@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import SearchBar from "@/components/SearchBar";
@@ -9,7 +10,7 @@ import ResultsList from "@/components/ResultsList";
 import MapboxMap from "@/components/MapboxMap";
 import { motion } from "framer-motion";
 import { categoriesData } from "@/data/categories";
-import { Category } from "@/types";
+import { Category, TransportModeItem, TransportMode } from "@/types";
 
 // Mock data for demonstration
 const mockData = [
@@ -28,11 +29,11 @@ const categories: Category[] = [
 ];
 
 // Transport modes data
-const transportModes = [
-  { id: "driving", name: "Voiture", icon: "🚗", color: "#2980b9" },
-  { id: "walking", name: "À pied", icon: "🚶", color: "#2ecc71" },
-  { id: "cycling", name: "Vélo", icon: "🚴", color: "#e67e22" },
-  { id: "transit", name: "Train", icon: "🚆", color: "#9b59b6" },
+const transportModes: TransportModeItem[] = [
+  { name: "Voiture", icon: "🚗", color: "#2980b9" },
+  { name: "À pied", icon: "🚶", color: "#2ecc71" },
+  { name: "Vélo", icon: "🚴", color: "#e67e22" },
+  { name: "Train", icon: "🚆", color: "#9b59b6" },
 ];
 
 export default function GeoSearchApp() {
@@ -44,6 +45,18 @@ export default function GeoSearchApp() {
   const [rangeKm, setRangeKm] = useState(5);
   const [resultCount, setResultCount] = useState(3);
   const { toast } = useToast();
+
+  // Convert transport name to TransportMode type
+  const getTransportMode = (name: string): TransportMode => {
+    switch (name) {
+      case "Voiture": return "driving";
+      case "À pied": return "walking";
+      case "Vélo": return "cycling";
+      case "Train": return "transit";
+      case "Bus": return "bus";
+      default: return "driving";
+    }
+  };
 
   const handleCategoryClick = (cat: Category) => {
     setSelectedCategory(cat);
@@ -123,7 +136,7 @@ export default function GeoSearchApp() {
         />
         
         <TransportSelector 
-          transportModes={transportModes.map(t => ({ name: t.name, icon: t.icon, color: t.color }))}
+          transportModes={transportModes}
           selectedTransport={transport}
           onTransportSelect={setTransport}
         />
@@ -132,20 +145,17 @@ export default function GeoSearchApp() {
       <div className="w-full h-[70vh]">
         <MapboxMap
           results={results}
-          transport={transport}
+          transport={getTransportMode(transport) as TransportMode}
           radius={rangeKm}
           count={resultCount}
           category={selectedCategory?.name || ""}
         />
       </div>
 
-      {/* Add the onSelect prop */}
       <ResultsList 
         results={results} 
         onSelect={(result) => {
-          // Handle selection, e.g., fly to the result on map
           console.log("Selected result:", result);
-          // Add implementation here
         }} 
       />
     </div>
