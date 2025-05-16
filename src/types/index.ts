@@ -1,7 +1,8 @@
 
 import { ComponentType, ReactNode } from 'react';
 
-export type TransportMode = 'car' | 'walking' | 'cycling' | 'bus' | 'train';
+// Updated to include all transport modes used in the application
+export type TransportMode = 'car' | 'walking' | 'cycling' | 'bus' | 'train' | 'driving' | 'transit';
 
 export interface Subcategory {
   id: string;

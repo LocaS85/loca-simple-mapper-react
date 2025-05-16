@@ -10,14 +10,14 @@ export function convertToCategory(item: Category): CategoryItem {
   return {
     id: item.id,
     name: item.name,
-    icon: item.icon,
+    icon: typeof item.icon === 'string' ? item.icon : '',
     color: item.color,
     subcategories: item.subcategories 
       ? item.subcategories.map(sub => ({
           id: sub.id,
           name: sub.name,
           description: `${item.name} - ${sub.name}`, // Default description
-          icon: sub.icon
+          icon: typeof sub.icon === 'string' ? sub.icon : ''
         }))
       : []
   };
