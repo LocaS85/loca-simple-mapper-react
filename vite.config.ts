@@ -20,17 +20,23 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      'mapbox-gl': 'mapbox-gl/dist/mapbox-gl.js',
+      // Remove the mapbox-gl alias as we're now using the CDN version
     },
   },
   optimizeDeps: {
     include: ['react-map-gl', 'mapbox-gl'],
+    esbuildOptions: {
+      // Define global variables for better compatibility
+      define: {
+        global: 'globalThis',
+      }
+    }
   },
   build: {
     sourcemap: true,
     rollupOptions: {
       onwarn(warning, defaultHandler) {
-        // Ignorer certains avertissements lors de la construction
+        // Ignore certain warnings during build
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || warning.code === 'CIRCULAR_DEPENDENCY') {
           return;
         }

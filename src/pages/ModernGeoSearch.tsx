@@ -9,7 +9,6 @@ import { MapboxError } from "@/components/MapboxError";
 import { TransportModeSelector } from "@/components/TransportModeSelector";
 import YourMapComponent from "@/components/YourMapComponent";
 import MapboxSearchBar from "@/components/MapboxSearchBar";
-import "mapbox-gl/dist/mapbox-gl.css";
 
 const categories = ["Divertissement", "Travail", "Santé"];
 
