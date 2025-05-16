@@ -5,7 +5,7 @@ import Map, {
   MapRef,
   MapLayerMouseEvent
 } from "react-map-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+// Removed "mapbox-gl/dist/mapbox-gl.css" import as it's now loaded via CDN
 import "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { BBox } from "geojson";

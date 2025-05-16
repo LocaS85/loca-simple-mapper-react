@@ -1,5 +1,5 @@
 
-import 'mapbox-gl/dist/mapbox-gl.css';
+// Removed "mapbox-gl/dist/mapbox-gl.css" import as it's now loaded via CDN
 import React, { useRef, useState, useEffect } from 'react';
 import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
 import { LocateFixed, MapPin } from 'lucide-react';

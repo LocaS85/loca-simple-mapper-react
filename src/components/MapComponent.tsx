@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+// Removed "mapbox-gl/dist/mapbox-gl.css" import as it's now loaded via CDN
 import { Place, TransportMode } from '../types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
