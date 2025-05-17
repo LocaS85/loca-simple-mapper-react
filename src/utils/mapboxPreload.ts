@@ -32,5 +32,24 @@ export const isMapboxLoaded = () => {
   const mapboxStylesheet = document.querySelector(
     'link[href*="api.mapbox.com/mapbox-gl-js/"]'
   );
+  
+  if (!mapboxStylesheet) {
+    console.error('Mapbox CSS not loaded from CDN. Please check your index.html');
+  }
+  
   return !!mapboxStylesheet;
+};
+
+// Add a function to check if the token is valid
+export const checkMapboxSetup = () => {
+  if (!isMapboxLoaded()) {
+    console.warn('Mapbox CSS not detected. Maps may not display correctly.');
+  }
+  
+  if (!getMapboxToken()) {
+    console.error('Mapbox token missing. Set VITE_MAPBOX_TOKEN in your environment variables.');
+    return false;
+  }
+  
+  return true;
 };

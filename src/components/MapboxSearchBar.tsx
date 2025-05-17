@@ -2,8 +2,8 @@
 import React, { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { getMapboxToken } from "@/utils/mapboxConfig";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type MapboxSearchBarProps = {
   mapRef: React.RefObject<mapboxgl.Map>; // référence vers la carte Mapbox
@@ -17,6 +17,7 @@ type MapboxSearchBarProps = {
 const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) => {
   const geocoderContainerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!mapRef.current || !geocoderContainerRef.current) return;
@@ -26,6 +27,8 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
       mapboxgl: mapboxgl,
       placeholder: "Rechercher un lieu...",
       marker: false,
+      language: "fr",
+      countries: "fr",
     });
 
     geocoderContainerRef.current.innerHTML = "";
@@ -39,7 +42,11 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
       onResult?.({ lng, lat, place_name });
       
       // Fly to location
-      mapRef.current?.flyTo({ center: [lng, lat], zoom: 14 });
+      mapRef.current?.flyTo({ 
+        center: [lng, lat], 
+        zoom: isMobile ? 14 : 16,
+        duration: 1000
+      });
 
       // Remove previous marker if exists
       if (markerRef.current) {
@@ -57,13 +64,18 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
       markerRef.current.togglePopup(); // Open popup immediately
     });
 
+    // Handle errors
+    geocoder.on('error', () => {
+      console.error('Geocoder error occurred');
+    });
+
     return () => {
       geocoder.clear();
       if (markerRef.current) {
         markerRef.current.remove();
       }
     };
-  }, [mapRef, onResult]);
+  }, [mapRef, onResult, isMobile]);
 
   return (
     <div

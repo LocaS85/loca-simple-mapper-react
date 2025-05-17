@@ -5,15 +5,15 @@ import Map, {
   MapRef,
   MapLayerMouseEvent
 } from "react-map-gl";
-// Removed "mapbox-gl/dist/mapbox-gl.css" import as it's now loaded via CDN
 import "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { BBox } from "geojson";
-import { getMapboxToken } from "@/utils/mapboxConfig";
+import { getMapboxToken, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/utils/mapboxConfig";
 import { POI } from "@/types/map";
 import MapControls from "./map/MapControls";
 import MapCluster from "./map/MapCluster";
 import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type YourMapComponentProps = {
   initialViewState?: {
@@ -26,13 +26,15 @@ type YourMapComponentProps = {
 
 const YourMapComponent: React.FC<YourMapComponentProps> = ({
   initialViewState = {
-    latitude: 48.8566,
-    longitude: 2.3522,
-    zoom: 11,
+    latitude: DEFAULT_MAP_CENTER[1],
+    longitude: DEFAULT_MAP_CENTER[0],
+    zoom: DEFAULT_MAP_ZOOM,
   },
   pois = [],
 }) => {
   const mapRef = useRef<MapRef | null>(null);
+  const isMobile = useIsMobile();
+  
   const [selectedLocation, setSelectedLocation] = useState(initialViewState);
   const [viewState, setViewState] = useState({
     ...initialViewState,
@@ -43,6 +45,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
   });
   const [showPopup, setShowPopup] = useState(false);
   const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Add some sample POIs if none are provided
   const [pointsOfInterest] = useState<POI[]>(
@@ -61,7 +64,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
   );
 
   // Get map bounds
-  const getBounds = (): BBox => {
+  const getBounds = useCallback((): BBox => {
     if (!mapRef.current) return [-180, -85, 180, 85];
     
     const bounds = mapRef.current.getMap().getBounds().toArray();
@@ -71,7 +74,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
       bounds[1][0], // eastLng - max Lng
       bounds[1][1], // northLat - max Lat
     ];
-  };
+  }, []);
 
   const handleMapClick = useCallback((event: MapLayerMouseEvent) => {
     // Close popup if it's open
@@ -84,12 +87,12 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
     setSelectedLocation({ ...selectedLocation, latitude: lat, longitude: lng });
   }, [selectedLocation, showPopup]);
 
-  const handleMarkerClick = (poi: POI) => {
+  const handleMarkerClick = useCallback((poi: POI) => {
     setSelectedPOI(poi);
     setShowPopup(true);
-  };
+  }, []);
 
-  const handleDirectionsClick = (coordinates: [number, number]) => {
+  const handleDirectionsClick = useCallback((coordinates: [number, number]) => {
     if (!mapRef.current) return;
     
     // Get the directions control
@@ -104,24 +107,28 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
       directions.setOrigin([selectedLocation.longitude, selectedLocation.latitude]);
       directions.setDestination(coordinates);
     }
-  };
+  }, [selectedLocation]);
 
-  const handleClusterClick = (longitude: number, latitude: number, expansionZoom: number) => {
+  const handleClusterClick = useCallback((longitude: number, latitude: number, expansionZoom: number) => {
     mapRef.current?.flyTo({
       center: [longitude, latitude],
       zoom: expansionZoom,
       duration: 800
     });
-  };
+  }, []);
 
   return (
-    <div className="relative w-full h-[calc(100vh-80px)] rounded-2xl overflow-hidden shadow-xl">
+    <div className="relative w-full h-[calc(100vh-80px)] md:h-[70vh] rounded-2xl overflow-hidden shadow-xl">
       <Map
         ref={mapRef}
         mapboxAccessToken={getMapboxToken()}
         mapStyle="mapbox://styles/mapbox/streets-v12"
-        initialViewState={initialViewState}
+        initialViewState={{
+          ...initialViewState,
+          zoom: isMobile ? initialViewState.zoom - 1 : initialViewState.zoom,
+        }}
         onClick={handleMapClick}
+        onLoad={() => setMapLoaded(true)}
         style={{ width: "100%", height: "100%" }}
         onMove={(evt) => setViewState({
           ...viewState,
@@ -136,18 +143,20 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
           initialViewState={initialViewState}
         />
 
-        {/* Marker clusters */}
-        <MapCluster
-          pointsOfInterest={pointsOfInterest}
-          bounds={getBounds()}
-          zoom={viewState.zoom}
-          showPopup={showPopup}
-          selectedPOI={selectedPOI}
-          onMarkerClick={handleMarkerClick}
-          onDirectionsClick={handleDirectionsClick}
-          onClusterClick={handleClusterClick}
-          onPopupClose={() => setShowPopup(false)}
-        />
+        {/* Marker clusters - only render when map is loaded */}
+        {mapLoaded && (
+          <MapCluster
+            pointsOfInterest={pointsOfInterest}
+            bounds={getBounds()}
+            zoom={viewState.zoom}
+            showPopup={showPopup}
+            selectedPOI={selectedPOI}
+            onMarkerClick={handleMarkerClick}
+            onDirectionsClick={handleDirectionsClick}
+            onClusterClick={handleClusterClick}
+            onPopupClose={() => setShowPopup(false)}
+          />
+        )}
 
         {/* Marker for clicked location */}
         <Marker
@@ -164,6 +173,14 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
           }}
         />
       </Map>
+
+      {/* Loading indicator */}
+      {!mapLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+          <p className="ml-2">Chargement de la carte...</p>
+        </div>
+      )}
     </div>
   );
 };
