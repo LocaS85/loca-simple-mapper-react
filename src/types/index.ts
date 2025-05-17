@@ -1,70 +1,52 @@
 
 import { ComponentType, ReactNode } from 'react';
 
-// Updated to include all transport modes used in the application
-export type TransportMode = 'car' | 'walking' | 'cycling' | 'bus' | 'train' | 'driving' | 'transit';
-
-export interface Subcategory {
+export interface CategoryItem {
   id: string;
   name: string;
-  icon: string | ReactNode | ComponentType<any>;
+  label: string;
+  icon: string;
+  color: string;
+  subcategories?: {
+    id: string;
+    name: string;
+    description: string;
+  }[];
 }
 
 export interface Category {
   id: string;
   name: string;
-  icon: string | ReactNode | ComponentType<any>;
   color: string;
-  subcategories?: Subcategory[];
+  icon: ComponentType | string;
+  subcategories: {
+    id: string;
+    name: string;
+    icon: ComponentType | string;
+    description?: string;
+  }[];
 }
 
-export interface Location {
+export interface Subcategory {
   id: string;
   name: string;
-  address: string;
-  description?: string;
-  price?: number;
-  coordinates: [number, number]; // [longitude, latitude]
-  image?: string;
-}
-
-export interface Place {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: [number, number]; // [longitude, latitude]
-  distance?: number;
-  duration?: number;
-  category?: string;
-}
-
-export interface SearchParams {
-  query: string;
-  proximity: [number, number];
-  limit: number;
-  radius: number;
-  categories?: string[];
-}
-
-export interface MapboxConfig {
-  accessToken: string;
-  style: string;
-  center: [number, number]; // [longitude, latitude]
-  zoom: number;
-}
-
-export interface MapResult {
-  id: string;
-  name: string;
-  address: string;
-  distance?: string;
-  duration?: string;
-  coordinates: [number, number];
-  category?: string;
+  icon: string;
 }
 
 export interface TransportModeItem {
   name: string;
-  icon: string | ReactNode | ComponentType<any>;
+  icon: string | ComponentType;
   color: string;
 }
+
+export interface DailyAddressData {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  category: string;
+  subcategory: string;
+  transportMode?: string;
+}
+
+export type TransportMode = "car" | "walking" | "cycling" | "bus" | "train";
