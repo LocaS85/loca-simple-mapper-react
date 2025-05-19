@@ -40,6 +40,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/geosearch" element={<GeoSearch />} />
+                <Route path="/search" element={<GeoSearch />} /> {/* Alias for /geosearch */}
                 <Route path="/moderngeo" element={<ModernGeoSearch />} />
                 <Route path="/geosearchapp" element={<GeoSearchApp />} />
                 <Route path="/categories" element={<Categories />} />

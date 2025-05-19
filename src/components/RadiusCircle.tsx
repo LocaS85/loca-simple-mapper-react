@@ -38,58 +38,89 @@ const RadiusCircle: React.FC<RadiusCircleProps> = ({ center, radius, unit, map, 
     }
     
     function addSourceAndLayer() {
-      if (map.getSource(sourceId)) {
-        const source = map.getSource(sourceId);
-        if (source && 'setData' in source) {
-          source.setData({
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: center
-            },
-            properties: {
-              radius: radiusInMeters
-            }
-          });
-        }
+      // Make sure the map is still available before proceeding
+      if (!map) return;
+      
+      // Check if the source exists before trying to update it
+      let source;
+      try {
+        source = map.getSource(sourceId);
+      } catch (error) {
+        console.log("Source not found, will create it:", error);
+      }
+      
+      if (source && 'setData' in source) {
+        source.setData({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: center
+          },
+          properties: {
+            radius: radiusInMeters
+          }
+        });
       } else {
-        map.addSource(sourceId, {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: center
-            },
-            properties: {
-              radius: radiusInMeters
-            }
+        try {
+          // Only add source if it doesn't exist
+          if (!map.getSource(sourceId)) {
+            map.addSource(sourceId, {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: center
+                },
+                properties: {
+                  radius: radiusInMeters
+                }
+              }
+            });
           }
-        });
-        
-        map.addLayer({
-          id: layerId,
-          type: 'circle',
-          source: sourceId,
-          paint: {
-            'circle-radius': ['get', 'radius'],
-            'circle-color': '#4299e1',
-            'circle-opacity': 0.15,
-            'circle-stroke-color': '#4299e1',
-            'circle-stroke-width': 1
+          
+          // Only add layer if it doesn't exist
+          if (!map.getLayer(layerId)) {
+            map.addLayer({
+              id: layerId,
+              type: 'circle',
+              source: sourceId,
+              paint: {
+                'circle-radius': ['get', 'radius'],
+                'circle-color': '#4299e1',
+                'circle-opacity': 0.15,
+                'circle-stroke-color': '#4299e1',
+                'circle-stroke-width': 1
+              }
+            });
           }
-        });
+        } catch (error) {
+          console.error("Error adding source or layer:", error);
+        }
       }
     }
     
     return () => {
+      // Clean up safely - check map and style are still valid
       try {
-        // Verify map object is still valid and source/layer exist before removing
-        if (map && map.getStyle() && map.getSource(sourceId)) {
-          if (map.getLayer(layerId)) {
-            map.removeLayer(layerId);
+        if (map && map.getStyle()) {
+          // Check if layer exists before removing
+          try {
+            if (map.getLayer(layerId)) {
+              map.removeLayer(layerId);
+            }
+          } catch (e) {
+            console.log("Layer already removed or doesn't exist:", e);
           }
-          map.removeSource(sourceId);
+          
+          // Check if source exists before removing
+          try {
+            if (map.getSource(sourceId)) {
+              map.removeSource(sourceId);
+            }
+          } catch (e) {
+            console.log("Source already removed or doesn't exist:", e);
+          }
         }
       } catch (error) {
         console.log("Cleanup error in RadiusCircle (can be ignored):", error);

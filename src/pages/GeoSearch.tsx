@@ -1,161 +1,55 @@
 
-import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import SearchFilters from "@/components/SearchFilters";
-import ResultCard from "@/components/ResultCard";
-import MapComponent from "@/components/MapComponent";
-import { Place, TransportMode } from "@/types";
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import MapView from '@/components/geosearch/MapView';
+import FiltersPopup from '@/components/geosearch/FiltersPopup';
+import SearchHeader from '@/components/geosearch/SearchHeader';
+import PrintButton from '@/components/geosearch/PrintButton';
+import MultiMapToggle from '@/components/geosearch/MultiMapToggle';
+import { useGeoSearch } from '@/hooks/use-geo-search';
 
-export default function GeoSearchPage() {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [resultsCount, setResultsCount] = useState(3);
-  const [distance, setDistance] = useState(5);
-  const [transport, setTransport] = useState("À pied");
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const { toast } = useToast();
-  
-  // Fetch user's location on component mount
+const GeoSearch = () => {
+  const [searchParams] = useSearchParams();
+
+  // Extract filters from URL
+  const category = searchParams.get('category');
+  const subcategory = searchParams.get('subcategory');
+  const transport = searchParams.get('transport') || 'car';
+  const distance = Number(searchParams.get('distance')) || 10;
+  const unit = searchParams.get('unit') || 'km';
+
+  const {
+    results,
+    loadResults,
+    filters,
+    updateFilters,
+    isLoading,
+    showFilters,
+    toggleFilters
+  } = useGeoSearch({ category, subcategory, transport, distance, unit });
+
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation([position.coords.longitude, position.coords.latitude]);
-      },
-      (error) => {
-        console.error("Error getting location", error);
-        // Default to Paris
-        setUserLocation([2.35, 48.85]);
-        toast({
-          title: "Localisation",
-          description: "Impossible d'obtenir votre position, utilisation de Paris par défaut",
-          variant: "destructive",
-        });
-      }
-    );
-  }, [toast]);
-
-  const handleLocationRequest = () => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation([position.coords.longitude, position.coords.latitude]);
-        toast({
-          title: "Localisation",
-          description: "Votre position a été mise à jour",
-          variant: "default",
-        });
-      },
-      (error) => {
-        console.error("Error getting location", error);
-        toast({
-          title: "Erreur de localisation",
-          description: "Impossible d'obtenir votre position",
-          variant: "destructive",
-        });
-      }
-    );
-  };
-
-  const { data: places = [], refetch } = useQuery({
-    queryKey: ["places", search, category, resultsCount, distance, transport],
-    queryFn: async () => {
-      // Fixed mock data to include the required properties for Place interface
-      return [
-        { 
-          id: '1', 
-          name: 'Cinéma Gaumont', 
-          address: '123 Rue de Cinema, Paris',
-          coordinates: [2.34, 48.86] as [number, number], 
-          type: 'Divertissement',
-          category: 'cinema', 
-          distance: 1.2, 
-          duration: 15 
-        },
-        { 
-          id: '2', 
-          name: 'Hôpital Saint-Louis', 
-          address: '1 Avenue Claude Vellefaux, Paris',
-          coordinates: [2.37, 48.87] as [number, number], 
-          type: 'Santé',
-          category: 'hospital', 
-          distance: 2.1, 
-          duration: 20 
-        },
-        { 
-          id: '3', 
-          name: 'Tour Eiffel', 
-          address: 'Champ de Mars, Paris',
-          coordinates: [2.29, 48.86] as [number, number], 
-          type: 'Divertissement',
-          category: 'landmark', 
-          distance: 3.5, 
-          duration: 35 
-        }
-      ] as Place[];
-    },
-    enabled: true
-  });
-
-  const handleSearch = () => {
-    refetch();
-  };
-
-  const getDirections = (placeId: string) => {
-    // Implement directions functionality later
-    toast({
-      title: "Itinéraire",
-      description: `Calcul de l'itinéraire vers ${places.find(p => p.id === placeId)?.name}`,
-    });
-  };
+    loadResults();
+  }, [loadResults]);
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex flex-col md:flex-row flex-1">
-        <div className="md:w-1/3 w-full p-4 overflow-auto bg-white border-r">
-          <SearchFilters 
-            search={search}
-            setSearch={setSearch}
-            category={category}
-            setCategory={setCategory}
-            resultsCount={resultsCount}
-            setResultsCount={setResultsCount}
-            distance={distance}
-            setDistance={setDistance}
-            transport={transport}
-            setTransport={setTransport}
-            onSearch={handleSearch}
-            onLocationRequest={handleLocationRequest}
-          />
-
-          {/* Results */}
-          <h2 className="text-lg mt-6 font-semibold">Résultats ({places.length})</h2>
-          <div className="space-y-3 mt-2">
-            {places.map((place) => (
-              <ResultCard 
-                key={place.id}
-                id={place.id}
-                name={place.name}
-                type={place.type || ''}
-                distance={place.distance || 0}
-                onDirections={() => getDirections(place.id)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex-1 relative">
-          <MapComponent 
-            center={userLocation}
-            results={places}
-            transportMode={transport === "Voiture" ? "driving" : 
-                          transport === "À pied" ? "walking" : 
-                          transport === "Vélo" ? "cycling" : "transit"}
-            radius={distance}
-            unit="km"
-          />
-        </div>
-      </div>
+    <div className="relative h-screen w-full">
+      <SearchHeader
+        filters={filters}
+        onToggleFilters={toggleFilters}
+      />
+      <MapView results={results} isLoading={isLoading} transport={transport} />
+      {showFilters && (
+        <FiltersPopup
+          filters={filters}
+          onChange={updateFilters}
+          onClose={toggleFilters}
+        />
+      )}
+      <MultiMapToggle />
+      <PrintButton results={results} />
     </div>
   );
-}
+};
+
+export default GeoSearch;

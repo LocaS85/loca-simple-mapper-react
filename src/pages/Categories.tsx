@@ -56,7 +56,7 @@ const Categories = () => {
     // Navigate to search page with category and subcategory parameters
     const categoryId = selectedCategory?.id;
     if (categoryId) {
-      navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${distanceUnit}`);
+      navigate(`/geosearch?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${distanceUnit}`);
     }
   };
   
@@ -113,6 +113,7 @@ const Categories = () => {
               maxDistance={maxDistance}
               maxDuration={maxDuration}
               distanceUnit={distanceUnit}
+              onSearchClick={handleSearchClick}
             />
           )}
         </>
