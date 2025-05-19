@@ -9,6 +9,7 @@ import { MapPin, Utensils, ShoppingBag, Home, Briefcase, Compass, Route } from "
 import { categories } from "@/lib/data/categories";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface FilterBarProps {
   mapRef: React.RefObject<any>;
@@ -19,6 +20,7 @@ interface FilterBarProps {
     maxDuration: number;
     aroundMeCount?: number;
     showMultiDirections?: boolean;
+    distanceUnit?: 'km' | 'mi';
   }) => void;
   initialCategory?: string;
   initialTransportMode?: TransportMode;
@@ -26,6 +28,7 @@ interface FilterBarProps {
   initialMaxDuration?: number;
   initialAroundMeCount?: number;
   initialShowMultiDirections?: boolean;
+  initialDistanceUnit?: 'km' | 'mi';
 }
 
 // Helper function to get the correct icon component
@@ -54,7 +57,8 @@ export function FilterBar({
   initialMaxDistance = 5,
   initialMaxDuration = 15,
   initialAroundMeCount = 3,
-  initialShowMultiDirections = false
+  initialShowMultiDirections = false,
+  initialDistanceUnit = 'km'
 }: FilterBarProps) {
   const [category, setCategory] = useState(initialCategory || "food");
   const [transportMode, setTransportMode] = useState<TransportMode>(initialTransportMode);
@@ -62,6 +66,7 @@ export function FilterBar({
   const [maxDuration, setMaxDuration] = useState(initialMaxDuration);
   const [aroundMeCount, setAroundMeCount] = useState(initialAroundMeCount);
   const [showMultiDirections, setShowMultiDirections] = useState(initialShowMultiDirections);
+  const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>(initialDistanceUnit);
 
   // Update category if initialCategory changes
   useEffect(() => {
@@ -91,6 +96,10 @@ export function FilterBar({
     setShowMultiDirections(initialShowMultiDirections);
   }, [initialShowMultiDirections]);
 
+  useEffect(() => {
+    setDistanceUnit(initialDistanceUnit);
+  }, [initialDistanceUnit]);
+
   // Notify parent component when filters change
   useEffect(() => {
     onFiltersChange({ 
@@ -99,9 +108,15 @@ export function FilterBar({
       maxDistance, 
       maxDuration,
       aroundMeCount,
-      showMultiDirections
+      showMultiDirections,
+      distanceUnit
     });
-  }, [category, transportMode, maxDistance, maxDuration, aroundMeCount, showMultiDirections, onFiltersChange]);
+  }, [category, transportMode, maxDistance, maxDuration, aroundMeCount, showMultiDirections, distanceUnit, onFiltersChange]);
+
+  // Get the appropriate max value for distance slider based on unit
+  const getMaxDistanceValue = () => {
+    return distanceUnit === 'km' ? 50 : 30; // 50 km or 30 miles
+  };
 
   return (
     <div className="w-full p-4 rounded-2xl shadow-lg bg-white dark:bg-neutral-900">
@@ -169,11 +184,27 @@ export function FilterBar({
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Distance max
             </label>
-            <span className="text-sm font-medium">{maxDistance} km</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">{maxDistance} {distanceUnit}</span>
+              <RadioGroup 
+                value={distanceUnit} 
+                onValueChange={(value: 'km' | 'mi') => setDistanceUnit(value)}
+                className="flex items-center space-x-1"
+              >
+                <div className="flex items-center">
+                  <RadioGroupItem value="km" id="km" className="h-3 w-3" />
+                  <Label htmlFor="km" className="ml-1 text-xs">km</Label>
+                </div>
+                <div className="flex items-center">
+                  <RadioGroupItem value="mi" id="mi" className="h-3 w-3" />
+                  <Label htmlFor="mi" className="ml-1 text-xs">mi</Label>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
           <Slider 
             min={1} 
-            max={50} 
+            max={getMaxDistanceValue()} 
             step={1} 
             value={[maxDistance]} 
             onValueChange={(val) => setMaxDistance(val[0])} 

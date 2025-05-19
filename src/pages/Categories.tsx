@@ -45,6 +45,8 @@ const Categories = () => {
     setAroundMeCount,
     showMultiDirections,
     setShowMultiDirections,
+    distanceUnit,
+    setDistanceUnit,
     handleFiltersChange,
     handleSelectCategory
   } = useCategoryManagement();
@@ -54,7 +56,7 @@ const Categories = () => {
     // Navigate to search page with category and subcategory parameters
     const categoryId = selectedCategory?.id;
     if (categoryId) {
-      navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}`);
+      navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${distanceUnit}`);
     }
   };
   
@@ -77,6 +79,8 @@ const Categories = () => {
         setAroundMeCount={setAroundMeCount}
         showMultiDirections={showMultiDirections}
         setShowMultiDirections={setShowMultiDirections}
+        distanceUnit={distanceUnit}
+        setDistanceUnit={setDistanceUnit}
       />
       
       {/* Loading indicator */}
@@ -94,6 +98,7 @@ const Categories = () => {
               initialMaxDuration={maxDuration}
               initialAroundMeCount={aroundMeCount}
               initialShowMultiDirections={showMultiDirections}
+              initialDistanceUnit={distanceUnit}
             />
           ) : (
             <CategorySection 
@@ -107,6 +112,7 @@ const Categories = () => {
               transportMode={transportMode}
               maxDistance={maxDistance}
               maxDuration={maxDuration}
+              distanceUnit={distanceUnit}
             />
           )}
         </>

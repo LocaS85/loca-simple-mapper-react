@@ -15,6 +15,7 @@ export function useCategoryManagement() {
   const [maxDuration, setMaxDuration] = useState(20);
   const [aroundMeCount, setAroundMeCount] = useState(3);
   const [showMultiDirections, setShowMultiDirections] = useState(false);
+  const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>('km');
   
   const { toast } = useToast();
   
@@ -42,12 +43,17 @@ export function useCategoryManagement() {
     maxDuration: number;
     aroundMeCount: number;
     showMultiDirections: boolean;
+    distanceUnit?: 'km' | 'mi';
   }) => {
     setTransportMode(filters.transportMode);
     setMaxDistance(filters.maxDistance);
     setMaxDuration(filters.maxDuration);
     setAroundMeCount(filters.aroundMeCount);
     setShowMultiDirections(filters.showMultiDirections);
+    
+    if (filters.distanceUnit) {
+      setDistanceUnit(filters.distanceUnit);
+    }
     
     // Find category by ID if needed
     if (filters.category && (!selectedCategory || selectedCategory.id !== filters.category)) {
@@ -76,6 +82,8 @@ export function useCategoryManagement() {
     setAroundMeCount,
     showMultiDirections,
     setShowMultiDirections,
+    distanceUnit,
+    setDistanceUnit,
     handleFiltersChange,
     handleSelectCategory
   };

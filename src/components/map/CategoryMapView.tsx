@@ -15,6 +15,7 @@ interface CategoryMapViewProps {
     maxDuration: number;
     aroundMeCount?: number;
     showMultiDirections?: boolean;
+    distanceUnit?: 'km' | 'mi';
   }) => void;
   selectedCategory?: Category | null;
   initialTransportMode?: TransportMode;
@@ -22,6 +23,7 @@ interface CategoryMapViewProps {
   initialMaxDuration?: number;
   initialAroundMeCount?: number;
   initialShowMultiDirections?: boolean;
+  initialDistanceUnit?: 'km' | 'mi';
 }
 
 const CategoryMapView: React.FC<CategoryMapViewProps> = ({ 
@@ -31,11 +33,13 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
   initialMaxDistance = 5,
   initialMaxDuration = 15,
   initialAroundMeCount = 3,
-  initialShowMultiDirections = false
+  initialShowMultiDirections = false,
+  initialDistanceUnit = 'km'
 }) => {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +51,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     maxDistance: initialMaxDistance,
     maxDuration: initialMaxDuration,
     aroundMeCount: initialAroundMeCount,
-    showMultiDirections: initialShowMultiDirections
+    showMultiDirections: initialShowMultiDirections,
+    distanceUnit: initialDistanceUnit
   });
 
   // Update filters when selectedCategory changes
@@ -118,8 +123,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
               source: 'radius',
               paint: {
                 'circle-radius': ['interpolate', ['linear'], ['zoom'],
-                  10, filters.maxDistance * 1000 / (40075000 / 360 * Math.cos(lat * Math.PI / 180)),
-                  15, filters.maxDistance * 1000 / (40075000 / 360 * Math.cos(lat * Math.PI / 180) / 2)
+                  10, getDistanceInMeters(filters.maxDistance, filters.distanceUnit) / (40075000 / 360 * Math.cos(lat * Math.PI / 180)),
+                  15, getDistanceInMeters(filters.maxDistance, filters.distanceUnit) / (40075000 / 360 * Math.cos(lat * Math.PI / 180) / 2)
                 ],
                 'circle-color': selectedCategory?.color || '#3b82f6',
                 'circle-opacity': 0.2,
@@ -140,7 +145,12 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
         });
       }
     );
-  }, [map, selectedCategory?.color, toast]);
+  }, [map, selectedCategory?.color, toast, filters.maxDistance, filters.distanceUnit]);
+
+  // Helper function to convert distance to meters based on unit
+  const getDistanceInMeters = (distance: number, unit: 'km' | 'mi'): number => {
+    return unit === 'km' ? distance * 1000 : distance * 1609.34;
+  };
 
   // Initialize map with error handling
   useEffect(() => {
@@ -219,13 +229,14 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     
     // Generate sample POIs around the user location
     for (let i = 0; i < count; i++) {
-      // Create random points within maxDistance km
+      // Create random points within maxDistance km/mi
       const angle = Math.random() * Math.PI * 2;
       const distance = Math.random() * filters.maxDistance * 0.8; // 80% of max distance for better visibility
       
-      // Convert distance from km to lat/lng offset
-      const latOffset = distance / 111; // approx 111 km per degree of latitude
-      const lngOffset = distance / (111 * Math.cos(userLoc.lat * Math.PI / 180)); // account for longitude distortion
+      // Convert distance from km/mi to lat/lng offset (approx 111 km per degree of latitude)
+      const distanceInKm = filters.distanceUnit === 'km' ? distance : distance * 1.60934;
+      const latOffset = distanceInKm / 111; 
+      const lngOffset = distanceInKm / (111 * Math.cos(userLoc.lat * Math.PI / 180)); // account for longitude distortion
       
       // Calculate coordinates
       const lng = userLoc.lng + lngOffset * Math.cos(angle);
@@ -251,13 +262,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     }
     
     // Find and remove existing POI markers
-    const markersToRemove = [];
-    map.markers?.forEach(marker => {
-      if (marker && marker.getElement().classList.contains('poi-marker')) {
-        markersToRemove.push(marker);
-      }
-    });
-    markersToRemove.forEach(marker => marker.remove());
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
     
     // Generate POIs based on aroundMeCount
     const pois = generateSamplePOIs(userLocation, filters.aroundMeCount);
@@ -272,10 +278,12 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       el.style.backgroundColor = '#ef4444';
       el.style.border = '2px solid white';
       
-      new mapboxgl.Marker(el)
+      const marker = new mapboxgl.Marker(el)
         .setLngLat(poi.coordinates as [number, number])
         .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(poi.name))
         .addTo(map);
+      
+      markersRef.current.push(marker);
     });
     
     // Create routes data
@@ -316,7 +324,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       }
     });
     
-  }, [filters.showMultiDirections, filters.aroundMeCount, map, userLocation, selectedCategory?.color, selectedCategory?.name]);
+  }, [filters.showMultiDirections, filters.aroundMeCount, map, userLocation, selectedCategory?.color, selectedCategory?.name, filters.maxDistance, filters.distanceUnit]);
 
   const handleFiltersChange = (newFilters: {
     category: string;
@@ -325,38 +333,41 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     maxDuration: number;
     aroundMeCount?: number;
     showMultiDirections?: boolean;
+    distanceUnit?: 'km' | 'mi';
   }) => {
     // Assurer que les propriétés optionnelles ont des valeurs par défaut
     const updatedFilters = {
       ...newFilters,
       // Utiliser les valeurs actuelles comme fallback pour les valeurs optionnelles
       aroundMeCount: newFilters.aroundMeCount ?? filters.aroundMeCount,
-      showMultiDirections: newFilters.showMultiDirections ?? filters.showMultiDirections
+      showMultiDirections: newFilters.showMultiDirections ?? filters.showMultiDirections,
+      distanceUnit: newFilters.distanceUnit ?? filters.distanceUnit
     };
     
     setFilters(updatedFilters);
     console.log("Filters updated:", updatedFilters);
     
     // Apply filters to the map if available
-    if (map) {
+    if (map && userLocation) {
       // If there's a selectedCategory, use its color for visual feedback
       const categoryColor = selectedCategory?.color || '#3b82f6';
       
       // Update radius circle if it exists
-      if (map.getSource('radius') && userLocation) {
-        // Update circle radius based on the max distance value
+      if (map.getSource('radius')) {
+        // Update circle radius based on the max distance value and unit
         map.setPaintProperty('radius-circle', 'circle-radius', 
           ['interpolate', ['linear'], ['zoom'],
-            10, updatedFilters.maxDistance * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180)),
-            15, updatedFilters.maxDistance * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180) / 2)
+            10, getDistanceInMeters(updatedFilters.maxDistance, updatedFilters.distanceUnit) / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180)),
+            15, getDistanceInMeters(updatedFilters.maxDistance, updatedFilters.distanceUnit) / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180) / 2)
           ]
         );
       }
       
       // Provide visual feedback about applied filters
+      const distanceDisplay = `${updatedFilters.maxDistance}${updatedFilters.distanceUnit}`;
       toast({
         title: "Filtres appliqués",
-        description: `Catégorie: ${updatedFilters.category}, Transport: ${updatedFilters.transportMode}, Distance: ${updatedFilters.maxDistance}km, Durée: ${updatedFilters.maxDuration}min, POIs: ${updatedFilters.aroundMeCount}`
+        description: `Catégorie: ${updatedFilters.category}, Transport: ${updatedFilters.transportMode}, Distance: ${distanceDisplay}, Durée: ${updatedFilters.maxDuration}min, POIs: ${updatedFilters.aroundMeCount}`
       });
     }
     
@@ -379,6 +390,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
           initialMaxDuration={initialMaxDuration}
           initialAroundMeCount={initialAroundMeCount}
           initialShowMultiDirections={initialShowMultiDirections}
+          initialDistanceUnit={initialDistanceUnit}
         />
       </div>
       
