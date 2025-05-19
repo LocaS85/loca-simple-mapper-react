@@ -40,20 +40,14 @@ export function useCategoryManagement() {
     transportMode: TransportMode;
     maxDistance: number;
     maxDuration: number;
-    aroundMeRadius?: number;
-    showMultiDirections?: boolean;
+    aroundMeRadius: number;
+    showMultiDirections: boolean;
   }) => {
     setTransportMode(filters.transportMode);
     setMaxDistance(filters.maxDistance);
     setMaxDuration(filters.maxDuration);
-    
-    if (filters.aroundMeRadius !== undefined) {
-      setAroundMeRadius(filters.aroundMeRadius);
-    }
-    
-    if (filters.showMultiDirections !== undefined) {
-      setShowMultiDirections(filters.showMultiDirections);
-    }
+    setAroundMeRadius(filters.aroundMeRadius);
+    setShowMultiDirections(filters.showMultiDirections);
     
     // Find category by ID if needed
     if (filters.category && (!selectedCategory || selectedCategory.id !== filters.category)) {

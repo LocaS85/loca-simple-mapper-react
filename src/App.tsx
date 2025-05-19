@@ -13,6 +13,9 @@ import GeoSearch from "./pages/GeoSearch";
 import ModernGeoSearch from "./pages/ModernGeoSearch";
 import GeoSearchApp from "./pages/GeoSearchApp";
 import Categories from "./pages/Categories";
+import About from "./pages/About";
+import FAQ from "./pages/FAQ";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Favorites from "./pages/Favorites";
@@ -40,6 +43,9 @@ function App() {
                 <Route path="/moderngeo" element={<ModernGeoSearch />} />
                 <Route path="/geosearchapp" element={<GeoSearchApp />} />
                 <Route path="/categories" element={<Categories />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/404" element={<NotFound />} />
