@@ -298,8 +298,16 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     aroundMeRadius?: number;
     showMultiDirections?: boolean;
   }) => {
-    setFilters(newFilters);
-    console.log("Filters updated:", newFilters);
+    // Correction ici: assurer que les propriétés optionnelles ont des valeurs par défaut
+    const updatedFilters = {
+      ...newFilters,
+      // Utiliser les valeurs actuelles comme fallback pour les valeurs optionnelles
+      aroundMeRadius: newFilters.aroundMeRadius ?? filters.aroundMeRadius,
+      showMultiDirections: newFilters.showMultiDirections ?? filters.showMultiDirections
+    };
+    
+    setFilters(updatedFilters);
+    console.log("Filters updated:", updatedFilters);
     
     // Apply filters to the map if available
     if (map) {
@@ -307,12 +315,12 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       const categoryColor = selectedCategory?.color || '#3b82f6';
       
       // Update radius circle if it exists and aroundMeRadius changed
-      if (map.getSource('radius') && userLocation && newFilters.aroundMeRadius !== filters.aroundMeRadius) {
+      if (map.getSource('radius') && userLocation && updatedFilters.aroundMeRadius !== filters.aroundMeRadius) {
         // Update circle radius based on the new filter value
         map.setPaintProperty('radius-circle', 'circle-radius', 
           ['interpolate', ['linear'], ['zoom'],
-            10, newFilters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180)),
-            15, newFilters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180) / 2)
+            10, updatedFilters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180)),
+            15, updatedFilters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180) / 2)
           ]
         );
       }
@@ -320,15 +328,13 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       // Provide visual feedback about applied filters
       toast({
         title: "Filtres appliqués",
-        description: `Catégorie: ${newFilters.category}, Transport: ${newFilters.transportMode}, Distance: ${newFilters.maxDistance}km, Durée: ${newFilters.maxDuration}min${
-          newFilters.aroundMeRadius ? `, Autour de moi: ${newFilters.aroundMeRadius}km` : ''
-        }`
+        description: `Catégorie: ${updatedFilters.category}, Transport: ${updatedFilters.transportMode}, Distance: ${updatedFilters.maxDistance}km, Durée: ${updatedFilters.maxDuration}min, Autour de moi: ${updatedFilters.aroundMeRadius}km`
       });
     }
     
     // Call parent handler if provided
     if (onFiltersChange) {
-      onFiltersChange(newFilters);
+      onFiltersChange(updatedFilters);
     }
   };
 
@@ -375,3 +381,4 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
 };
 
 export default CategoryMapView;
+
