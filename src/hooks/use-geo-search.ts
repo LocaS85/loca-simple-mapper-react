@@ -1,16 +1,8 @@
-
-import { useState, useCallback } from 'react';
-import { Place, TransportMode } from '@/types';
+import { useState, useCallback, useEffect } from 'react';
+import { TransportMode } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-
-interface GeoSearchFilters {
-  query?: string;
-  category?: string | null;
-  subcategory?: string | null;
-  transport: TransportMode;
-  distance: number;
-  unit: 'km' | 'mi';
-}
+import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 interface UseGeoSearchProps {
   category?: string | null;
@@ -38,10 +30,32 @@ export const useGeoSearch = ({
   });
 
   // State for search results
-  const [results, setResults] = useState<Place[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Keep URL params in sync with filters
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    
+    if (filters.category) newParams.set('category', filters.category);
+    else newParams.delete('category');
+    
+    if (filters.subcategory) newParams.set('subcategory', filters.subcategory);
+    else newParams.delete('subcategory');
+    
+    newParams.set('transport', filters.transport);
+    newParams.set('distance', filters.distance.toString());
+    newParams.set('unit', filters.unit);
+    
+    if (filters.query) newParams.set('query', filters.query);
+    else newParams.delete('query');
+    
+    setSearchParams(newParams, { replace: true });
+  }, [filters, setSearchParams]);
 
   // Toggle filters popup
   const toggleFilters = useCallback(() => {
@@ -58,47 +72,59 @@ export const useGeoSearch = ({
     setIsLoading(true);
     
     try {
-      // Mock data for now - would be replaced with actual API call
       console.log('Loading results with filters:', filters);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock data that respects the filters
-      const mockResults: Place[] = [
+      // Mock data based on the filters
+      const mockResults: SearchResult[] = [
         { 
           id: '1', 
-          name: 'Café Parisien', 
+          name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 1`, 
           address: '123 Rue de Paris, Paris',
           coordinates: [2.34, 48.86], 
-          type: 'Restaurant',
-          category: filters.category || 'food', 
-          distance: 1.2, 
-          duration: 15 
+          type: filters.subcategory || 'default',
+          category: filters.category || 'default', 
+          distance: Math.round(Math.random() * filters.distance * 10) / 10, 
+          duration: Math.round(Math.random() * 30) 
         },
         { 
           id: '2', 
-          name: 'Pharmacie Centrale', 
+          name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 2`, 
           address: '45 Avenue des Champs-Élysées, Paris',
           coordinates: [2.37, 48.87], 
-          type: 'Pharmacie',
-          category: 'health', 
-          distance: 2.1, 
-          duration: 20 
+          type: filters.subcategory || 'default',
+          category: filters.category || 'default', 
+          distance: Math.round(Math.random() * filters.distance * 10) / 10, 
+          duration: Math.round(Math.random() * 30) 
         },
         { 
           id: '3', 
-          name: 'Supermarché Bio', 
+          name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 3`, 
           address: '78 Boulevard Saint-Michel, Paris',
           coordinates: [2.29, 48.86], 
-          type: 'Supermarché',
-          category: 'shopping', 
-          distance: 3.5, 
-          duration: 35 
+          type: filters.subcategory || 'default',
+          category: filters.category || 'default', 
+          distance: Math.round(Math.random() * filters.distance * 10) / 10, 
+          duration: Math.round(Math.random() * 30) 
         }
       ];
       
       setResults(mockResults);
+      
+      if (mockResults.length > 0) {
+        toast({
+          title: "Résultats trouvés",
+          description: `${mockResults.length} lieux trouvés pour votre recherche`,
+        });
+      } else {
+        toast({
+          title: "Aucun résultat",
+          description: "Essayez de modifier vos filtres de recherche",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error loading results:', error);
       toast({
@@ -110,6 +136,11 @@ export const useGeoSearch = ({
       setIsLoading(false);
     }
   }, [filters, toast]);
+
+  // Load results when filters change
+  useEffect(() => {
+    loadResults();
+  }, [loadResults]);
 
   return {
     results,

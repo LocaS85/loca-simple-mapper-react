@@ -10,16 +10,11 @@ import { transportModes } from '@/lib/data/transportModes';
 import { categories } from '@/lib/data/categories';
 import { X } from 'lucide-react';
 import { TransportMode } from '@/types';
+import { GeoSearchFilters } from '@/types/geosearch';
 
 interface FiltersPopupProps {
-  filters: {
-    category?: string | null;
-    subcategory?: string | null;
-    transport: string;
-    distance: number;
-    unit: string;
-  };
-  onChange: (filters: any) => void;
+  filters: GeoSearchFilters;
+  onChange: (filters: Partial<GeoSearchFilters>) => void;
   onClose: () => void;
 }
 
@@ -28,7 +23,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
   onChange,
   onClose
 }) => {
-  const [localFilters, setLocalFilters] = React.useState({
+  const [localFilters, setLocalFilters] = React.useState<GeoSearchFilters>({
     category: filters.category || '',
     subcategory: filters.subcategory || '',
     transport: filters.transport,
@@ -36,7 +31,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
     unit: filters.unit
   });
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: keyof GeoSearchFilters, value: any) => {
     setLocalFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -93,7 +88,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
                     type="button"
                     variant={localFilters.transport === mode.value ? "default" : "outline"}
                     className="flex flex-col h-auto py-2 px-1"
-                    onClick={() => handleChange('transport', mode.value)}
+                    onClick={() => handleChange('transport', mode.value as TransportMode)}
                   >
                     <Icon className="h-5 w-5 mb-1" />
                     <span className="text-xs">{mode.label}</span>
@@ -125,7 +120,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
             
             <RadioGroup 
               value={localFilters.unit} 
-              onValueChange={(value) => handleChange('unit', value)}
+              onValueChange={(value: 'km' | 'mi') => handleChange('unit', value)}
               className="flex space-x-4"
             >
               <div className="flex items-center space-x-1">

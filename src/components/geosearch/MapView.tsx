@@ -1,7 +1,8 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Place, TransportMode } from '@/types';
+import { SearchResult } from '@/types/geosearch';
+import { TransportMode } from '@/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import UserLocationMarker from '@/components/UserLocationMarker';
@@ -12,9 +13,9 @@ import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 interface MapViewProps {
-  results: Place[];
+  results: SearchResult[];
   isLoading: boolean;
-  transport: string;
+  transport: TransportMode;
 }
 
 const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {

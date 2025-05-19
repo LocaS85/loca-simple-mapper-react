@@ -37,8 +37,9 @@ const GeoSearch = () => {
       <SearchHeader
         filters={filters}
         onToggleFilters={toggleFilters}
+        onSearch={(query) => updateFilters({ query })}
       />
-      <MapView results={results} isLoading={isLoading} transport={transport} />
+      <MapView results={results} isLoading={isLoading} transport={transport as any} />
       {showFilters && (
         <FiltersPopup
           filters={filters}
