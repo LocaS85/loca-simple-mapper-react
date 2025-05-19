@@ -33,9 +33,31 @@ export const useGeoSearch = ({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Initialize user location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.longitude, position.coords.latitude]);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          toast({
+            title: "Localisation",
+            description: "Impossible d'obtenir votre position",
+            variant: "destructive",
+          });
+          // Paris par défaut
+          setUserLocation([2.35, 48.85]);
+        }
+      );
+    }
+  }, [toast]);
 
   // Keep URL params in sync with filters
   useEffect(() => {
@@ -69,10 +91,13 @@ export const useGeoSearch = ({
 
   // Load results
   const loadResults = useCallback(async () => {
+    if (!userLocation) return;
+    
     setIsLoading(true);
     
     try {
       console.log('Loading results with filters:', filters);
+      console.log('User location:', userLocation);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -83,7 +108,7 @@ export const useGeoSearch = ({
           id: '1', 
           name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 1`, 
           address: '123 Rue de Paris, Paris',
-          coordinates: [2.34, 48.86], 
+          coordinates: [userLocation[0] + 0.01, userLocation[1] + 0.01], 
           type: filters.subcategory || 'default',
           category: filters.category || 'default', 
           distance: Math.round(Math.random() * filters.distance * 10) / 10, 
@@ -93,7 +118,7 @@ export const useGeoSearch = ({
           id: '2', 
           name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 2`, 
           address: '45 Avenue des Champs-Élysées, Paris',
-          coordinates: [2.37, 48.87], 
+          coordinates: [userLocation[0] - 0.01, userLocation[1] + 0.01], 
           type: filters.subcategory || 'default',
           category: filters.category || 'default', 
           distance: Math.round(Math.random() * filters.distance * 10) / 10, 
@@ -103,7 +128,7 @@ export const useGeoSearch = ({
           id: '3', 
           name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 3`, 
           address: '78 Boulevard Saint-Michel, Paris',
-          coordinates: [2.29, 48.86], 
+          coordinates: [userLocation[0] + 0.01, userLocation[1] - 0.01], 
           type: filters.subcategory || 'default',
           category: filters.category || 'default', 
           distance: Math.round(Math.random() * filters.distance * 10) / 10, 
@@ -111,7 +136,16 @@ export const useGeoSearch = ({
         }
       ];
       
-      setResults(mockResults);
+      // Si une requête de recherche est spécifiée, filtrer les résultats
+      if (filters.query) {
+        const filteredResults = mockResults.filter(result => 
+          result.name.toLowerCase().includes(filters.query!.toLowerCase()) || 
+          result.address.toLowerCase().includes(filters.query!.toLowerCase())
+        );
+        setResults(filteredResults);
+      } else {
+        setResults(mockResults);
+      }
       
       if (mockResults.length > 0) {
         toast({
@@ -135,12 +169,14 @@ export const useGeoSearch = ({
     } finally {
       setIsLoading(false);
     }
-  }, [filters, toast]);
+  }, [filters, toast, userLocation]);
 
   // Load results when filters change
   useEffect(() => {
-    loadResults();
-  }, [loadResults]);
+    if (userLocation) {
+      loadResults();
+    }
+  }, [loadResults, userLocation]);
 
   return {
     results,
@@ -149,6 +185,8 @@ export const useGeoSearch = ({
     updateFilters,
     isLoading,
     showFilters,
-    toggleFilters
+    toggleFilters,
+    userLocation,
+    setUserLocation
   };
 };

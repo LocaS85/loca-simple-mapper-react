@@ -11,6 +11,7 @@ import RadiusCircle from '@/components/RadiusCircle';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { useGeoSearch } from '@/hooks/use-geo-search';
 
 interface MapViewProps {
   results: SearchResult[];
@@ -22,9 +23,11 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  
+  // Obtenir l'emplacement de l'utilisateur depuis le hook useGeoSearch
+  const { userLocation } = useGeoSearch({});
 
   // Initialize map
   useEffect(() => {
@@ -37,36 +40,11 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [2.35, 48.85], // Default to Paris
+        center: userLocation || [2.35, 48.85], // Utiliser l'emplacement de l'utilisateur ou Paris par défaut
         zoom: isMobile ? 10 : 12
       });
       
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
-      // Get user location
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userCoords: [number, number] = [position.coords.longitude, position.coords.latitude];
-          setUserLocation(userCoords);
-          
-          // Fly to user location
-          if (newMap) {
-            newMap.flyTo({
-              center: userCoords,
-              zoom: 13,
-              essential: true
-            });
-          }
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          toast({
-            title: "Localisation",
-            description: "Impossible d'obtenir votre position",
-            variant: "destructive",
-          });
-        }
-      );
       
       newMap.on('load', () => {
         console.log('Map loaded successfully');
@@ -89,7 +67,7 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
         map.current = null;
       }
     };
-  }, [isMobile, toast]);
+  }, [isMobile, toast, userLocation]);
 
   // Fit map to bounds when results change
   useEffect(() => {

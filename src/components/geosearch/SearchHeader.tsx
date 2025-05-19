@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { MapPin, Search, ArrowLeft, Filter } from 'lucide-react';
+import { ArrowLeft, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { GeoSearchFilters } from '@/types/geosearch';
+import AutoSuggestSearch from './AutoSuggestSearch';
 
 interface SearchHeaderProps {
   filters: {
@@ -18,23 +18,23 @@ interface SearchHeaderProps {
   };
   onToggleFilters: () => void;
   onSearch?: (query: string) => void;
+  onLocationSelect?: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
 }
 
 const SearchHeader: React.FC<SearchHeaderProps> = ({
   filters,
   onToggleFilters,
-  onSearch
+  onSearch,
+  onLocationSelect
 }) => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = React.useState(filters.query || '');
 
-  const handleSearch = () => {
-    if (onSearch) onSearch(searchQuery);
-  };
-
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
+  const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
+    if (onLocationSelect) {
+      onLocationSelect(location);
+    }
+    if (onSearch) {
+      onSearch(location.name);
     }
   };
 
@@ -51,14 +51,10 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           <ArrowLeft className="h-4 w-4" />
         </Button>
         
-        <div className="flex-1 flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-          <MapPin className="text-gray-500 h-4 w-4 shrink-0" />
-          <Input 
-            className="border-0 bg-transparent shadow-none p-0 h-auto focus-visible:ring-0"
+        <div className="flex-1">
+          <AutoSuggestSearch 
+            onResultSelect={handleLocationSelect}
             placeholder="Rechercher un lieu ou une adresse..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleInputKeyDown}
           />
         </div>
         
