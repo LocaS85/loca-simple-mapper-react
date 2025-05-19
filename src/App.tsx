@@ -14,17 +14,19 @@ import Premium from '@/pages/Premium';
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/geosearch" element={<GeoSearch />} />
-        <Route path="/conditions" element={<TermsOfService />} />
-        <Route path="/confidentialite" element={<Privacy />} />
-        <Route path="/premium" element={<Premium />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
+      <div className="flex flex-col min-h-screen">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/geosearch" element={<GeoSearch />} />
+          <Route path="/conditions" element={<TermsOfService />} />
+          <Route path="/confidentialite" element={<Privacy />} />
+          <Route path="/premium" element={<Premium />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </div>
     </ThemeProvider>
   );
 }
