@@ -49,9 +49,9 @@ export interface DailyAddressData {
   transportMode?: string;
 }
 
-export type TransportMode = "car" | "walking" | "cycling" | "bus" | "train";
+export type TransportMode = "car" | "walking" | "cycling" | "bus" | "train" | "driving" | "transit";
 
-// Add these missing types
+// Updated Location interface with image and price properties
 export interface Location {
   id: string;
   name: string;
@@ -59,6 +59,8 @@ export interface Location {
   coordinates: [number, number];
   category?: string;
   description?: string;
+  image?: string;
+  price?: number;
 }
 
 export interface Place {

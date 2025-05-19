@@ -33,7 +33,7 @@ const LocationCard: React.FC<LocationCardProps> = ({ location, isSelected = fals
             </svg>
           </div>
         )}
-        {location.price && (
+        {location.price !== undefined && (
           <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-md text-sm font-medium shadow-sm">
             {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(location.price)}
           </div>

@@ -47,7 +47,7 @@ export const checkMapboxSetup = () => {
   }
   
   if (!getMapboxToken()) {
-    console.error('Mapbox token missing. Set VITE_MAPBOX_TOKEN in your environment variables.');
+    console.error('Mapbox token missing. Set VITE_MAPBOX_TOKEN in your environment variables or use the hardcoded token.');
     return false;
   }
   

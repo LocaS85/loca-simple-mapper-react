@@ -10,9 +10,9 @@ export const getMapboxToken = (): string => {
   // First try to get from env
   const token = import.meta.env.VITE_MAPBOX_TOKEN;
   
-  // If not in env, use this hardcoded token which should be replaced with a real one
+  // If not in env, use this hardcoded token which has been provided by the user
   // IMPORTANT: In production, use environment variables instead of hardcoded tokens
-  const hardcodedToken = "pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbDc2cGx3dGEwNmwxM3Bxc3N1cWR5N2VvIn0.LtM2_yvwKZ53uTEgQerc2Q";
+  const hardcodedToken = "pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTl0eDUyZzYwM3hkMnhzOWE1azJ0M2YxIn0.c1joJPr_MouD1s4CW2ZMlg";
   
   const finalToken = token || hardcodedToken;
   

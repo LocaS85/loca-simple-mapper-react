@@ -1,16 +1,14 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Category } from '@/types';
-import SubcategoryCard3D from '@/components/categories/SubcategoryCard3D';
-import DailyAddressSection from '@/components/categories/DailyAddressSection';
-import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import SubcategoryCard3D from './SubcategoryCard3D';
+import { Category, DailyAddressData } from '@/types';
 
 interface SubcategoriesListProps {
   category: Category;
-  dailyAddresses: any[];
-  onEditAddress: (address: any) => void;
+  dailyAddresses: DailyAddressData[];
+  onEditAddress: (address: DailyAddressData) => void;
   onDeleteAddress: (addressId: string) => void;
   onAddNewAddress: (subcategoryId: string) => void;
   onSearchClick: (subcategoryId: string) => void;
@@ -24,61 +22,49 @@ const SubcategoriesList: React.FC<SubcategoriesListProps> = ({
   onAddNewAddress,
   onSearchClick
 }) => {
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05
-      }
+  // Filter addresses that belong to the current category
+  const categoryAddresses = dailyAddresses.filter(address => address.category === category.id);
+  
+  // Count addresses per subcategory
+  const subcategoryAddressCounts: {[key: string]: number} = {};
+  categoryAddresses.forEach(address => {
+    if (subcategoryAddressCounts[address.subcategory]) {
+      subcategoryAddressCounts[address.subcategory]++;
+    } else {
+      subcategoryAddressCounts[address.subcategory] = 1;
     }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
+  });
+  
   return (
-    <motion.div 
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-    >
-      {category.subcategories.map((subcategory) => (
-        <motion.div key={subcategory.id} variants={item} className="flex flex-col">
-          <SubcategoryCard3D 
-            subcategory={subcategory}
-            parentCategoryId={category.id}
-            parentCategoryColor={category.color}
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {category.subcategories.map((subcategory) => {
+        const addressCount = subcategoryAddressCounts[subcategory.id] || 0;
+        const subcategoryAddresses = categoryAddresses.filter(
+          address => address.subcategory === subcategory.id
+        );
+        
+        // Convert string icon to component if needed
+        const IconComponent = typeof subcategory.icon === 'string' 
+          ? () => <span>{subcategory.icon}</span> 
+          : subcategory.icon as React.ComponentType<any>;
+        
+        return (
+          <SubcategoryCard3D
+            key={subcategory.id}
+            title={subcategory.name}
+            icon={<IconComponent size={24} color={category.color} />}
+            color={category.color}
+            description={subcategory.description || ''}
+            addressCount={addressCount}
+            addresses={subcategoryAddresses}
+            onEditAddress={onEditAddress}
+            onDeleteAddress={onDeleteAddress}
+            onAddNewAddress={() => onAddNewAddress(subcategory.id)}
+            onSearchClick={() => onSearchClick(subcategory.id)}
           />
-          
-          <div className="mt-2 flex justify-end">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onSearchClick(subcategory.id)}
-              className="flex items-center gap-1 border border-gray-300 hover:border-gray-400"
-            >
-              <Search size={14} />
-              <span>Rechercher</span>
-            </Button>
-          </div>
-          
-          {/* For Daily category, show saved addresses */}
-          {category.id === 'quotidien' && (
-            <DailyAddressSection
-              subcategoryId={subcategory.id}
-              addresses={dailyAddresses.filter(addr => addr.subcategory === subcategory.id)}
-              onEditAddress={onEditAddress}
-              onDeleteAddress={onDeleteAddress}
-              onAddNewAddress={() => onAddNewAddress(subcategory.id)}
-            />
-          )}
-        </motion.div>
-      ))}
-    </motion.div>
+        );
+      })}
+    </div>
   );
 };
 
