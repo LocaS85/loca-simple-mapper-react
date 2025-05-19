@@ -20,87 +20,95 @@ const Header = () => {
   };
 
   return (
-    <header className="py-4 flex justify-between items-center relative">
+    <header className="py-2 flex justify-between items-center relative border-b border-gray-100">
       <div>
-        <Link to="/" className="text-xl font-bold text-blue-600">LocaSimple</Link>
+        <Link to="/" className="text-lg font-bold text-blue-600">LocaSimple</Link>
       </div>
 
       {/* Mobile menu button */}
       {isMobile && (
         <button 
           onClick={toggleMenu} 
-          className="p-2 z-20 text-gray-600"
+          className="p-1 z-20 text-gray-600"
           aria-label="Toggle menu"
         >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       )}
 
       {/* Desktop navigation */}
       {!isMobile && (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
                 <Link to="/" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-3 py-2",
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/') && "text-blue-600 font-medium"
                 )}>
                   Accueil
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/geo" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-3 py-2",
-                  isActive('/geo') && "text-blue-600 font-medium"
+                <Link to="/geosearch" className={cn(
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
+                  isActive('/geosearch') && "text-blue-600 font-medium"
                 )}>
                   GeoSearch
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/categories" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-3 py-2",
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/categories') && "text-blue-600 font-medium"
                 )}>
                   Catégories
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/faq" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-3 py-2",
-                  isActive('/faq') && "text-blue-600 font-medium"
+                <Link to="/premium" className={cn(
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
+                  isActive('/premium') && "text-blue-600 font-medium"
                 )}>
-                  F.A.Q.
+                  Premium
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/about" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-3 py-2",
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/about') && "text-blue-600 font-medium"
                 )}>
                   À propos
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/contact" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-3 py-2",
-                  isActive('/contact') && "text-blue-600 font-medium"
+                <Link to="/conditions" className={cn(
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
+                  isActive('/conditions') && "text-blue-600 font-medium"
                 )}>
-                  Contact
+                  CGU
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/confidentialite" className={cn(
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
+                  isActive('/confidentialite') && "text-blue-600 font-medium"
+                )}>
+                  Confidentialité
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
           
-          <div className="flex items-center ml-4">
+          <div className="flex items-center ml-3">
             <Link 
               to="/login" 
               className={cn(
-                "text-gray-600 hover:text-blue-600 transition-colors px-3 py-2 flex items-center",
+                "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm flex items-center",
                 isActive('/login') && "text-blue-600 font-medium"
               )}
             >
-              <User size={18} className="mr-1" />
+              <User size={16} className="mr-1" />
               <span>Connexion</span>
             </Link>
           </div>
@@ -110,11 +118,11 @@ const Header = () => {
       {/* Mobile navigation overlay */}
       {isMobile && isMenuOpen && (
         <div className="fixed inset-0 bg-white z-10 animate-fade-in overflow-auto">
-          <div className="flex flex-col items-center justify-start h-full space-y-4 pt-20 pb-20">
+          <div className="flex flex-col items-center justify-start h-full space-y-3 pt-16 pb-16">
             <Link 
               to="/" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
                 isActive('/') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
@@ -122,10 +130,10 @@ const Header = () => {
               Accueil
             </Link>
             <Link 
-              to="/geo" 
+              to="/geosearch" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
-                isActive('/geo') && "text-blue-600 font-medium"
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                isActive('/geosearch') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
             >
@@ -134,7 +142,7 @@ const Header = () => {
             <Link 
               to="/categories" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
                 isActive('/categories') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
@@ -142,19 +150,19 @@ const Header = () => {
               Catégories
             </Link>
             <Link 
-              to="/faq" 
+              to="/premium" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
-                isActive('/faq') && "text-blue-600 font-medium"
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                isActive('/premium') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
             >
-              F.A.Q.
+              Premium
             </Link>
             <Link 
               to="/about" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
                 isActive('/about') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
@@ -162,22 +170,32 @@ const Header = () => {
               À propos
             </Link>
             <Link 
-              to="/contact" 
+              to="/conditions" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
-                isActive('/contact') && "text-blue-600 font-medium"
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                isActive('/conditions') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
             >
-              Contact
+              CGU
+            </Link>
+            <Link 
+              to="/confidentialite" 
+              className={cn(
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                isActive('/confidentialite') && "text-blue-600 font-medium"
+              )}
+              onClick={toggleMenu}
+            >
+              Confidentialité
             </Link>
             
-            <div className="border-t border-gray-100 w-3/4 my-2"></div>
+            <div className="border-t border-gray-100 w-3/4 my-1"></div>
             
             <Link 
               to="/login" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
                 isActive('/login') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
@@ -187,45 +205,12 @@ const Header = () => {
             <Link 
               to="/register" 
               className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
+                "text-base text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
                 isActive('/register') && "text-blue-600 font-medium"
               )}
               onClick={toggleMenu}
             >
               S'inscrire
-            </Link>
-            
-            <Link 
-              to="/account" 
-              className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
-                isActive('/account') && "text-blue-600 font-medium"
-              )}
-              onClick={toggleMenu}
-            >
-              Mon compte
-            </Link>
-            
-            <Link 
-              to="/favorites" 
-              className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
-                isActive('/favorites') && "text-blue-600 font-medium"
-              )}
-              onClick={toggleMenu}
-            >
-              Favoris
-            </Link>
-            
-            <Link 
-              to="/saved" 
-              className={cn(
-                "text-lg text-gray-600 hover:text-blue-600 transition-colors py-2 w-full text-center",
-                isActive('/saved') && "text-blue-600 font-medium"
-              )}
-              onClick={toggleMenu}
-            >
-              Recherches enregistrées
             </Link>
           </div>
         </div>

@@ -10,7 +10,7 @@ const Privacy = () => {
       <div className={`max-w-4xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
         <h1 className="text-2xl md:text-3xl font-bold mb-6">Politique de Confidentialité</h1>
         
-        <p className="mb-4">Dernière mise à jour : 9 mai 2025</p>
+        <p className="mb-4">Dernière mise à jour : 19 mai 2025</p>
         
         <div className="prose max-w-none">
           <p className="mb-4">
@@ -22,6 +22,12 @@ const Privacy = () => {
           <p className="mb-4">
             Lorsque vous créez un compte, nous collectons les informations que vous nous fournissez directement, telles que votre nom, adresse e-mail, numéro de téléphone et mot de passe.
           </p>
+          <p className="mb-4">
+            Si vous optez pour un abonnement premium, nous collectons également vos informations de paiement, qui sont traitées par nos prestataires de services de paiement sécurisés.
+          </p>
+          <p className="mb-4">
+            Lorsque vous ajoutez des adresses favorites ou enregistrez des recherches, nous collectons ces informations afin de vous fournir une expérience personnalisée.
+          </p>
           
           <h3 className="text-lg font-medium mt-4 mb-2">1.2 Informations collectées automatiquement</h3>
           <p className="mb-4">
@@ -32,6 +38,8 @@ const Privacy = () => {
             <li>Informations sur votre appareil (type d'appareil, système d'exploitation, identifiants uniques)</li>
             <li>Données de journalisation (adresse IP, date et heure d'accès, pages visitées)</li>
             <li>Informations sur vos recherches et interactions avec le Service</li>
+            <li>Données de navigation (durée de session, pages consultées, fonctionnalités utilisées)</li>
+            <li>Préférences de recherche et filtres fréquemment utilisés</li>
           </ul>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">2. Comment nous utilisons vos informations</h2>
@@ -44,6 +52,9 @@ const Privacy = () => {
             <li>Personnaliser votre expérience et vous fournir des recommandations</li>
             <li>Communiquer avec vous concernant votre compte, nos mises à jour ou nos offres</li>
             <li>Détecter, prévenir et résoudre les problèmes techniques ou de sécurité</li>
+            <li>Gérer votre abonnement et traiter vos paiements</li>
+            <li>Analyser l'utilisation du Service afin de l'améliorer</li>
+            <li>Développer de nouvelles fonctionnalités basées sur les comportements des utilisateurs</li>
           </ul>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">3. Partage de vos informations</h2>
@@ -56,6 +67,7 @@ const Privacy = () => {
             <li>Pour protéger les droits, la propriété ou la sécurité de LocaSimple, de nos utilisateurs ou du public</li>
             <li>Dans le cadre d'une transaction commerciale (fusion, acquisition, vente d'actifs)</li>
             <li>Avec votre consentement</li>
+            <li>Avec nos partenaires commerciaux pour améliorer les services proposés (uniquement avec votre consentement explicite)</li>
           </ul>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">4. Stockage et sécurité des données</h2>
@@ -65,10 +77,13 @@ const Privacy = () => {
           <p className="mb-4">
             Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles appropriées pour protéger vos données personnelles contre la perte, l'utilisation abusive, l'accès non autorisé, la divulgation ou la modification.
           </p>
+          <p className="mb-4">
+            Nos serveurs sont situés dans l'Union européenne et respectent les normes strictes du RGPD. Nous effectuons régulièrement des sauvegardes et des audits de sécurité pour garantir la protection de vos données.
+          </p>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">5. Vos droits</h2>
           <p className="mb-4">
-            En fonction de votre lieu de résidence, vous pouvez avoir certains droits concernant vos données personnelles, notamment :
+            En vertu du Règlement Général sur la Protection des Données (RGPD) et d'autres lois applicables en matière de protection des données, vous disposez des droits suivants concernant vos données personnelles :
           </p>
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>Le droit d'accéder à vos données personnelles</li>
@@ -78,9 +93,13 @@ const Privacy = () => {
             <li>Le droit à la portabilité des données</li>
             <li>Le droit de vous opposer au traitement de vos données personnelles</li>
             <li>Le droit de retirer votre consentement</li>
+            <li>Le droit de ne pas faire l'objet d'une décision fondée exclusivement sur un traitement automatisé</li>
           </ul>
           <p className="mb-4">
             Pour exercer ces droits, veuillez nous contacter à l'adresse indiquée à la fin de cette Politique de Confidentialité.
+          </p>
+          <p className="mb-4">
+            Vous avez également le droit d'introduire une réclamation auprès d'une autorité de contrôle, comme la Commission Nationale de l'Informatique et des Libertés (CNIL) en France.
           </p>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">6. Cookies et technologies similaires</h2>
@@ -99,7 +118,12 @@ const Privacy = () => {
             Lorsque nous transférons vos données personnelles à l'extérieur de l'EEE, nous nous assurons qu'un niveau de protection adéquat est mis en place, soit par l'utilisation de clauses contractuelles types approuvées par la Commission européenne, soit par d'autres mécanismes de transfert appropriés.
           </p>
           
-          <h2 className="text-xl font-semibold mt-6 mb-3">8. Modifications de cette politique</h2>
+          <h2 className="text-xl font-semibold mt-6 mb-3">8. Protection des données des enfants</h2>
+          <p className="mb-4">
+            Notre Service n'est pas destiné aux personnes de moins de 15 ans et nous ne collectons pas sciemment des données personnelles d'enfants de moins de 15 ans. Si nous apprenons que nous avons collecté des données personnelles d'un enfant de moins de 15 ans sans avoir obtenu le consentement parental, nous prendrons des mesures pour supprimer ces informations de nos serveurs.
+          </p>
+          
+          <h2 className="text-xl font-semibold mt-6 mb-3">9. Modifications de cette politique</h2>
           <p className="mb-4">
             Nous pouvons mettre à jour notre Politique de Confidentialité de temps à autre. Nous vous informerons de tout changement en publiant la nouvelle Politique de Confidentialité sur cette page et en mettant à jour la date de « dernière mise à jour » en haut de cette Politique.
           </p>
@@ -107,12 +131,13 @@ const Privacy = () => {
             Nous vous encourageons à consulter régulièrement cette Politique de Confidentialité pour rester informé de la façon dont nous protégeons vos informations.
           </p>
           
-          <h2 className="text-xl font-semibold mt-6 mb-3">9. Contact</h2>
+          <h2 className="text-xl font-semibold mt-6 mb-3">10. Contact</h2>
           <p className="mb-4">
-            Si vous avez des questions ou des préoccupations concernant cette Politique de Confidentialité, veuillez nous contacter à :
+            Si vous avez des questions ou des préoccupations concernant cette Politique de Confidentialité ou nos pratiques en matière de données, veuillez nous contacter à :
           </p>
           <p className="mb-4">
-            Email : privacy@locasimple.com<br />
+            Email : confidentialite@locasimple.fr<br />
+            Délégué à la protection des données : dpo@locasimple.fr<br />
             Adresse postale : 123 Avenue des Champs-Élysées, 75008 Paris, France
           </p>
         </div>

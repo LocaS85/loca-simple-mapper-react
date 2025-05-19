@@ -10,7 +10,7 @@ const TermsOfService = () => {
       <div className={`max-w-4xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
         <h1 className="text-2xl md:text-3xl font-bold mb-6">Conditions Générales d'Utilisation</h1>
         
-        <p className="mb-4">Dernière mise à jour : 9 mai 2025</p>
+        <p className="mb-4">Dernière mise à jour : 19 mai 2025</p>
         
         <div className="prose max-w-none">
           <h2 className="text-xl font-semibold mt-6 mb-3">1. Introduction</h2>
@@ -40,6 +40,8 @@ const TermsOfService = () => {
             <li>Tenter d'accéder à des parties du Service auxquelles vous n'êtes pas autorisé à accéder</li>
             <li>Utiliser des robots, des scrapers ou d'autres moyens automatisés pour accéder au Service</li>
             <li>Collecter ou récolter des données personnelles sur d'autres utilisateurs du Service</li>
+            <li>Contourner les mesures de sécurité mises en place par LocaSimple</li>
+            <li>Violer les droits de propriété intellectuelle de LocaSimple ou de tiers</li>
           </ul>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">5. Contenu de l'utilisateur</h2>
@@ -57,6 +59,12 @@ const TermsOfService = () => {
           <p className="mb-4">
             Les abonnements se renouvellent automatiquement à moins que vous ne les annuliez avant la fin de la période en cours. Vous pouvez annuler votre abonnement à tout moment via les paramètres de votre compte.
           </p>
+          <p className="mb-4">
+            Nous nous réservons le droit de modifier les prix de nos abonnements à tout moment. Toute modification de prix prendra effet à la fin de votre période de facturation en cours. Nous vous informerons de tout changement de prix au moins 30 jours avant son entrée en vigueur.
+          </p>
+          <p className="mb-4">
+            En cas de résiliation de votre abonnement, vous perdrez l'accès aux fonctionnalités premium à la fin de votre période de facturation en cours. Aucun remboursement ne sera effectué pour les périodes d'abonnement partiellement utilisées.
+          </p>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">7. Propriété intellectuelle</h2>
           <p className="mb-4">
@@ -72,6 +80,9 @@ const TermsOfService = () => {
           </p>
           <p className="mb-4">
             Nous ne garantissons pas que le Service sera disponible à tout moment ou lieu particulier, ni que le Service sera ininterrompu, sécurisé ou sans erreur.
+          </p>
+          <p className="mb-4">
+            Les informations géographiques et de navigation fournies par le Service sont destinées à des fins d'information uniquement et ne doivent pas être utilisées comme unique source d'orientation. LocaSimple ne peut garantir l'exactitude, l'exhaustivité ou la fiabilité des données cartographiques.
           </p>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">9. Modifications des conditions</h2>
@@ -89,7 +100,7 @@ const TermsOfService = () => {
           
           <h2 className="text-xl font-semibold mt-6 mb-3">11. Contact</h2>
           <p className="mb-4">
-            Si vous avez des questions concernant ces Conditions, veuillez nous contacter à l'adresse suivante : contact@locasimple.com
+            Si vous avez des questions concernant ces Conditions, veuillez nous contacter à l'adresse suivante : contact@locasimple.fr
           </p>
         </div>
       </div>

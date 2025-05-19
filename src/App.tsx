@@ -7,6 +7,9 @@ import GeoSearch from '@/pages/GeoSearch';
 import NotFound from '@/pages/NotFound';
 import { ThemeProvider } from '@/hooks/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import TermsOfService from '@/pages/TermsOfService';
+import Privacy from '@/pages/Privacy';
+import Premium from '@/pages/Premium';
 
 function App() {
   return (
@@ -16,6 +19,9 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/geosearch" element={<GeoSearch />} />
+        <Route path="/conditions" element={<TermsOfService />} />
+        <Route path="/confidentialite" element={<Privacy />} />
+        <Route path="/premium" element={<Premium />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
