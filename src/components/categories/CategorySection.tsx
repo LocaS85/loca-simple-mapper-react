@@ -20,6 +20,7 @@ interface CategorySectionProps {
   maxDistance: number;
   maxDuration: number;
   distanceUnit: 'km' | 'mi';
+  onSearchClick: (subcategoryId: string) => void;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -33,7 +34,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   transportMode,
   maxDistance,
   maxDuration,
-  distanceUnit
+  distanceUnit,
+  onSearchClick
 }) => {
   const [animateDirection, setAnimateDirection] = useState<'left' | 'right'>('right');
   const prevCategoryRef = useRef<string | null>(null);
@@ -64,18 +66,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
     }
   };
 
-  const handleSearchClick = (subcategoryId: string) => {
-    // Navigate to search page with category and subcategory parameters
-    const categoryId = selectedCategory?.id;
-    if (categoryId) {
-      navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${distanceUnit}`);
-      
-      toast({
-        title: "Recherche lancée",
-        description: `Recherche de lieux pour ${selectedCategory?.name} - ${subcategoryId}`,
-      });
-    }
-  };
+  // We'll use the onSearchClick prop directly instead of defining a local handler
 
   return (
     <div className="space-y-8">
@@ -140,7 +131,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
               onEditAddress={onEditAddress}
               onDeleteAddress={onDeleteAddress}
               onAddNewAddress={onAddNewAddress}
-              onSearchClick={handleSearchClick}
+              onSearchClick={onSearchClick}
             />
           </motion.div>
         )}
