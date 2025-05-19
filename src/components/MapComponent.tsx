@@ -42,19 +42,40 @@ const MapComponent: React.FC<MapComponentProps> = ({
     mapboxgl.accessToken = mapboxToken;
     
     if (!map.current) {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: center || [2.35, 48.85], // Default to Paris if no center provided
-        zoom: isMobile ? 10 : 12 // Smaller zoom on mobile
-      });
-      
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
-      // Set map as loaded when it's ready
-      map.current.on('load', () => {
-        setMapLoaded(true);
-      });
+      try {
+        const newMap = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v11',
+          center: center || [2.35, 48.85], // Default to Paris if no center provided
+          zoom: isMobile ? 10 : 12 // Smaller zoom on mobile
+        });
+        
+        newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        
+        // Set map as loaded when it's ready
+        newMap.on('load', () => {
+          console.log('Map loaded successfully');
+          setMapLoaded(true);
+        });
+        
+        newMap.on('error', (e) => {
+          console.error('Map error:', e);
+          toast({
+            title: "Erreur de carte",
+            description: "Une erreur est survenue avec la carte Mapbox",
+            variant: "destructive",
+          });
+        });
+        
+        map.current = newMap;
+      } catch (error) {
+        console.error('Error initializing Mapbox map:', error);
+        toast({
+          title: "Erreur d'initialisation",
+          description: "Impossible d'initialiser la carte Mapbox",
+          variant: "destructive",
+        });
+      }
     }
     
     return () => {
@@ -63,26 +84,30 @@ const MapComponent: React.FC<MapComponentProps> = ({
         map.current = null;
       }
     };
-  }, [center, isMobile]);
+  }, [center, isMobile, mapboxToken, toast]);
 
   // Update bounds to fit all markers
   useEffect(() => {
     if (!map.current || !mapLoaded || !results.length || !center) return;
     
-    const bounds = new mapboxgl.LngLatBounds();
-    
-    // Add user location to bounds
-    bounds.extend(center);
-    
-    // Add all results to bounds
-    results.forEach(place => {
-      bounds.extend(place.coordinates);
-    });
-    
-    map.current.fitBounds(bounds, {
-      padding: isMobile ? { top: 50, bottom: 50, left: 20, right: 20 } : 50,
-      maxZoom: isMobile ? 13 : 15
-    });
+    try {
+      const bounds = new mapboxgl.LngLatBounds();
+      
+      // Add user location to bounds
+      bounds.extend(center);
+      
+      // Add all results to bounds
+      results.forEach(place => {
+        bounds.extend(place.coordinates);
+      });
+      
+      map.current.fitBounds(bounds, {
+        padding: isMobile ? { top: 50, bottom: 50, left: 20, right: 20 } : 50,
+        maxZoom: isMobile ? 13 : 15
+      });
+    } catch (error) {
+      console.error('Error fitting bounds:', error);
+    }
   }, [results, mapLoaded, center, isMobile]);
 
   if (!isMapboxTokenValid()) {

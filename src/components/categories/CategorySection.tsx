@@ -19,6 +19,7 @@ interface CategorySectionProps {
   transportMode: TransportMode;
   maxDistance: number;
   maxDuration: number;
+  distanceUnit: 'km' | 'mi';
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -31,7 +32,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   selectedCategory,
   transportMode,
   maxDistance,
-  maxDuration
+  maxDuration,
+  distanceUnit
 }) => {
   const [animateDirection, setAnimateDirection] = useState<'left' | 'right'>('right');
   const prevCategoryRef = useRef<string | null>(null);
@@ -66,7 +68,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
     // Navigate to search page with category and subcategory parameters
     const categoryId = selectedCategory?.id;
     if (categoryId) {
-      navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}`);
+      navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${distanceUnit}`);
       
       toast({
         title: "Recherche lancée",
