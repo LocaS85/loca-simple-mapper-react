@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { TransportMode } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +11,7 @@ interface UseGeoSearchProps {
   transport?: string;
   distance?: number;
   unit?: string;
+  query?: string | null;
 }
 
 export const useGeoSearch = ({
@@ -17,7 +19,8 @@ export const useGeoSearch = ({
   subcategory: initialSubcategory,
   transport: initialTransport = 'car',
   distance: initialDistance = 10,
-  unit: initialUnit = 'km'
+  unit: initialUnit = 'km',
+  query: initialQuery = ''
 }: UseGeoSearchProps) => {
   // State for filters
   const [filters, setFilters] = useState<GeoSearchFilters>({
@@ -26,7 +29,7 @@ export const useGeoSearch = ({
     transport: initialTransport as TransportMode,
     distance: initialDistance || 10,
     unit: (initialUnit || 'km') as 'km' | 'mi',
-    query: ''
+    query: initialQuery || ''
   });
 
   // State for search results
@@ -78,6 +81,28 @@ export const useGeoSearch = ({
     
     setSearchParams(newParams, { replace: true });
   }, [filters, setSearchParams]);
+
+  // Synchronize filters when URL params change
+  useEffect(() => {
+    const category = searchParams.get('category');
+    const subcategory = searchParams.get('subcategory');
+    const transport = searchParams.get('transport');
+    const distance = searchParams.get('distance');
+    const unit = searchParams.get('unit');
+    const query = searchParams.get('query');
+    
+    const newFilters: Partial<GeoSearchFilters> = {};
+    if (category !== null && category !== filters.category) newFilters.category = category;
+    if (subcategory !== null && subcategory !== filters.subcategory) newFilters.subcategory = subcategory;
+    if (transport && transport !== filters.transport) newFilters.transport = transport as TransportMode;
+    if (distance && Number(distance) !== filters.distance) newFilters.distance = Number(distance);
+    if (unit && unit !== filters.unit) newFilters.unit = unit as 'km' | 'mi';
+    if (query !== null && query !== filters.query) newFilters.query = query;
+    
+    if (Object.keys(newFilters).length > 0) {
+      setFilters(prev => ({ ...prev, ...newFilters }));
+    }
+  }, [searchParams]);
 
   // Toggle filters popup
   const toggleFilters = useCallback(() => {
@@ -138,25 +163,31 @@ export const useGeoSearch = ({
       
       // Si une requête de recherche est spécifiée, filtrer les résultats
       if (filters.query) {
-        const filteredResults = mockResults.filter(result => 
-          result.name.toLowerCase().includes(filters.query!.toLowerCase()) || 
-          result.address.toLowerCase().includes(filters.query!.toLowerCase())
-        );
-        setResults(filteredResults);
+        // Simulate search-specific results
+        const searchSpecificResults = [
+          ...mockResults,
+          { 
+            id: '4',
+            name: filters.query,
+            address: `Près de ${filters.query}, France`,
+            coordinates: [userLocation[0] + 0.02, userLocation[1] + 0.02],
+            type: 'search-result',
+            category: filters.category || 'search',
+            distance: Math.round(Math.random() * filters.distance * 10) / 10,
+            duration: Math.round(Math.random() * 30)
+          }
+        ];
+        
+        setResults(searchSpecificResults);
       } else {
         setResults(mockResults);
       }
       
-      if (mockResults.length > 0) {
+      // Only show toast when results are actually loaded (not on initial load)
+      if (filters.category || filters.subcategory || filters.query) {
         toast({
           title: "Résultats trouvés",
           description: `${mockResults.length} lieux trouvés pour votre recherche`,
-        });
-      } else {
-        toast({
-          title: "Aucun résultat",
-          description: "Essayez de modifier vos filtres de recherche",
-          variant: "destructive",
         });
       }
     } catch (error) {
@@ -166,17 +197,11 @@ export const useGeoSearch = ({
         description: 'Impossible de charger les résultats',
         variant: 'destructive',
       });
+      setResults([]);
     } finally {
       setIsLoading(false);
     }
   }, [filters, toast, userLocation]);
-
-  // Load results when filters change
-  useEffect(() => {
-    if (userLocation) {
-      loadResults();
-    }
-  }, [loadResults, userLocation]);
 
   return {
     results,

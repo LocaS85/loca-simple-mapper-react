@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Filter } from 'lucide-react';
+import { ArrowLeft, Filter, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { GeoSearchFilters } from '@/types/geosearch';
 import AutoSuggestSearch from './AutoSuggestSearch';
+import { GeoSearchFilters } from '@/types/geosearch';
 
 interface SearchHeaderProps {
   filters: {
@@ -38,6 +38,22 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
     }
   };
 
+  // Format transport mode for display
+  const formatTransport = (transport: string) => {
+    switch (transport) {
+      case 'car':
+        return 'Voiture';
+      case 'walking':
+        return 'À pied';
+      case 'cycling':
+        return 'Vélo';
+      case 'transit':
+        return 'Transport en commun';
+      default:
+        return transport;
+    }
+  };
+
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md p-3">
       <div className="flex items-center gap-2 mb-2">
@@ -55,21 +71,32 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           <AutoSuggestSearch 
             onResultSelect={handleLocationSelect}
             placeholder="Rechercher un lieu ou une adresse..."
+            initialValue={filters.query || ""}
           />
         </div>
         
         <Button 
           variant="outline" 
           size="icon" 
-          className="shrink-0"
+          className="shrink-0 relative"
           onClick={onToggleFilters}
           aria-label="Filtres"
         >
           <Filter className="h-4 w-4" />
+          {/* Add a badge indicator when filters are applied */}
+          {(filters.category || filters.subcategory) && (
+            <span className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full transform translate-x-1/2 -translate-y-1/2"></span>
+          )}
         </Button>
       </div>
       
       <div className="flex flex-wrap gap-2">
+        {filters.query && (
+          <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-600 flex items-center gap-1">
+            <MapPin size={12} />
+            {filters.query}
+          </Badge>
+        )}
         {filters.category && (
           <Badge variant="secondary" className="text-xs">
             Catégorie: {filters.category}
@@ -77,14 +104,14 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         )}
         {filters.subcategory && (
           <Badge variant="secondary" className="text-xs">
-            Sous-catégorie: {filters.subcategory}
+            {filters.subcategory}
           </Badge>
         )}
         <Badge variant="secondary" className="text-xs">
-          Transport: {filters.transport}
+          {formatTransport(filters.transport)}
         </Badge>
         <Badge variant="secondary" className="text-xs">
-          Distance max: {filters.distance} {filters.unit}
+          {filters.distance} {filters.unit}
         </Badge>
       </div>
     </div>

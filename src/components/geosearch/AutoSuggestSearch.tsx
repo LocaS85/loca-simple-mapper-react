@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, MapPin } from 'lucide-react';
 import { getMapboxToken } from '@/utils/mapboxConfig';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface AutoSuggestSearchProps {
   onResultSelect: (result: { name: string; coordinates: [number, number]; placeName: string }) => void;
   placeholder?: string;
   className?: string;
+  initialValue?: string;
 }
 
 interface SuggestionResult {
@@ -16,14 +18,20 @@ interface SuggestionResult {
   text: string;
   place_name: string;
   center: [number, number];
+  place_type: string[];
+  properties?: {
+    category?: string;
+    address?: string;
+  };
 }
 
 const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   onResultSelect,
   placeholder = "Rechercher un lieu ou une adresse...",
   className = "",
+  initialValue = "",
 }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialValue);
   const [suggestions, setSuggestions] = useState<SuggestionResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -35,6 +43,13 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   // Récupérer le token Mapbox
   const mapboxToken = getMapboxToken();
 
+  useEffect(() => {
+    // Update query when initialValue changes (e.g., from URL params)
+    if (initialValue && initialValue !== query) {
+      setQuery(initialValue);
+    }
+  }, [initialValue]);
+
   // Fonction pour rechercher des suggestions
   const fetchSuggestions = async (searchText: string) => {
     if (!searchText.trim() || !mapboxToken) return;
@@ -43,7 +58,8 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     
     try {
       // Construire l'URL de recherche Mapbox avec des paramètres pour la France
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchText)}.json?access_token=${mapboxToken}&country=fr&language=fr&limit=5`;
+      // Add types=place,address,poi parameters to get more relevant results
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchText)}.json?access_token=${mapboxToken}&country=fr&language=fr&limit=5&types=place,address,poi,postcode`;
       
       const response = await fetch(url);
       if (!response.ok) throw new Error('Erreur lors de la recherche');
@@ -104,6 +120,51 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   };
 
+  // Handle keyboard navigation in the suggestions list
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setIsFocused(false);
+      setSuggestions([]);
+      return;
+    }
+
+    if (!suggestions.length) return;
+
+    const currentIndex = suggestions.findIndex(
+      (suggestion) => document.activeElement === document.getElementById(`suggestion-${suggestion.id}`)
+    );
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, suggestions.length - 1);
+      const nextElement = document.getElementById(`suggestion-${suggestions[nextIndex].id}`);
+      if (nextElement) nextElement.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = currentIndex <= 0 ? suggestions.length - 1 : currentIndex - 1;
+      const prevElement = document.getElementById(`suggestion-${suggestions[prevIndex].id}`);
+      if (prevElement) prevElement.focus();
+    } else if (e.key === 'Enter' && currentIndex >= 0) {
+      e.preventDefault();
+      handleSuggestionSelect(suggestions[currentIndex]);
+    }
+  };
+
+  // Render a suggestion type icon based on the place_type
+  const renderPlaceTypeIcon = (placeType: string[]) => {
+    const type = placeType[0];
+    
+    if (type === 'poi') {
+      return <MapPin size={16} className="text-blue-500" />;
+    } else if (type === 'address') {
+      return <MapPin size={16} className="text-green-500" />;
+    } else if (type === 'place') {
+      return <MapPin size={16} className="text-purple-500" />;
+    } else {
+      return <MapPin size={16} className="text-gray-500" />;
+    }
+  };
+
   // Gérer le clic en dehors des suggestions
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -133,10 +194,10 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   }, []);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={cn("relative w-full", className)}>
       <div className="relative flex items-center">
         <div className="absolute left-3 text-gray-400">
-          <Search size={18} />
+          <Search size={18} className={isLoading ? "opacity-50" : ""} />
         </div>
         
         <input
@@ -145,8 +206,11 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
           value={query}
           onChange={handleInputChange}
           onFocus={() => setIsFocused(true)}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="w-full pl-10 pr-10 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          aria-label="Recherche de lieu"
+          autoComplete="off"
         />
         
         {isLoading ? (
@@ -160,6 +224,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
             size="icon"
             className="absolute right-2 h-7 w-7" 
             onClick={handleClearInput}
+            aria-label="Effacer la recherche"
           >
             <X size={16} />
           </Button>
@@ -171,17 +236,32 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         <div 
           ref={suggestionListRef}
           className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg max-h-[300px] overflow-y-auto border border-gray-200"
+          role="listbox"
         >
           {suggestions.map((suggestion) => (
-            <div
+            <button
+              id={`suggestion-${suggestion.id}`}
               key={suggestion.id}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b last:border-0 border-gray-100"
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none cursor-pointer border-b last:border-0 border-gray-100 flex items-start gap-2"
               onClick={() => handleSuggestionSelect(suggestion)}
+              role="option"
+              tabIndex={0}
             >
-              <div className="font-medium text-sm">{suggestion.text}</div>
-              <div className="text-xs text-gray-500 truncate">{suggestion.place_name}</div>
-            </div>
+              <div className="flex-shrink-0 mt-1">
+                {renderPlaceTypeIcon(suggestion.place_type)}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <div className="font-medium text-sm">{suggestion.text}</div>
+                <div className="text-xs text-gray-500 truncate">{suggestion.place_name}</div>
+              </div>
+            </button>
           ))}
+        </div>
+      )}
+      
+      {isFocused && query.trim().length >= 2 && suggestions.length === 0 && !isLoading && (
+        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 text-center">
+          <p className="text-sm text-gray-500">Aucun résultat trouvé</p>
         </div>
       )}
     </div>
