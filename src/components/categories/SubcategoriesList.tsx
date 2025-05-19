@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import SubcategoryCard3D from './SubcategoryCard3D';
 import { Category, DailyAddressData } from '@/types';
@@ -43,16 +42,18 @@ const SubcategoriesList: React.FC<SubcategoriesListProps> = ({
           address => address.subcategory === subcategory.id
         );
         
-        // Convert string icon to component if needed
-        const IconComponent = typeof subcategory.icon === 'string' 
-          ? () => <span>{subcategory.icon}</span> 
-          : subcategory.icon as React.ComponentType<any>;
+        // Convert icon component to React node
+        const iconElement = React.createElement(subcategory.icon, { 
+          size: 24,
+          color: category.color,
+          strokeWidth: 2
+        });
         
         return (
           <SubcategoryCard3D
             key={subcategory.id}
             title={subcategory.name}
-            icon={<IconComponent size={24} color={category.color} />}
+            icon={iconElement}
             color={category.color}
             description={subcategory.description || ''}
             addressCount={addressCount}

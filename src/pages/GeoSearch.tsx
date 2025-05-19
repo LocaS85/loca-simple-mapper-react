@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -5,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import SearchFilters from "@/components/SearchFilters";
 import ResultCard from "@/components/ResultCard";
 import MapComponent from "@/components/MapComponent";
+import { Place, TransportMode } from "@/types";
 
 export default function GeoSearchPage() {
   const [search, setSearch] = useState("");
@@ -58,12 +60,39 @@ export default function GeoSearchPage() {
   const { data: places = [], refetch } = useQuery({
     queryKey: ["places", search, category, resultsCount, distance, transport],
     queryFn: async () => {
-      // Fixed mock data to include the required 'address' property
+      // Fixed mock data to include the required properties for Place interface
       return [
-        { id: '1', name: 'Cinéma Gaumont', address: '123 Rue de Cinema, Paris', longitude: 2.34, latitude: 48.86, type: 'Divertissement', coordinates: [2.34, 48.86] as [number, number] },
-        { id: '2', name: 'Hôpital Saint-Louis', address: '1 Avenue Claude Vellefaux, Paris', longitude: 2.37, latitude: 48.87, type: 'Santé', coordinates: [2.37, 48.87] as [number, number] },
-        { id: '3', name: 'Tour Eiffel', address: 'Champ de Mars, Paris', longitude: 2.29, latitude: 48.86, type: 'Divertissement', coordinates: [2.29, 48.86] as [number, number] }
-      ];
+        { 
+          id: '1', 
+          name: 'Cinéma Gaumont', 
+          address: '123 Rue de Cinema, Paris',
+          coordinates: [2.34, 48.86] as [number, number], 
+          type: 'Divertissement',
+          category: 'cinema', 
+          distance: 1.2, 
+          duration: 15 
+        },
+        { 
+          id: '2', 
+          name: 'Hôpital Saint-Louis', 
+          address: '1 Avenue Claude Vellefaux, Paris',
+          coordinates: [2.37, 48.87] as [number, number], 
+          type: 'Santé',
+          category: 'hospital', 
+          distance: 2.1, 
+          duration: 20 
+        },
+        { 
+          id: '3', 
+          name: 'Tour Eiffel', 
+          address: 'Champ de Mars, Paris',
+          coordinates: [2.29, 48.86] as [number, number], 
+          type: 'Divertissement',
+          category: 'landmark', 
+          distance: 3.5, 
+          duration: 35 
+        }
+      ] as Place[];
     },
     enabled: true
   });
@@ -107,8 +136,8 @@ export default function GeoSearchPage() {
                 key={place.id}
                 id={place.id}
                 name={place.name}
-                type={place.type}
-                distance={distance}
+                type={place.type || ''}
+                distance={place.distance || 0}
                 onDirections={() => getDirections(place.id)}
               />
             ))}

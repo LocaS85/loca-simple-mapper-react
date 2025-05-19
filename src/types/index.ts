@@ -68,9 +68,12 @@ export interface Place {
   name: string;
   address: string;
   coordinates: [number, number];
-  distance: number;
-  duration: number;
-  category: string;
+  distance?: number;
+  duration?: number;
+  category?: string;
+  type?: string;
+  longitude?: number;
+  latitude?: number;
 }
 
 export interface MapResult {
