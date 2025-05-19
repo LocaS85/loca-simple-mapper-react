@@ -41,8 +41,8 @@ const Categories = () => {
     setMaxDistance,
     maxDuration,
     setMaxDuration,
-    aroundMeRadius,
-    setAroundMeRadius,
+    aroundMeCount,
+    setAroundMeCount,
     showMultiDirections,
     setShowMultiDirections,
     handleFiltersChange,
@@ -73,8 +73,8 @@ const Categories = () => {
         setMaxDistance={setMaxDistance}
         maxDuration={maxDuration}
         setMaxDuration={setMaxDuration}
-        aroundMeRadius={aroundMeRadius}
-        setAroundMeRadius={setAroundMeRadius}
+        aroundMeCount={aroundMeCount}
+        setAroundMeCount={setAroundMeCount}
         showMultiDirections={showMultiDirections}
         setShowMultiDirections={setShowMultiDirections}
       />
@@ -92,7 +92,7 @@ const Categories = () => {
               initialTransportMode={transportMode}
               initialMaxDistance={maxDistance}
               initialMaxDuration={maxDuration}
-              initialAroundMeRadius={aroundMeRadius}
+              initialAroundMeCount={aroundMeCount}
               initialShowMultiDirections={showMultiDirections}
             />
           ) : (

@@ -17,14 +17,14 @@ interface FilterBarProps {
     transportMode: TransportMode;
     maxDistance: number;
     maxDuration: number;
-    aroundMeRadius?: number;
+    aroundMeCount?: number;
     showMultiDirections?: boolean;
   }) => void;
   initialCategory?: string;
   initialTransportMode?: TransportMode;
   initialMaxDistance?: number;
   initialMaxDuration?: number;
-  initialAroundMeRadius?: number;
+  initialAroundMeCount?: number;
   initialShowMultiDirections?: boolean;
 }
 
@@ -53,14 +53,14 @@ export function FilterBar({
   initialTransportMode = "car",
   initialMaxDistance = 5,
   initialMaxDuration = 15,
-  initialAroundMeRadius = 5,
+  initialAroundMeCount = 3,
   initialShowMultiDirections = false
 }: FilterBarProps) {
   const [category, setCategory] = useState(initialCategory || "food");
   const [transportMode, setTransportMode] = useState<TransportMode>(initialTransportMode);
   const [maxDistance, setMaxDistance] = useState(initialMaxDistance);
   const [maxDuration, setMaxDuration] = useState(initialMaxDuration);
-  const [aroundMeRadius, setAroundMeRadius] = useState(initialAroundMeRadius);
+  const [aroundMeCount, setAroundMeCount] = useState(initialAroundMeCount);
   const [showMultiDirections, setShowMultiDirections] = useState(initialShowMultiDirections);
 
   // Update category if initialCategory changes
@@ -84,8 +84,8 @@ export function FilterBar({
   }, [initialMaxDuration]);
   
   useEffect(() => {
-    setAroundMeRadius(initialAroundMeRadius);
-  }, [initialAroundMeRadius]);
+    setAroundMeCount(initialAroundMeCount);
+  }, [initialAroundMeCount]);
   
   useEffect(() => {
     setShowMultiDirections(initialShowMultiDirections);
@@ -98,10 +98,10 @@ export function FilterBar({
       transportMode, 
       maxDistance, 
       maxDuration,
-      aroundMeRadius,
+      aroundMeCount,
       showMultiDirections
     });
-  }, [category, transportMode, maxDistance, maxDuration, aroundMeRadius, showMultiDirections, onFiltersChange]);
+  }, [category, transportMode, maxDistance, maxDuration, aroundMeCount, showMultiDirections, onFiltersChange]);
 
   return (
     <div className="w-full p-4 rounded-2xl shadow-lg bg-white dark:bg-neutral-900">
@@ -208,20 +208,20 @@ export function FilterBar({
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Rayon autour de moi */}
+          {/* Nombre de résultats à afficher */}
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Rayon
+                Nombre de lieux
               </label>
-              <span className="text-sm font-medium">{aroundMeRadius} km</span>
+              <span className="text-sm font-medium">{aroundMeCount}</span>
             </div>
             <Slider 
               min={1} 
               max={10} 
               step={1} 
-              value={[aroundMeRadius]} 
-              onValueChange={(val) => setAroundMeRadius(val[0])} 
+              value={[aroundMeCount]} 
+              onValueChange={(val) => setAroundMeCount(val[0])} 
             />
           </div>
           

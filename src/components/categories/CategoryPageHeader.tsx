@@ -14,8 +14,8 @@ interface CategoryPageHeaderProps {
   setMaxDistance: (distance: number) => void;
   maxDuration: number;
   setMaxDuration: (duration: number) => void;
-  aroundMeRadius?: number;
-  setAroundMeRadius?: (radius: number) => void;
+  aroundMeCount?: number;
+  setAroundMeCount?: (count: number) => void;
   showMultiDirections?: boolean;
   setShowMultiDirections?: (show: boolean) => void;
 }
@@ -27,8 +27,8 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
   setMaxDistance,
   maxDuration,
   setMaxDuration,
-  aroundMeRadius = 5,
-  setAroundMeRadius,
+  aroundMeCount = 3,
+  setAroundMeCount,
   showMultiDirections = false,
   setShowMultiDirections
 }) => {
@@ -85,17 +85,17 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
             <TabsContent value="around" className="pt-2">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Rayon:</span>
+                  <span className="text-sm font-medium">Nombre de lieux:</span>
                   <div className="flex items-center gap-2">
                     <Slider
                       className="w-32"
-                      value={[aroundMeRadius]}
+                      value={[aroundMeCount]}
                       min={1}
                       max={10}
                       step={1}
-                      onValueChange={(values) => setAroundMeRadius && setAroundMeRadius(values[0])}
+                      onValueChange={(values) => setAroundMeCount && setAroundMeCount(values[0])}
                     />
-                    <span className="text-sm font-medium min-w-[40px] text-right">{aroundMeRadius} km</span>
+                    <span className="text-sm font-medium min-w-[40px] text-right">{aroundMeCount}</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">

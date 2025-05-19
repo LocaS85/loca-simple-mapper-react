@@ -13,14 +13,14 @@ interface CategoryMapViewProps {
     transportMode: TransportMode;
     maxDistance: number;
     maxDuration: number;
-    aroundMeRadius?: number;
+    aroundMeCount?: number;
     showMultiDirections?: boolean;
   }) => void;
   selectedCategory?: Category | null;
   initialTransportMode?: TransportMode;
   initialMaxDistance?: number; 
   initialMaxDuration?: number;
-  initialAroundMeRadius?: number;
+  initialAroundMeCount?: number;
   initialShowMultiDirections?: boolean;
 }
 
@@ -30,7 +30,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
   initialTransportMode = 'car',
   initialMaxDistance = 5,
   initialMaxDuration = 15,
-  initialAroundMeRadius = 5,
+  initialAroundMeCount = 3,
   initialShowMultiDirections = false
 }) => {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
@@ -46,7 +46,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     transportMode: initialTransportMode,
     maxDistance: initialMaxDistance,
     maxDuration: initialMaxDuration,
-    aroundMeRadius: initialAroundMeRadius,
+    aroundMeCount: initialAroundMeCount,
     showMultiDirections: initialShowMultiDirections
   });
 
@@ -62,87 +62,85 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
 
   // Get user location
   useEffect(() => {
-    if (filters.aroundMeRadius > 0) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lng = position.coords.longitude;
-          const lat = position.coords.latitude;
-          setUserLocation({ lng, lat });
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lng = position.coords.longitude;
+        const lat = position.coords.latitude;
+        setUserLocation({ lng, lat });
+        
+        // Center map on user location if available
+        if (map) {
+          map.flyTo({
+            center: [lng, lat],
+            zoom: 13
+          });
           
-          // Center map on user location if available
-          if (map) {
-            map.flyTo({
-              center: [lng, lat],
-              zoom: 13
+          // Add user location marker
+          const el = document.createElement('div');
+          el.className = 'user-marker';
+          el.style.width = '20px';
+          el.style.height = '20px';
+          el.style.borderRadius = '50%';
+          el.style.backgroundColor = '#3b82f6';
+          el.style.border = '2px solid white';
+          
+          new mapboxgl.Marker(el)
+            .setLngLat([lng, lat])
+            .addTo(map);
+            
+          // Add search radius circle
+          if (map.getSource('radius')) {
+            const source = map.getSource('radius') as mapboxgl.GeoJSONSource;
+            source.setData({
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Point',
+                coordinates: [lng, lat]
+              }
             });
-            
-            // Add user location marker
-            const el = document.createElement('div');
-            el.className = 'user-marker';
-            el.style.width = '20px';
-            el.style.height = '20px';
-            el.style.borderRadius = '50%';
-            el.style.backgroundColor = '#3b82f6';
-            el.style.border = '2px solid white';
-            
-            new mapboxgl.Marker(el)
-              .setLngLat([lng, lat])
-              .addTo(map);
-              
-            // Add radius circle
-            if (map.getSource('radius')) {
-              const source = map.getSource('radius') as mapboxgl.GeoJSONSource;
-              source.setData({
+          } else {
+            map.addSource('radius', {
+              type: 'geojson',
+              data: {
                 type: 'Feature',
                 properties: {},
                 geometry: {
                   type: 'Point',
                   coordinates: [lng, lat]
                 }
-              });
-            } else {
-              map.addSource('radius', {
-                type: 'geojson',
-                data: {
-                  type: 'Feature',
-                  properties: {},
-                  geometry: {
-                    type: 'Point',
-                    coordinates: [lng, lat]
-                  }
-                }
-              });
-              
-              map.addLayer({
-                id: 'radius-circle',
-                type: 'circle',
-                source: 'radius',
-                paint: {
-                  'circle-radius': ['interpolate', ['linear'], ['zoom'],
-                    10, filters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(lat * Math.PI / 180)),
-                    15, filters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(lat * Math.PI / 180) / 2)
-                  ],
-                  'circle-color': selectedCategory?.color || '#3b82f6',
-                  'circle-opacity': 0.2,
-                  'circle-stroke-width': 2,
-                  'circle-stroke-color': selectedCategory?.color || '#3b82f6',
-                  'circle-stroke-opacity': 0.5
-                }
-              });
-            }
+              }
+            });
+            
+            map.addLayer({
+              id: 'radius-circle',
+              type: 'circle',
+              source: 'radius',
+              paint: {
+                'circle-radius': ['interpolate', ['linear'], ['zoom'],
+                  10, filters.maxDistance * 1000 / (40075000 / 360 * Math.cos(lat * Math.PI / 180)),
+                  15, filters.maxDistance * 1000 / (40075000 / 360 * Math.cos(lat * Math.PI / 180) / 2)
+                ],
+                'circle-color': selectedCategory?.color || '#3b82f6',
+                'circle-opacity': 0.2,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': selectedCategory?.color || '#3b82f6',
+                'circle-stroke-opacity': 0.5
+              }
+            });
           }
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          toast({
-            title: "Localisation",
-            description: "Impossible d'obtenir votre position actuelle",
-            variant: "destructive"
-          });
         }
-      );
-    }
-  }, [filters.aroundMeRadius, map, selectedCategory?.color, toast]);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        toast({
+          title: "Localisation",
+          description: "Impossible d'obtenir votre position actuelle",
+          variant: "destructive"
+        });
+      }
+    );
+  }, [map, selectedCategory?.color, toast]);
 
   // Initialize map with error handling
   useEffect(() => {
@@ -215,28 +213,59 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     }
   }, [toast]);
 
+  // Generate sample POIs based on user location and aroundMeCount
+  const generateSamplePOIs = (userLoc: {lng: number, lat: number}, count: number) => {
+    const pois = [];
+    
+    // Generate sample POIs around the user location
+    for (let i = 0; i < count; i++) {
+      // Create random points within maxDistance km
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * filters.maxDistance * 0.8; // 80% of max distance for better visibility
+      
+      // Convert distance from km to lat/lng offset
+      const latOffset = distance / 111; // approx 111 km per degree of latitude
+      const lngOffset = distance / (111 * Math.cos(userLoc.lat * Math.PI / 180)); // account for longitude distortion
+      
+      // Calculate coordinates
+      const lng = userLoc.lng + lngOffset * Math.cos(angle);
+      const lat = userLoc.lat + latOffset * Math.sin(angle);
+      
+      pois.push({
+        name: `${selectedCategory?.name || 'POI'} ${i+1}`,
+        coordinates: [lng, lat]
+      });
+    }
+    
+    return pois;
+  };
+
   // Draw multi-directional routes when enabled
   useEffect(() => {
     if (!map || !userLocation || !filters.showMultiDirections) return;
     
-    // Sample POIs - in a real app, these would come from your data source
-    const pois = [
-      { name: "Point A", coordinates: [userLocation.lng + 0.01, userLocation.lat + 0.01] },
-      { name: "Point B", coordinates: [userLocation.lng - 0.01, userLocation.lat + 0.01] },
-      { name: "Point C", coordinates: [userLocation.lng + 0.01, userLocation.lat - 0.01] },
-      { name: "Point D", coordinates: [userLocation.lng - 0.01, userLocation.lat - 0.01] },
-    ];
-    
-    // Remove existing routes
+    // Remove existing routes and markers
     if (map.getSource('routes')) {
       map.removeLayer('routes-line');
       map.removeSource('routes');
     }
     
+    // Find and remove existing POI markers
+    const markersToRemove = [];
+    map.markers?.forEach(marker => {
+      if (marker && marker.getElement().classList.contains('poi-marker')) {
+        markersToRemove.push(marker);
+      }
+    });
+    markersToRemove.forEach(marker => marker.remove());
+    
+    // Generate POIs based on aroundMeCount
+    const pois = generateSamplePOIs(userLocation, filters.aroundMeCount);
+    
     // Add POI markers
     pois.forEach((poi, index) => {
       const el = document.createElement('div');
-      el.className = `poi-marker-${index}`;
+      el.className = `poi-marker poi-marker-${index}`;
       el.style.width = '15px';
       el.style.height = '15px';
       el.style.borderRadius = '50%';
@@ -250,7 +279,6 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     });
     
     // Create routes data
-    // Note: In a real app, you'd use the Mapbox Directions API to get actual routes
     const routesData = {
       type: 'FeatureCollection',
       features: pois.map(poi => ({
@@ -288,21 +316,21 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       }
     });
     
-  }, [filters.showMultiDirections, map, userLocation, selectedCategory?.color]);
+  }, [filters.showMultiDirections, filters.aroundMeCount, map, userLocation, selectedCategory?.color, selectedCategory?.name]);
 
   const handleFiltersChange = (newFilters: {
     category: string;
     transportMode: TransportMode;
     maxDistance: number;
     maxDuration: number;
-    aroundMeRadius?: number;
+    aroundMeCount?: number;
     showMultiDirections?: boolean;
   }) => {
-    // Correction ici: assurer que les propriétés optionnelles ont des valeurs par défaut
+    // Assurer que les propriétés optionnelles ont des valeurs par défaut
     const updatedFilters = {
       ...newFilters,
       // Utiliser les valeurs actuelles comme fallback pour les valeurs optionnelles
-      aroundMeRadius: newFilters.aroundMeRadius ?? filters.aroundMeRadius,
+      aroundMeCount: newFilters.aroundMeCount ?? filters.aroundMeCount,
       showMultiDirections: newFilters.showMultiDirections ?? filters.showMultiDirections
     };
     
@@ -314,13 +342,13 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       // If there's a selectedCategory, use its color for visual feedback
       const categoryColor = selectedCategory?.color || '#3b82f6';
       
-      // Update radius circle if it exists and aroundMeRadius changed
-      if (map.getSource('radius') && userLocation && updatedFilters.aroundMeRadius !== filters.aroundMeRadius) {
-        // Update circle radius based on the new filter value
+      // Update radius circle if it exists
+      if (map.getSource('radius') && userLocation) {
+        // Update circle radius based on the max distance value
         map.setPaintProperty('radius-circle', 'circle-radius', 
           ['interpolate', ['linear'], ['zoom'],
-            10, updatedFilters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180)),
-            15, updatedFilters.aroundMeRadius * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180) / 2)
+            10, updatedFilters.maxDistance * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180)),
+            15, updatedFilters.maxDistance * 1000 / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180) / 2)
           ]
         );
       }
@@ -328,7 +356,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       // Provide visual feedback about applied filters
       toast({
         title: "Filtres appliqués",
-        description: `Catégorie: ${updatedFilters.category}, Transport: ${updatedFilters.transportMode}, Distance: ${updatedFilters.maxDistance}km, Durée: ${updatedFilters.maxDuration}min, Autour de moi: ${updatedFilters.aroundMeRadius}km`
+        description: `Catégorie: ${updatedFilters.category}, Transport: ${updatedFilters.transportMode}, Distance: ${updatedFilters.maxDistance}km, Durée: ${updatedFilters.maxDuration}min, POIs: ${updatedFilters.aroundMeCount}`
       });
     }
     
@@ -349,7 +377,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
           initialTransportMode={initialTransportMode}
           initialMaxDistance={initialMaxDistance}
           initialMaxDuration={initialMaxDuration}
-          initialAroundMeRadius={initialAroundMeRadius}
+          initialAroundMeCount={initialAroundMeCount}
           initialShowMultiDirections={initialShowMultiDirections}
         />
       </div>
@@ -381,4 +409,3 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
 };
 
 export default CategoryMapView;
-
