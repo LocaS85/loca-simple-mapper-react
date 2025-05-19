@@ -10,6 +10,8 @@ import { Toaster } from '@/components/ui/toaster';
 import TermsOfService from '@/pages/TermsOfService';
 import Privacy from '@/pages/Privacy';
 import Premium from '@/pages/Premium';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
           <Route path="/conditions" element={<TermsOfService />} />
           <Route path="/confidentialite" element={<Privacy />} />
           <Route path="/premium" element={<Premium />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

@@ -5,6 +5,7 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from './ui/nav
 import { cn } from '@/lib/utils';
 import { Menu, X, User } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Header = () => {
   const location = useLocation();
@@ -25,15 +26,50 @@ const Header = () => {
         <Link to="/" className="text-lg font-bold text-blue-600">LocaSimple</Link>
       </div>
 
-      {/* Mobile menu button */}
+      {/* Mobile burger menu */}
       {isMobile && (
-        <button 
-          onClick={toggleMenu} 
-          className="p-1 z-20 text-gray-600"
-          aria-label="Toggle menu"
-        >
-          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <button 
+              className="p-1 z-20 text-gray-600"
+              aria-label="Menu"
+            >
+              <Menu size={20} />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[250px] sm:w-[300px]">
+            <nav className="flex flex-col gap-4 mt-8">
+              <Link 
+                to="/about" 
+                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                onClick={toggleMenu}
+              >
+                À propos
+              </Link>
+              <Link 
+                to="/premium" 
+                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                onClick={toggleMenu}
+              >
+                Premium
+              </Link>
+              <Link 
+                to="/register" 
+                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                onClick={toggleMenu}
+              >
+                S'inscrire
+              </Link>
+              <Link 
+                to="/login" 
+                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                onClick={toggleMenu}
+              >
+                Connexion
+              </Link>
+            </nav>
+          </SheetContent>
+        </Sheet>
       )}
 
       {/* Desktop navigation */}
@@ -81,22 +117,6 @@ const Header = () => {
                   À propos
                 </Link>
               </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/conditions" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
-                  isActive('/conditions') && "text-blue-600 font-medium"
-                )}>
-                  CGU
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/confidentialite" className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
-                  isActive('/confidentialite') && "text-blue-600 font-medium"
-                )}>
-                  Confidentialité
-                </Link>
-              </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
           
@@ -115,7 +135,7 @@ const Header = () => {
         </div>
       )}
 
-      {/* Mobile navigation overlay */}
+      {/* Mobile navigation overlay - this gets replaced by the Sheet component */}
       {isMobile && isMenuOpen && (
         <div className="fixed inset-0 bg-white z-10 animate-fade-in overflow-auto">
           <div className="flex flex-col items-center justify-start h-full space-y-3 pt-16 pb-16">
