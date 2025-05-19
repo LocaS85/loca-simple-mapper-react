@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { TransportMode } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -133,7 +132,7 @@ export const useGeoSearch = ({
           id: '1', 
           name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 1`, 
           address: '123 Rue de Paris, Paris',
-          coordinates: [userLocation[0] + 0.01, userLocation[1] + 0.01], 
+          coordinates: [userLocation[0] + 0.01, userLocation[1] + 0.01] as [number, number], 
           type: filters.subcategory || 'default',
           category: filters.category || 'default', 
           distance: Math.round(Math.random() * filters.distance * 10) / 10, 
@@ -143,7 +142,7 @@ export const useGeoSearch = ({
           id: '2', 
           name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 2`, 
           address: '45 Avenue des Champs-Élysées, Paris',
-          coordinates: [userLocation[0] - 0.01, userLocation[1] + 0.01], 
+          coordinates: [userLocation[0] - 0.01, userLocation[1] + 0.01] as [number, number], 
           type: filters.subcategory || 'default',
           category: filters.category || 'default', 
           distance: Math.round(Math.random() * filters.distance * 10) / 10, 
@@ -153,7 +152,7 @@ export const useGeoSearch = ({
           id: '3', 
           name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 3`, 
           address: '78 Boulevard Saint-Michel, Paris',
-          coordinates: [userLocation[0] + 0.01, userLocation[1] - 0.01], 
+          coordinates: [userLocation[0] + 0.01, userLocation[1] - 0.01] as [number, number], 
           type: filters.subcategory || 'default',
           category: filters.category || 'default', 
           distance: Math.round(Math.random() * filters.distance * 10) / 10, 
@@ -163,22 +162,19 @@ export const useGeoSearch = ({
       
       // Si une requête de recherche est spécifiée, filtrer les résultats
       if (filters.query) {
-        // Simulate search-specific results
-        const searchSpecificResults = [
-          ...mockResults,
-          { 
-            id: '4',
-            name: filters.query,
-            address: `Près de ${filters.query}, France`,
-            coordinates: [userLocation[0] + 0.02, userLocation[1] + 0.02],
-            type: 'search-result',
-            category: filters.category || 'search',
-            distance: Math.round(Math.random() * filters.distance * 10) / 10,
-            duration: Math.round(Math.random() * 30)
-          }
-        ];
+        // Simulate search-specific results with correctly typed coordinates
+        const searchSpecificResult: SearchResult = { 
+          id: '4',
+          name: filters.query,
+          address: `Près de ${filters.query}, France`,
+          coordinates: [userLocation[0] + 0.02, userLocation[1] + 0.02] as [number, number],
+          type: 'search-result',
+          category: filters.category || 'search',
+          distance: Math.round(Math.random() * filters.distance * 10) / 10,
+          duration: Math.round(Math.random() * 30)
+        };
         
-        setResults(searchSpecificResults);
+        setResults([...mockResults, searchSpecificResult]);
       } else {
         setResults(mockResults);
       }

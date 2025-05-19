@@ -52,6 +52,11 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
       });
       
       map.current = newMap;
+      
+      return () => {
+        map.current?.remove();
+        map.current = null;
+      };
     } catch (error) {
       console.error('Error initializing map:', error);
       toast({
@@ -60,13 +65,6 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
         variant: "destructive",
       });
     }
-    
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
   }, [isMobile, toast, userLocation]);
 
   // Fit map to bounds when results change
