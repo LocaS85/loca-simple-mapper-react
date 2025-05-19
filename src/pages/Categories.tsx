@@ -1,127 +1,57 @@
 
-import React, { useState, useEffect } from 'react';
-import { fullCategoriesData } from '../data/fullCategories';
-import { useToast } from '@/hooks/use-toast';
-import { convertCategories } from '@/utils/categoryConverter';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
-import { TransportMode } from '@/lib/data/transportModes';
 import { 
-  MapToggle,
   AddressFormDialog,
-  CategoryMapView
+  CategoryMapView,
+  CategorySection
 } from '@/components/categories';
-import CategorySection from '@/components/categories/CategorySection';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { loadAddresses, saveAddresses, createOrUpdateAddress } from '@/services/addressService';
-import { Category } from '@/types';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
+import CategoryPageHeader from '@/components/categories/CategoryPageHeader';
+import { useAddressManagement } from '@/hooks/use-address-management';
+import { useCategoryManagement } from '@/hooks/use-category-management';
 
 const Categories = () => {
-  // States
+  // State for map toggle
   const [showMap, setShowMap] = useState(false);
-  const [dailyAddresses, setDailyAddresses] = useState<any[]>([]);
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [convertedCategories, setConvertedCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [transportMode, setTransportMode] = useState<TransportMode>("walking");
-  const [maxDistance, setMaxDistance] = useState(5);
-  const [maxDuration, setMaxDuration] = useState(20);
   
-  const { toast } = useToast();
+  const navigate = useNavigate();
   
-  // Load and convert categories on initial render
-  useEffect(() => {
-    try {
-      setIsLoading(true);
-      setConvertedCategories(convertCategories(fullCategoriesData));
-    } catch (error) {
-      console.error("Erreur lors de la conversion des catégories:", error);
-      toast({
-        title: "Erreur de données",
-        description: "Impossible de charger les catégories",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  // Load addresses from localStorage
-  useEffect(() => {
-    try {
-      const addresses = loadAddresses();
-      setDailyAddresses(addresses);
-    } catch (error) {
-      console.error('Erreur de chargement des adresses:', error);
-      toast({
-        title: "Erreur de données",
-        description: "Impossible de charger les adresses sauvegardées",
-        variant: "destructive"
-      });
-    }
-  }, [toast]);
-
-  // Save addresses to localStorage when they change
-  useEffect(() => {
-    saveAddresses(dailyAddresses);
-  }, [dailyAddresses]);
-
-  // Event handlers
-  const handleFiltersChange = (filters: {
-    category: string;
-    transportMode: TransportMode;
-    maxDistance: number;
-    maxDuration: number;
-  }) => {
-    setTransportMode(filters.transportMode);
-    setMaxDistance(filters.maxDistance);
-    setMaxDuration(filters.maxDuration);
-    
-    // Find category by ID if needed
-    if (filters.category && (!selectedCategory || selectedCategory.id !== filters.category)) {
-      const category = convertedCategories.find(c => c.id === filters.category);
-      if (category) {
-        setSelectedCategory(category);
-      }
-    }
-  };
-
-  const handleSaveAddress = (addressData: any) => {
-    const result = createOrUpdateAddress(addressData, editingAddress, dailyAddresses);
-    
-    if (result.success) {
-      setDailyAddresses(result.addresses);
-      setShowAddressForm(false);
-      setEditingAddress(null);
-    }
-    
-    toast(result.message);
-  };
-
-  const handleEditAddress = (address: any) => {
-    setEditingAddress(address);
-    setShowAddressForm(true);
-  };
-
-  const handleDeleteAddress = (addressId: string) => {
-    setDailyAddresses(prev => prev.filter(addr => addr.id !== addressId));
-    toast({
-      title: "Adresse supprimée",
-      description: "L'adresse a été supprimée avec succès"
-    });
-  };
-
-  const handleAddNewAddress = (subcategoryId: string) => {
-    setEditingAddress(null);
-    setShowAddressForm(true);
-  };
+  // Use custom hooks for state management
+  const {
+    dailyAddresses,
+    showAddressForm,
+    setShowAddressForm,
+    editingAddress,
+    setEditingAddress,
+    handleSaveAddress,
+    handleEditAddress,
+    handleDeleteAddress,
+    handleAddNewAddress
+  } = useAddressManagement();
   
-  const handleSelectCategory = (category: Category) => {
-    setSelectedCategory(category);
+  const {
+    convertedCategories,
+    selectedCategory,
+    isLoading,
+    transportMode,
+    maxDistance,
+    setMaxDistance,
+    maxDuration,
+    setMaxDuration,
+    handleFiltersChange,
+    handleSelectCategory
+  } = useCategoryManagement();
+
+  // Handle search from subcategory cards
+  const handleSearchClick = (subcategoryId: string) => {
+    // Navigate to search page with category and subcategory parameters
+    const categoryId = selectedCategory?.id;
+    if (categoryId) {
+      navigate(`/search?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}`);
+    }
   };
   
   // Check if Mapbox token is valid
@@ -132,56 +62,14 @@ const Categories = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Header with list/map toggle */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">Catégories</h1>
-        <div className="flex items-center gap-4">
-          <div className="bg-white p-2 rounded-lg shadow-sm">
-            <Tabs 
-              defaultValue="distance" 
-              className="w-[250px]"
-              onValueChange={(value) => console.log("Tab changed:", value)}
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="distance">Distance</TabsTrigger>
-                <TabsTrigger value="duration">Durée</TabsTrigger>
-              </TabsList>
-              <TabsContent value="distance" className="pt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Max:</span>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      className="w-32"
-                      value={[maxDistance]}
-                      min={1}
-                      max={20}
-                      step={1}
-                      onValueChange={(values) => setMaxDistance(values[0])}
-                    />
-                    <span className="text-sm font-medium min-w-[40px] text-right">{maxDistance} km</span>
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="duration" className="pt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Max:</span>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      className="w-32"
-                      value={[maxDuration]}
-                      min={5}
-                      max={60}
-                      step={5}
-                      onValueChange={(values) => setMaxDuration(values[0])}
-                    />
-                    <span className="text-sm font-medium min-w-[40px] text-right">{maxDuration} min</span>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-          <MapToggle showMap={showMap} setShowMap={setShowMap} />
-        </div>
-      </div>
+      <CategoryPageHeader 
+        showMap={showMap}
+        setShowMap={setShowMap}
+        maxDistance={maxDistance}
+        setMaxDistance={setMaxDistance}
+        maxDuration={maxDuration}
+        setMaxDuration={setMaxDuration}
+      />
       
       {/* Loading indicator */}
       {isLoading ? (
@@ -193,6 +81,9 @@ const Categories = () => {
             <CategoryMapView 
               onFiltersChange={handleFiltersChange}
               selectedCategory={selectedCategory}
+              initialTransportMode={transportMode}
+              initialMaxDistance={maxDistance}
+              initialMaxDuration={maxDuration}
             />
           ) : (
             <CategorySection 
