@@ -42,9 +42,9 @@ const SubcategoriesList: React.FC<SubcategoriesListProps> = ({
           address => address.subcategory === subcategory.id
         );
         
-        // Fix: Create icon element with proper typing
+        // Create icon element with proper typing
         const IconComponent = subcategory.icon as React.ComponentType<React.SVGProps<SVGSVGElement>>;
-        const iconElement = <IconComponent color={category.color} strokeWidth={2} />;
+        const iconElement = <IconComponent color={category.color} />;
         
         return (
           <SubcategoryCard3D

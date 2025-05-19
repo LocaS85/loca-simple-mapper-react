@@ -16,11 +16,17 @@ interface CategoryMapViewProps {
     maxDuration: number;
   }) => void;
   selectedCategory?: Category | null;
+  initialTransportMode?: TransportMode;
+  initialMaxDistance?: number; 
+  initialMaxDuration?: number;
 }
 
 const CategoryMapView: React.FC<CategoryMapViewProps> = ({ 
   onFiltersChange,
-  selectedCategory
+  selectedCategory,
+  initialTransportMode = 'car',
+  initialMaxDistance = 5,
+  initialMaxDuration = 15
 }) => {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -31,9 +37,9 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
 
   const [filters, setFilters] = useState({
     category: selectedCategory?.id || 'food',
-    transportMode: 'car' as TransportMode,
-    maxDistance: 5,
-    maxDuration: 15
+    transportMode: initialTransportMode,
+    maxDistance: initialMaxDistance,
+    maxDuration: initialMaxDuration
   });
 
   // Update filters when selectedCategory changes
@@ -131,10 +137,14 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       // If there's a selectedCategory, use its color for visual feedback
       const categoryColor = selectedCategory?.color || '#3b82f6';
       
+      // Provide visual feedback about applied filters
       toast({
         title: "Filtres appliqués",
         description: `Catégorie: ${newFilters.category}, Transport: ${newFilters.transportMode}, Distance: ${newFilters.maxDistance}km, Durée: ${newFilters.maxDuration}min`
       });
+
+      // Add any additional map-specific filter application here
+      // For example, updating the map radius, markers, etc.
     }
     
     // Call parent handler if provided
@@ -151,6 +161,9 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
           mapRef={mapRef} 
           onFiltersChange={handleFiltersChange} 
           initialCategory={selectedCategory?.id}
+          initialTransportMode={initialTransportMode}
+          initialMaxDistance={initialMaxDistance}
+          initialMaxDuration={initialMaxDuration}
         />
       </div>
       

@@ -17,6 +17,9 @@ interface FilterBarProps {
     maxDuration: number;
   }) => void;
   initialCategory?: string;
+  initialTransportMode?: TransportMode;
+  initialMaxDistance?: number;
+  initialMaxDuration?: number;
 }
 
 // Helper function to get the correct icon component
@@ -37,11 +40,18 @@ const getIconComponent = (iconName: string) => {
   }
 };
 
-export function FilterBar({ mapRef, onFiltersChange, initialCategory }: FilterBarProps) {
+export function FilterBar({ 
+  mapRef, 
+  onFiltersChange, 
+  initialCategory, 
+  initialTransportMode = "car",
+  initialMaxDistance = 5,
+  initialMaxDuration = 15
+}: FilterBarProps) {
   const [category, setCategory] = useState(initialCategory || "food");
-  const [transportMode, setTransportMode] = useState<TransportMode>("car");
-  const [maxDistance, setMaxDistance] = useState(5);
-  const [maxDuration, setMaxDuration] = useState(15);
+  const [transportMode, setTransportMode] = useState<TransportMode>(initialTransportMode);
+  const [maxDistance, setMaxDistance] = useState(initialMaxDistance);
+  const [maxDuration, setMaxDuration] = useState(initialMaxDuration);
 
   // Update category if initialCategory changes
   useEffect(() => {
@@ -50,6 +60,20 @@ export function FilterBar({ mapRef, onFiltersChange, initialCategory }: FilterBa
     }
   }, [initialCategory]);
 
+  // Update other filters if their initial values change
+  useEffect(() => {
+    setTransportMode(initialTransportMode);
+  }, [initialTransportMode]);
+
+  useEffect(() => {
+    setMaxDistance(initialMaxDistance);
+  }, [initialMaxDistance]);
+
+  useEffect(() => {
+    setMaxDuration(initialMaxDuration);
+  }, [initialMaxDuration]);
+
+  // Notify parent component when filters change
   useEffect(() => {
     onFiltersChange({ category, transportMode, maxDistance, maxDuration });
   }, [category, transportMode, maxDistance, maxDuration, onFiltersChange]);
