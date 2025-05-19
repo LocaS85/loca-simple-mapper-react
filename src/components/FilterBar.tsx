@@ -5,8 +5,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TransportMode, transportModes } from "@/lib/data/transportModes";
 import { CategoryItem } from "@/types/categories";
-import { MapPin, Utensils, ShoppingBag, Home, Briefcase } from "lucide-react";
+import { MapPin, Utensils, ShoppingBag, Home, Briefcase, Compass, Route } from "lucide-react";
 import { categories } from "@/lib/data/categories";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface FilterBarProps {
   mapRef: React.RefObject<any>;
@@ -15,11 +17,15 @@ interface FilterBarProps {
     transportMode: TransportMode;
     maxDistance: number;
     maxDuration: number;
+    aroundMeRadius?: number;
+    showMultiDirections?: boolean;
   }) => void;
   initialCategory?: string;
   initialTransportMode?: TransportMode;
   initialMaxDistance?: number;
   initialMaxDuration?: number;
+  initialAroundMeRadius?: number;
+  initialShowMultiDirections?: boolean;
 }
 
 // Helper function to get the correct icon component
@@ -46,12 +52,16 @@ export function FilterBar({
   initialCategory, 
   initialTransportMode = "car",
   initialMaxDistance = 5,
-  initialMaxDuration = 15
+  initialMaxDuration = 15,
+  initialAroundMeRadius = 5,
+  initialShowMultiDirections = false
 }: FilterBarProps) {
   const [category, setCategory] = useState(initialCategory || "food");
   const [transportMode, setTransportMode] = useState<TransportMode>(initialTransportMode);
   const [maxDistance, setMaxDistance] = useState(initialMaxDistance);
   const [maxDuration, setMaxDuration] = useState(initialMaxDuration);
+  const [aroundMeRadius, setAroundMeRadius] = useState(initialAroundMeRadius);
+  const [showMultiDirections, setShowMultiDirections] = useState(initialShowMultiDirections);
 
   // Update category if initialCategory changes
   useEffect(() => {
@@ -72,11 +82,26 @@ export function FilterBar({
   useEffect(() => {
     setMaxDuration(initialMaxDuration);
   }, [initialMaxDuration]);
+  
+  useEffect(() => {
+    setAroundMeRadius(initialAroundMeRadius);
+  }, [initialAroundMeRadius]);
+  
+  useEffect(() => {
+    setShowMultiDirections(initialShowMultiDirections);
+  }, [initialShowMultiDirections]);
 
   // Notify parent component when filters change
   useEffect(() => {
-    onFiltersChange({ category, transportMode, maxDistance, maxDuration });
-  }, [category, transportMode, maxDistance, maxDuration, onFiltersChange]);
+    onFiltersChange({ 
+      category, 
+      transportMode, 
+      maxDistance, 
+      maxDuration,
+      aroundMeRadius,
+      showMultiDirections
+    });
+  }, [category, transportMode, maxDistance, maxDuration, aroundMeRadius, showMultiDirections, onFiltersChange]);
 
   return (
     <div className="w-full p-4 rounded-2xl shadow-lg bg-white dark:bg-neutral-900">
@@ -170,6 +195,50 @@ export function FilterBar({
             value={[maxDuration]} 
             onValueChange={(val) => setMaxDuration(val[0])} 
           />
+        </div>
+      </div>
+      
+      {/* Section "Autour de moi" */}
+      <div className="border-t border-gray-200 mt-4 pt-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Compass className="w-5 h-5 text-blue-600" />
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Autour de moi
+          </h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Rayon autour de moi */}
+          <div className="flex flex-col gap-1">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Rayon
+              </label>
+              <span className="text-sm font-medium">{aroundMeRadius} km</span>
+            </div>
+            <Slider 
+              min={1} 
+              max={10} 
+              step={1} 
+              value={[aroundMeRadius]} 
+              onValueChange={(val) => setAroundMeRadius(val[0])} 
+            />
+          </div>
+          
+          {/* Tracés multi-directionnels */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Route className="w-4 h-4 text-blue-600" />
+              <Label htmlFor="multi-directions" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tracés multi-directionnels
+              </Label>
+            </div>
+            <Switch 
+              id="multi-directions" 
+              checked={showMultiDirections}
+              onCheckedChange={setShowMultiDirections}
+            />
+          </div>
         </div>
       </div>
     </div>

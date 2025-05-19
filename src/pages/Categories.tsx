@@ -41,6 +41,10 @@ const Categories = () => {
     setMaxDistance,
     maxDuration,
     setMaxDuration,
+    aroundMeRadius,
+    setAroundMeRadius,
+    showMultiDirections,
+    setShowMultiDirections,
     handleFiltersChange,
     handleSelectCategory
   } = useCategoryManagement();
@@ -69,6 +73,10 @@ const Categories = () => {
         setMaxDistance={setMaxDistance}
         maxDuration={maxDuration}
         setMaxDuration={setMaxDuration}
+        aroundMeRadius={aroundMeRadius}
+        setAroundMeRadius={setAroundMeRadius}
+        showMultiDirections={showMultiDirections}
+        setShowMultiDirections={setShowMultiDirections}
       />
       
       {/* Loading indicator */}
@@ -84,6 +92,8 @@ const Categories = () => {
               initialTransportMode={transportMode}
               initialMaxDistance={maxDistance}
               initialMaxDuration={maxDuration}
+              initialAroundMeRadius={aroundMeRadius}
+              initialShowMultiDirections={showMultiDirections}
             />
           ) : (
             <CategorySection 

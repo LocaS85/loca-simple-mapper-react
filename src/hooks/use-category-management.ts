@@ -13,6 +13,8 @@ export function useCategoryManagement() {
   const [transportMode, setTransportMode] = useState<TransportMode>("walking");
   const [maxDistance, setMaxDistance] = useState(5);
   const [maxDuration, setMaxDuration] = useState(20);
+  const [aroundMeRadius, setAroundMeRadius] = useState(5);
+  const [showMultiDirections, setShowMultiDirections] = useState(false);
   
   const { toast } = useToast();
   
@@ -38,10 +40,20 @@ export function useCategoryManagement() {
     transportMode: TransportMode;
     maxDistance: number;
     maxDuration: number;
+    aroundMeRadius?: number;
+    showMultiDirections?: boolean;
   }) => {
     setTransportMode(filters.transportMode);
     setMaxDistance(filters.maxDistance);
     setMaxDuration(filters.maxDuration);
+    
+    if (filters.aroundMeRadius !== undefined) {
+      setAroundMeRadius(filters.aroundMeRadius);
+    }
+    
+    if (filters.showMultiDirections !== undefined) {
+      setShowMultiDirections(filters.showMultiDirections);
+    }
     
     // Find category by ID if needed
     if (filters.category && (!selectedCategory || selectedCategory.id !== filters.category)) {
@@ -66,6 +78,10 @@ export function useCategoryManagement() {
     setMaxDistance,
     maxDuration,
     setMaxDuration,
+    aroundMeRadius,
+    setAroundMeRadius,
+    showMultiDirections,
+    setShowMultiDirections,
     handleFiltersChange,
     handleSelectCategory
   };
