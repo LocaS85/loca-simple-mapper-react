@@ -6,8 +6,6 @@ import SubcategoriesList from '@/components/categories/SubcategoriesList';
 import { Category } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { TransportMode } from '@/lib/data/transportModes';
-import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CategorySectionProps {
@@ -16,6 +14,8 @@ interface CategorySectionProps {
   onEditAddress: (address: any) => void;
   onDeleteAddress: (addressId: string) => void;
   onAddNewAddress: (subcategoryId: string) => void;
+  onSelectCategory?: (category: Category) => void;
+  selectedCategory: Category | null;
   transportMode: TransportMode;
   maxDistance: number;
   maxDuration: number;
@@ -27,11 +27,12 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   onEditAddress,
   onDeleteAddress,
   onAddNewAddress,
+  onSelectCategory,
+  selectedCategory,
   transportMode,
   maxDistance,
   maxDuration
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [animateDirection, setAnimateDirection] = useState<'left' | 'right'>('right');
   const prevCategoryRef = useRef<string | null>(null);
   const { toast } = useToast();
@@ -55,9 +56,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({
 
   const handleCategoryClick = (category: Category) => {
     if (selectedCategory?.id === category.id) {
-      setSelectedCategory(null); // Unselect if already selected
+      onSelectCategory?.(null); // Unselect if already selected
     } else {
-      setSelectedCategory(category);
+      onSelectCategory?.(category);
     }
   };
 

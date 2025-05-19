@@ -1,11 +1,12 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-// Removed 'mapbox-gl/dist/mapbox-gl.css' import as it's now loaded via CDN
+// CSS is now loaded via CDN in index.html
 import { FilterBar } from '@/components/FilterBar';
 import { TransportMode } from '@/lib/data/transportModes';
 import { useToast } from '@/hooks/use-toast';
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { Category } from '@/types';
 
 interface CategoryMapViewProps {
   onFiltersChange?: (filters: {
@@ -14,9 +15,13 @@ interface CategoryMapViewProps {
     maxDistance: number;
     maxDuration: number;
   }) => void;
+  selectedCategory?: Category | null;
 }
 
-const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) => {
+const CategoryMapView: React.FC<CategoryMapViewProps> = ({ 
+  onFiltersChange,
+  selectedCategory
+}) => {
   const [map, setMap] = useState<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -25,11 +30,21 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
   const [error, setError] = useState<string | null>(null);
 
   const [filters, setFilters] = useState({
-    category: 'food',
+    category: selectedCategory?.id || 'food',
     transportMode: 'car' as TransportMode,
     maxDistance: 5,
     maxDuration: 15
   });
+
+  // Update filters when selectedCategory changes
+  useEffect(() => {
+    if (selectedCategory) {
+      setFilters(prev => ({
+        ...prev,
+        category: selectedCategory.id
+      }));
+    }
+  }, [selectedCategory]);
 
   // Initialize map with error handling
   useEffect(() => {
@@ -113,6 +128,9 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
     
     // Apply filters to the map if available
     if (map) {
+      // If there's a selectedCategory, use its color for visual feedback
+      const categoryColor = selectedCategory?.color || '#3b82f6';
+      
       toast({
         title: "Filtres appliqués",
         description: `Catégorie: ${newFilters.category}, Transport: ${newFilters.transportMode}, Distance: ${newFilters.maxDistance}km, Durée: ${newFilters.maxDuration}min`
@@ -132,6 +150,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({ onFiltersChange }) =>
         <FilterBar 
           mapRef={mapRef} 
           onFiltersChange={handleFiltersChange} 
+          initialCategory={selectedCategory?.id}
         />
       </div>
       

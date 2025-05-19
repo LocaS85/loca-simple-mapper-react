@@ -16,6 +16,7 @@ interface FilterBarProps {
     maxDistance: number;
     maxDuration: number;
   }) => void;
+  initialCategory?: string;
 }
 
 // Helper function to get the correct icon component
@@ -36,11 +37,18 @@ const getIconComponent = (iconName: string) => {
   }
 };
 
-export function FilterBar({ mapRef, onFiltersChange }: FilterBarProps) {
-  const [category, setCategory] = useState("food");
+export function FilterBar({ mapRef, onFiltersChange, initialCategory }: FilterBarProps) {
+  const [category, setCategory] = useState(initialCategory || "food");
   const [transportMode, setTransportMode] = useState<TransportMode>("car");
   const [maxDistance, setMaxDistance] = useState(5);
   const [maxDuration, setMaxDuration] = useState(15);
+
+  // Update category if initialCategory changes
+  useEffect(() => {
+    if (initialCategory) {
+      setCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   useEffect(() => {
     onFiltersChange({ category, transportMode, maxDistance, maxDuration });

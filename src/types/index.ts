@@ -50,3 +50,41 @@ export interface DailyAddressData {
 }
 
 export type TransportMode = "car" | "walking" | "cycling" | "bus" | "train";
+
+// Add these missing types
+export interface Location {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  category?: string;
+  description?: string;
+}
+
+export interface Place {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  distance: number;
+  duration: number;
+  category: string;
+}
+
+export interface MapResult {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  distance: string;
+  duration: string;
+  category?: string;
+}
+
+export interface SearchParams {
+  query: string;
+  proximity: [number, number];
+  limit?: number;
+  radius?: number;
+  categories?: string[];
+}

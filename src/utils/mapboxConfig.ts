@@ -7,12 +7,21 @@
 let tokenWarningShown = false;
 
 export const getMapboxToken = (): string => {
+  // First try to get from env
   const token = import.meta.env.VITE_MAPBOX_TOKEN;
-  if (!token && !tokenWarningShown) {
+  
+  // If not in env, use this hardcoded token which should be replaced with a real one
+  // IMPORTANT: In production, use environment variables instead of hardcoded tokens
+  const hardcodedToken = "pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbDc2cGx3dGEwNmwxM3Bxc3N1cWR5N2VvIn0.LtM2_yvwKZ53uTEgQerc2Q";
+  
+  const finalToken = token || hardcodedToken;
+  
+  if (!finalToken && !tokenWarningShown) {
     console.error("❌ Le token Mapbox est manquant. Vérifie ton fichier .env");
     tokenWarningShown = true; // Show warning only once
   }
-  return token || "";
+  
+  return finalToken;
 };
 
 export const isMapboxTokenValid = (): boolean => {

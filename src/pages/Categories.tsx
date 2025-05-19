@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { fullCategoriesData } from '../data/fullCategories';
-import { CategoryItem, DailyAddressItem } from '../types/category';
 import { useToast } from '@/hooks/use-toast';
 import { convertCategories } from '@/utils/categoryConverter';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -22,11 +21,12 @@ import { Slider } from "@/components/ui/slider";
 const Categories = () => {
   // States
   const [showMap, setShowMap] = useState(false);
-  const [dailyAddresses, setDailyAddresses] = useState<DailyAddressItem[]>([]);
+  const [dailyAddresses, setDailyAddresses] = useState<any[]>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<DailyAddressItem | null>(null);
+  const [editingAddress, setEditingAddress] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [convertedCategories, setConvertedCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [transportMode, setTransportMode] = useState<TransportMode>("walking");
   const [maxDistance, setMaxDistance] = useState(5);
   const [maxDuration, setMaxDuration] = useState(20);
@@ -80,9 +80,17 @@ const Categories = () => {
     setTransportMode(filters.transportMode);
     setMaxDistance(filters.maxDistance);
     setMaxDuration(filters.maxDuration);
+    
+    // Find category by ID if needed
+    if (filters.category && (!selectedCategory || selectedCategory.id !== filters.category)) {
+      const category = convertedCategories.find(c => c.id === filters.category);
+      if (category) {
+        setSelectedCategory(category);
+      }
+    }
   };
 
-  const handleSaveAddress = (addressData: Partial<DailyAddressItem>) => {
+  const handleSaveAddress = (addressData: any) => {
     const result = createOrUpdateAddress(addressData, editingAddress, dailyAddresses);
     
     if (result.success) {
@@ -94,7 +102,7 @@ const Categories = () => {
     toast(result.message);
   };
 
-  const handleEditAddress = (address: DailyAddressItem) => {
+  const handleEditAddress = (address: any) => {
     setEditingAddress(address);
     setShowAddressForm(true);
   };
@@ -110,6 +118,10 @@ const Categories = () => {
   const handleAddNewAddress = (subcategoryId: string) => {
     setEditingAddress(null);
     setShowAddressForm(true);
+  };
+  
+  const handleSelectCategory = (category: Category) => {
+    setSelectedCategory(category);
   };
   
   // Check if Mapbox token is valid
@@ -178,7 +190,10 @@ const Categories = () => {
         <>
           {/* Main content - Map or List */}
           {showMap ? (
-            <CategoryMapView onFiltersChange={handleFiltersChange} />
+            <CategoryMapView 
+              onFiltersChange={handleFiltersChange}
+              selectedCategory={selectedCategory}
+            />
           ) : (
             <CategorySection 
               categories={convertedCategories}
@@ -186,6 +201,8 @@ const Categories = () => {
               onEditAddress={handleEditAddress}
               onDeleteAddress={handleDeleteAddress}
               onAddNewAddress={handleAddNewAddress}
+              onSelectCategory={handleSelectCategory}
+              selectedCategory={selectedCategory}
               transportMode={transportMode}
               maxDistance={maxDistance}
               maxDuration={maxDuration}
