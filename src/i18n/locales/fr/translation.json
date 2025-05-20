@@ -1,0 +1,53 @@
+
+{
+  "header": {
+    "home": "Accueil",
+    "geosearch": "GeoSearch",
+    "categories": "Catégories",
+    "premium": "Premium",
+    "about": "À propos",
+    "login": "Connexion",
+    "register": "S'inscrire"
+  },
+  "home": {
+    "title": "LocaSimple",
+    "subtitle": "Un outil simple et puissant pour cartographier et explorer des lieux.",
+    "startExplore": "Commencer l'exploration",
+    "seeCategories": "Voir les catégories",
+    "features": "Fonctionnalités",
+    "featureDesc": "Notre application propose diverses capacités de cartographie et de recherche de lieux.",
+    "featureList": {
+      "maps": "Cartes interactives avec marqueurs personnalisés",
+      "categorySearch": "Recherche de lieux par catégorie",
+      "filter": "Filtrage des résultats de recherche",
+      "favorites": "Enregistrement des lieux favoris"
+    },
+    "mapViews": "Vues de carte disponibles",
+    "basicSearch": "Recherche géographique basique",
+    "modernSearch": "Recherche géographique moderne",
+    "fullApp": "Application complète de recherche",
+    "myFavorites": "Mes favoris"
+  },
+  "footer": {
+    "description": "L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.",
+    "navigation": "Navigation",
+    "account": "Compte",
+    "information": "Informations",
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "myAccount": "Mon compte",
+    "favorites": "Mes favoris",
+    "savedSearches": "Recherches enregistrées",
+    "faq": "F.A.Q.",
+    "terms": "Conditions Générales d'Utilisation",
+    "privacy": "Politique de Confidentialité",
+    "premium": "Abonnement Premium",
+    "copyright": "© 2025 LocaSimple. Tous droits réservés."
+  },
+  "language": {
+    "fr": "Français",
+    "en": "Anglais",
+    "es": "Espagnol",
+    "de": "Allemand"
+  }
+}

@@ -2,9 +2,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   
   return (
     <footer className="bg-gray-100 border-t border-gray-200">
@@ -14,32 +16,32 @@ const Footer = () => {
           <div className="col-span-1">
             <Link to="/" className="text-xl font-bold text-blue-600">LocaSimple</Link>
             <p className="mt-2 text-sm text-gray-600">
-              L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.
+              {t('footer.description')}
             </p>
           </div>
           
           {/* Navigation Links - Col 1 */}
           <div className="col-span-1">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Navigation</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('footer.navigation')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/" className="text-gray-600 hover:text-blue-600">
-                  Accueil
+                  {t('header.home')}
                 </Link>
               </li>
               <li>
                 <Link to="/geo" className="text-gray-600 hover:text-blue-600">
-                  GeoSearch
+                  {t('header.geosearch')}
                 </Link>
               </li>
               <li>
                 <Link to="/categories" className="text-gray-600 hover:text-blue-600">
-                  Catégories
+                  {t('header.categories')}
                 </Link>
               </li>
               <li>
                 <Link to="/about" className="text-gray-600 hover:text-blue-600">
-                  À propos
+                  {t('header.about')}
                 </Link>
               </li>
               <li>
@@ -52,31 +54,31 @@ const Footer = () => {
           
           {/* Navigation Links - Col 2 */}
           <div className="col-span-1">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Compte</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('footer.account')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/login" className="text-gray-600 hover:text-blue-600">
-                  Se connecter
+                  {t('footer.login')}
                 </Link>
               </li>
               <li>
                 <Link to="/register" className="text-gray-600 hover:text-blue-600">
-                  S'inscrire
+                  {t('footer.register')}
                 </Link>
               </li>
               <li>
                 <Link to="/account" className="text-gray-600 hover:text-blue-600">
-                  Mon compte
+                  {t('footer.myAccount')}
                 </Link>
               </li>
               <li>
                 <Link to="/favorites" className="text-gray-600 hover:text-blue-600">
-                  Mes favoris
+                  {t('footer.favorites')}
                 </Link>
               </li>
               <li>
                 <Link to="/saved" className="text-gray-600 hover:text-blue-600">
-                  Recherches enregistrées
+                  {t('footer.savedSearches')}
                 </Link>
               </li>
             </ul>
@@ -84,26 +86,26 @@ const Footer = () => {
           
           {/* Navigation Links - Col 3 */}
           <div className="col-span-1">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Informations</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('footer.information')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/faq" className="text-gray-600 hover:text-blue-600">
-                  F.A.Q.
+                  {t('footer.faq')}
                 </Link>
               </li>
               <li>
                 <Link to="/cgu" className="text-gray-600 hover:text-blue-600">
-                  Conditions Générales d'Utilisation
+                  {t('footer.terms')}
                 </Link>
               </li>
               <li>
                 <Link to="/privacy" className="text-gray-600 hover:text-blue-600">
-                  Politique de Confidentialité
+                  {t('footer.privacy')}
                 </Link>
               </li>
               <li>
                 <Link to="/payment" className="text-gray-600 hover:text-blue-600">
-                  Abonnement Premium
+                  {t('footer.premium')}
                 </Link>
               </li>
             </ul>
@@ -112,7 +114,7 @@ const Footer = () => {
         
         <div className={`border-t border-gray-200 pt-6 mt-8 ${isMobile ? '' : 'flex justify-between items-center'}`}>
           <p className={`text-sm text-gray-500 ${isMobile ? 'mb-4' : ''}`}>
-            &copy; 2025 LocaSimple. Tous droits réservés.
+            {t('footer.copyright')}
           </p>
           
           <div className={`flex space-x-6 ${isMobile ? 'justify-center' : ''}`}>

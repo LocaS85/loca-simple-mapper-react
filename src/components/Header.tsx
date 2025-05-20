@@ -6,11 +6,14 @@ import { cn } from '@/lib/utils';
 import { Menu, X, User } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 const Header = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -28,48 +31,51 @@ const Header = () => {
 
       {/* Mobile burger menu */}
       {isMobile && (
-        <Sheet>
-          <SheetTrigger asChild>
-            <button 
-              className="p-1 z-20 text-gray-600"
-              aria-label="Menu"
-            >
-              <Menu size={20} />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[250px] sm:w-[300px]">
-            <nav className="flex flex-col gap-4 mt-8">
-              <Link 
-                to="/about" 
-                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
-                onClick={toggleMenu}
+        <div className="flex items-center">
+          <LanguageSelector />
+          <Sheet>
+            <SheetTrigger asChild>
+              <button 
+                className="p-1 z-20 text-gray-600 ml-2"
+                aria-label="Menu"
               >
-                À propos
-              </Link>
-              <Link 
-                to="/premium" 
-                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
-                onClick={toggleMenu}
-              >
-                Premium
-              </Link>
-              <Link 
-                to="/register" 
-                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
-                onClick={toggleMenu}
-              >
-                S'inscrire
-              </Link>
-              <Link 
-                to="/login" 
-                className="text-gray-700 hover:text-blue-600 transition-colors py-2"
-                onClick={toggleMenu}
-              >
-                Connexion
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
+                <Menu size={20} />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[250px] sm:w-[300px]">
+              <nav className="flex flex-col gap-4 mt-8">
+                <Link 
+                  to="/about" 
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={toggleMenu}
+                >
+                  {t('header.about')}
+                </Link>
+                <Link 
+                  to="/premium" 
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={toggleMenu}
+                >
+                  {t('header.premium')}
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={toggleMenu}
+                >
+                  {t('header.register')}
+                </Link>
+                <Link 
+                  to="/login" 
+                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
+                  onClick={toggleMenu}
+                >
+                  {t('header.login')}
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
       )}
 
       {/* Desktop navigation */}
@@ -82,7 +88,7 @@ const Header = () => {
                   "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/') && "text-blue-600 font-medium"
                 )}>
-                  Accueil
+                  {t('header.home')}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -90,7 +96,7 @@ const Header = () => {
                   "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/geosearch') && "text-blue-600 font-medium"
                 )}>
-                  GeoSearch
+                  {t('header.geosearch')}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -98,7 +104,7 @@ const Header = () => {
                   "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/categories') && "text-blue-600 font-medium"
                 )}>
-                  Catégories
+                  {t('header.categories')}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -106,7 +112,7 @@ const Header = () => {
                   "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/premium') && "text-blue-600 font-medium"
                 )}>
-                  Premium
+                  {t('header.premium')}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -114,13 +120,15 @@ const Header = () => {
                   "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
                   isActive('/about') && "text-blue-600 font-medium"
                 )}>
-                  À propos
+                  {t('header.about')}
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
           
-          <div className="flex items-center ml-3">
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            
             <Link 
               to="/login" 
               className={cn(
@@ -129,7 +137,7 @@ const Header = () => {
               )}
             >
               <User size={16} className="mr-1" />
-              <span>Connexion</span>
+              <span>{t('header.login')}</span>
             </Link>
           </div>
         </div>

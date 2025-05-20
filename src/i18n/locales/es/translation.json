@@ -1,0 +1,53 @@
+
+{
+  "header": {
+    "home": "Inicio",
+    "geosearch": "GeoBúsqueda",
+    "categories": "Categorías",
+    "premium": "Premium",
+    "about": "Acerca de",
+    "login": "Iniciar sesión",
+    "register": "Registrarse"
+  },
+  "home": {
+    "title": "LocaSimple",
+    "subtitle": "Una herramienta simple y potente para mapear y explorar lugares.",
+    "startExplore": "Comenzar a explorar",
+    "seeCategories": "Ver categorías",
+    "features": "Características",
+    "featureDesc": "Nuestra aplicación ofrece varias capacidades de mapeo y búsqueda de ubicaciones.",
+    "featureList": {
+      "maps": "Mapas interactivos con marcadores personalizados",
+      "categorySearch": "Buscar lugares por categoría",
+      "filter": "Filtrar resultados de búsqueda",
+      "favorites": "Guardar lugares favoritos"
+    },
+    "mapViews": "Vistas de mapa disponibles",
+    "basicSearch": "Búsqueda geográfica básica",
+    "modernSearch": "Búsqueda geográfica moderna", 
+    "fullApp": "Aplicación completa de búsqueda",
+    "myFavorites": "Mis favoritos"
+  },
+  "footer": {
+    "description": "La aplicación de geolocalización simple y eficaz para todas tus necesidades de búsqueda local.",
+    "navigation": "Navegación",
+    "account": "Cuenta",
+    "information": "Información",
+    "login": "Iniciar sesión", 
+    "register": "Registrarse",
+    "myAccount": "Mi cuenta",
+    "favorites": "Mis favoritos",
+    "savedSearches": "Búsquedas guardadas",
+    "faq": "Preguntas frecuentes",
+    "terms": "Condiciones de uso",
+    "privacy": "Política de privacidad",
+    "premium": "Suscripción Premium",
+    "copyright": "© 2025 LocaSimple. Todos los derechos reservados."
+  },
+  "language": {
+    "fr": "Francés",
+    "en": "Inglés",
+    "es": "Español",
+    "de": "Alemán"
+  }
+}

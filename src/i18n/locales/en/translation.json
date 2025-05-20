@@ -1,0 +1,53 @@
+
+{
+  "header": {
+    "home": "Home",
+    "geosearch": "GeoSearch",
+    "categories": "Categories",
+    "premium": "Premium",
+    "about": "About",
+    "login": "Login",
+    "register": "Register"
+  },
+  "home": {
+    "title": "LocaSimple",
+    "subtitle": "A simple and powerful tool for mapping and exploring places.",
+    "startExplore": "Start exploring",
+    "seeCategories": "View categories",
+    "features": "Features",
+    "featureDesc": "Our application offers various mapping and location search capabilities.",
+    "featureList": {
+      "maps": "Interactive maps with custom markers",
+      "categorySearch": "Search for places by category",
+      "filter": "Filter search results",
+      "favorites": "Save favorite places"
+    },
+    "mapViews": "Available map views",
+    "basicSearch": "Basic geographic search",
+    "modernSearch": "Modern geographic search",
+    "fullApp": "Complete search application",
+    "myFavorites": "My favorites"
+  },
+  "footer": {
+    "description": "The simple and effective geolocation application for all your local search needs.",
+    "navigation": "Navigation",
+    "account": "Account",
+    "information": "Information",
+    "login": "Login",
+    "register": "Register",
+    "myAccount": "My account",
+    "favorites": "My favorites",
+    "savedSearches": "Saved searches",
+    "faq": "F.A.Q.",
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy",
+    "premium": "Premium Subscription",
+    "copyright": "© 2025 LocaSimple. All rights reserved."
+  },
+  "language": {
+    "fr": "French",
+    "en": "English",
+    "es": "Spanish", 
+    "de": "German"
+  }
+}
