@@ -3,6 +3,7 @@ import { TransportMode } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface UseGeoSearchProps {
   category?: string | null;
@@ -11,6 +12,8 @@ interface UseGeoSearchProps {
   distance?: number;
   unit?: string;
   query?: string | null;
+  aroundMeCount?: number;
+  showMultiDirections?: boolean;
 }
 
 export const useGeoSearch = ({
@@ -19,16 +22,25 @@ export const useGeoSearch = ({
   transport: initialTransport = 'car',
   distance: initialDistance = 10,
   unit: initialUnit = 'km',
-  query: initialQuery = ''
+  query: initialQuery = '',
+  aroundMeCount: initialAroundMeCount = 3,
+  showMultiDirections: initialShowMultiDirections = false
 }: UseGeoSearchProps) => {
+  const { t } = useTranslation();
+  
   // State for filters
-  const [filters, setFilters] = useState<GeoSearchFilters>({
+  const [filters, setFilters] = useState<GeoSearchFilters & {
+    aroundMeCount?: number;
+    showMultiDirections?: boolean;
+  }>({
     category: initialCategory || null,
     subcategory: initialSubcategory || null,
     transport: initialTransport as TransportMode,
     distance: initialDistance || 10,
     unit: (initialUnit || 'km') as 'km' | 'mi',
-    query: initialQuery || ''
+    query: initialQuery || '',
+    aroundMeCount: initialAroundMeCount || 3,
+    showMultiDirections: initialShowMultiDirections || false
   });
 
   // State for search results
@@ -50,8 +62,8 @@ export const useGeoSearch = ({
         (error) => {
           console.error('Error getting location:', error);
           toast({
-            title: "Localisation",
-            description: "Impossible d'obtenir votre position",
+            title: t("geosearch.locationError"),
+            description: t("geosearch.locationErrorDesc"),
             variant: "destructive",
           });
           // Paris par défaut
@@ -59,7 +71,7 @@ export const useGeoSearch = ({
         }
       );
     }
-  }, [toast]);
+  }, [toast, t]);
 
   // Keep URL params in sync with filters
   useEffect(() => {
@@ -78,6 +90,9 @@ export const useGeoSearch = ({
     if (filters.query) newParams.set('query', filters.query);
     else newParams.delete('query');
     
+    if (filters.aroundMeCount) newParams.set('aroundMeCount', filters.aroundMeCount.toString());
+    if (filters.showMultiDirections) newParams.set('showMultiDirections', filters.showMultiDirections.toString());
+    
     setSearchParams(newParams, { replace: true });
   }, [filters, setSearchParams]);
 
@@ -89,19 +104,25 @@ export const useGeoSearch = ({
     const distance = searchParams.get('distance');
     const unit = searchParams.get('unit');
     const query = searchParams.get('query');
+    const aroundMeCount = searchParams.get('aroundMeCount');
+    const showMultiDirections = searchParams.get('showMultiDirections');
     
-    const newFilters: Partial<GeoSearchFilters> = {};
+    const newFilters: Partial<typeof filters> = {};
     if (category !== null && category !== filters.category) newFilters.category = category;
     if (subcategory !== null && subcategory !== filters.subcategory) newFilters.subcategory = subcategory;
     if (transport && transport !== filters.transport) newFilters.transport = transport as TransportMode;
     if (distance && Number(distance) !== filters.distance) newFilters.distance = Number(distance);
     if (unit && unit !== filters.unit) newFilters.unit = unit as 'km' | 'mi';
     if (query !== null && query !== filters.query) newFilters.query = query;
+    if (aroundMeCount && Number(aroundMeCount) !== filters.aroundMeCount) 
+      newFilters.aroundMeCount = Number(aroundMeCount);
+    if (showMultiDirections !== null && String(showMultiDirections) !== String(filters.showMultiDirections)) 
+      newFilters.showMultiDirections = showMultiDirections === 'true';
     
     if (Object.keys(newFilters).length > 0) {
       setFilters(prev => ({ ...prev, ...newFilters }));
     }
-  }, [searchParams]);
+  }, [searchParams, filters]);
 
   // Toggle filters popup
   const toggleFilters = useCallback(() => {
@@ -109,7 +130,10 @@ export const useGeoSearch = ({
   }, []);
 
   // Update filters
-  const updateFilters = useCallback((newFilters: Partial<GeoSearchFilters>) => {
+  const updateFilters = useCallback((newFilters: Partial<GeoSearchFilters & {
+    aroundMeCount?: number;
+    showMultiDirections?: boolean;
+  }>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
 
@@ -126,47 +150,31 @@ export const useGeoSearch = ({
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock data based on the filters
-      const mockResults: SearchResult[] = [
-        { 
-          id: '1', 
-          name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 1`, 
-          address: '123 Rue de Paris, Paris',
-          coordinates: [userLocation[0] + 0.01, userLocation[1] + 0.01] as [number, number], 
-          type: filters.subcategory || 'default',
-          category: filters.category || 'default', 
-          distance: Math.round(Math.random() * filters.distance * 10) / 10, 
-          duration: Math.round(Math.random() * 30) 
-        },
-        { 
-          id: '2', 
-          name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 2`, 
-          address: '45 Avenue des Champs-Élysées, Paris',
-          coordinates: [userLocation[0] - 0.01, userLocation[1] + 0.01] as [number, number], 
-          type: filters.subcategory || 'default',
-          category: filters.category || 'default', 
-          distance: Math.round(Math.random() * filters.distance * 10) / 10, 
-          duration: Math.round(Math.random() * 30) 
-        },
-        { 
-          id: '3', 
-          name: `${filters.category || 'Lieu'} ${filters.subcategory || 'populaire'} 3`, 
-          address: '78 Boulevard Saint-Michel, Paris',
-          coordinates: [userLocation[0] + 0.01, userLocation[1] - 0.01] as [number, number], 
-          type: filters.subcategory || 'default',
-          category: filters.category || 'default', 
-          distance: Math.round(Math.random() * filters.distance * 10) / 10, 
-          duration: Math.round(Math.random() * 30) 
-        }
-      ];
+      // Calculate number of results based on aroundMeCount filter
+      const resultCount = filters.aroundMeCount || 3;
       
-      // Si une requête de recherche est spécifiée, filtrer les résultats
+      // Mock data based on the filters
+      const mockResults: SearchResult[] = Array.from({ length: resultCount }, (_, i) => ({
+        id: `result-${i}`, 
+        name: `${filters.category || t('geosearch.place')} ${filters.subcategory || t('geosearch.popular')} ${i + 1}`, 
+        address: `${123 + i} ${t('geosearch.streetName')}, ${filters.query || 'Paris'}`,
+        coordinates: [
+          userLocation[0] + (Math.random() * 0.02 - 0.01), 
+          userLocation[1] + (Math.random() * 0.02 - 0.01)
+        ] as [number, number], 
+        type: filters.subcategory || 'default',
+        category: filters.category || 'default', 
+        distance: Math.round(Math.random() * filters.distance * 10) / 10, 
+        duration: Math.round(Math.random() * 30) 
+      }));
+      
+      // Si une requête de recherche est spécifiée, ajouter un résultat spécifique
       if (filters.query) {
         // Simulate search-specific results with correctly typed coordinates
         const searchSpecificResult: SearchResult = { 
-          id: '4',
+          id: 'search-result',
           name: filters.query,
-          address: `Près de ${filters.query}, France`,
+          address: `${t('geosearch.near')} ${filters.query}, ${t('geosearch.country')}`,
           coordinates: [userLocation[0] + 0.02, userLocation[1] + 0.02] as [number, number],
           type: 'search-result',
           category: filters.category || 'search',
@@ -174,30 +182,30 @@ export const useGeoSearch = ({
           duration: Math.round(Math.random() * 30)
         };
         
-        setResults([...mockResults, searchSpecificResult]);
-      } else {
-        setResults(mockResults);
+        mockResults.unshift(searchSpecificResult);
       }
+      
+      setResults(mockResults.slice(0, resultCount));
       
       // Only show toast when results are actually loaded (not on initial load)
       if (filters.category || filters.subcategory || filters.query) {
         toast({
-          title: "Résultats trouvés",
-          description: `${mockResults.length} lieux trouvés pour votre recherche`,
+          title: t("geosearch.resultsFound"),
+          description: t("geosearch.placesFoundForSearch", { count: mockResults.length }),
         });
       }
     } catch (error) {
       console.error('Error loading results:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de charger les résultats',
+        title: t('geosearch.error'),
+        description: t('geosearch.errorLoadingResults'),
         variant: 'destructive',
       });
       setResults([]);
     } finally {
       setIsLoading(false);
     }
-  }, [filters, toast, userLocation]);
+  }, [filters, toast, userLocation, t]);
 
   return {
     results,

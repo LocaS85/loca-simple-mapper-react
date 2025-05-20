@@ -6,11 +6,13 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { transportModes } from '@/lib/data/transportModes';
 import { categories } from '@/lib/data/categories';
-import { X } from 'lucide-react';
+import { Compass, X } from 'lucide-react';
 import { TransportMode } from '@/types';
 import { GeoSearchFilters } from '@/types/geosearch';
+import { useTranslation } from 'react-i18next';
 
 interface FiltersPopupProps {
   filters: GeoSearchFilters;
@@ -23,15 +25,21 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
   onChange,
   onClose
 }) => {
-  const [localFilters, setLocalFilters] = React.useState<GeoSearchFilters>({
+  const { t } = useTranslation();
+  const [localFilters, setLocalFilters] = React.useState<GeoSearchFilters & { 
+    aroundMeCount?: number;
+    showMultiDirections?: boolean;
+  }>({
     category: filters.category || '',
     subcategory: filters.subcategory || '',
     transport: filters.transport,
     distance: filters.distance,
-    unit: filters.unit
+    unit: filters.unit,
+    aroundMeCount: filters.aroundMeCount || 3,
+    showMultiDirections: filters.showMultiDirections || false
   });
 
-  const handleChange = (key: keyof GeoSearchFilters, value: any) => {
+  const handleChange = (key: keyof typeof localFilters, value: any) => {
     setLocalFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -46,25 +54,25 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/20 z-20 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white shadow-lg rounded-lg overflow-hidden">
+    <div className="fixed inset-0 bg-black/20 z-20 flex items-center justify-center p-4 overflow-y-auto">
+      <Card className="w-full max-w-md bg-white shadow-lg rounded-lg overflow-hidden max-h-[90vh]">
         <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-lg font-semibold">Filtres de recherche</h2>
+          <h2 className="text-lg font-semibold">{t('geosearch.searchFilters')}</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
         
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-6 overflow-y-auto max-h-[60vh]">
           {/* Category */}
           <div className="space-y-2">
-            <Label>Catégorie</Label>
+            <Label>{t('filters.category')}</Label>
             <Select 
               value={localFilters.category || ''} 
               onValueChange={(value) => handleChange('category', value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une catégorie" />
+                <SelectValue placeholder={t('categories.allCategories')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map(cat => (
@@ -78,7 +86,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
           
           {/* Transport mode */}
           <div className="space-y-2">
-            <Label>Mode de transport</Label>
+            <Label>{t('filters.transport')}</Label>
             <div className="grid grid-cols-4 gap-2">
               {transportModes.map(mode => {
                 const Icon = mode.icon;
@@ -101,7 +109,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
           {/* Distance */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <Label>Distance maximale</Label>
+              <Label>{t('filters.maxDistance')}</Label>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-medium">
                   {localFilters.distance} {localFilters.unit}
@@ -125,19 +133,53 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
             >
               <div className="flex items-center space-x-1">
                 <RadioGroupItem value="km" id="km" />
-                <Label htmlFor="km" className="text-sm">Kilomètres</Label>
+                <Label htmlFor="km" className="text-sm">{t('map.kilometers')}</Label>
               </div>
               <div className="flex items-center space-x-1">
                 <RadioGroupItem value="mi" id="mi" />
-                <Label htmlFor="mi" className="text-sm">Miles</Label>
+                <Label htmlFor="mi" className="text-sm">{t('map.miles')}</Label>
               </div>
             </RadioGroup>
+          </div>
+
+          {/* Around Me section */}
+          <div className="space-y-3 border-t pt-3">
+            <div className="flex items-center gap-2">
+              <Compass className="h-5 w-5 text-blue-600" />
+              <Label className="font-medium">{t('filters.aroundMe')}</Label>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Number of places */}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label>{t('filters.places')}</Label>
+                  <span className="text-sm font-medium">{localFilters.aroundMeCount}</span>
+                </div>
+                <Slider 
+                  value={[localFilters.aroundMeCount || 3]} 
+                  min={1}
+                  max={10}
+                  step={1}
+                  onValueChange={values => handleChange('aroundMeCount', values[0])}
+                />
+              </div>
+              
+              {/* Multi-directions toggle */}
+              <div className="flex items-center justify-between">
+                <Label>{t('filters.multiDirections')}</Label>
+                <Switch 
+                  checked={localFilters.showMultiDirections || false}
+                  onCheckedChange={(checked) => handleChange('showMultiDirections', checked)}
+                />
+              </div>
+            </div>
           </div>
         </div>
         
         <div className="p-4 bg-gray-50 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button onClick={handleSubmit}>Appliquer</Button>
+          <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button onClick={handleSubmit}>{t('common.apply')}</Button>
         </div>
       </Card>
     </div>

@@ -1,13 +1,17 @@
 
-import { TransportMode } from '@/types';
+// If file doesn't exist, we'll create it with these types
+
+import { TransportMode } from ".";
 
 export interface GeoSearchFilters {
-  query?: string;
-  category?: string | null;
-  subcategory?: string | null;
+  category: string | null;
+  subcategory: string | null;
   transport: TransportMode;
   distance: number;
   unit: 'km' | 'mi';
+  query?: string;
+  aroundMeCount?: number;
+  showMultiDirections?: boolean;
 }
 
 export interface SearchResult {
@@ -15,8 +19,8 @@ export interface SearchResult {
   name: string;
   address: string;
   coordinates: [number, number];
-  category?: string;
-  type?: string;
-  distance?: number;
-  duration?: number;
+  type: string;
+  category: string;
+  distance: number;
+  duration: number;
 }

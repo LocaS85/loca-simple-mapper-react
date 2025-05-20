@@ -22,6 +22,8 @@ const GeoSearch = () => {
   const distance = Number(searchParams.get('distance')) || 10;
   const unit = searchParams.get('unit') || 'km';
   const query = searchParams.get('query') || '';
+  const aroundMeCount = Number(searchParams.get('aroundMeCount')) || 3;
+  const showMultiDirections = searchParams.get('showMultiDirections') === 'true';
 
   const {
     results,
@@ -39,7 +41,9 @@ const GeoSearch = () => {
     transport, 
     distance, 
     unit,
-    query
+    query,
+    aroundMeCount,
+    showMultiDirections
   });
 
   // Initial load of results when component mounts or URL params change
@@ -47,14 +51,14 @@ const GeoSearch = () => {
     if (category || subcategory || query) {
       loadResults();
     }
-  }, [category, subcategory, transport, distance, unit, query, loadResults]);
+  }, [category, subcategory, transport, distance, unit, query, aroundMeCount, showMultiDirections, loadResults]);
 
-  // Gérer la sélection d'un lieu depuis l'autosuggestion
+  // Handle location selection from auto-suggestion
   const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
-    // Mettre à jour l'emplacement de l'utilisateur avec les coordonnées du lieu sélectionné
+    // Update user location with selected place coordinates
     setUserLocation(location.coordinates);
     
-    // Mettre à jour les filtres avec le nom du lieu
+    // Update filters with place name
     updateFilters({ query: location.name });
     
     toast({
@@ -62,20 +66,48 @@ const GeoSearch = () => {
       description: t("geosearch.searchingAround", { place: location.placeName || location.name }),
     });
     
-    // Charger les résultats pour ce nouvel emplacement
+    // Load results for this new location
     loadResults();
+  };
+
+  // Handle user location request
+  const handleUserLocationRequest = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coordinates: [number, number] = [position.coords.longitude, position.coords.latitude];
+          setUserLocation(coordinates);
+          
+          toast({
+            title: t("map.yourLocation"),
+            description: t("geosearch.usingCurrentLocation"),
+          });
+          
+          loadResults();
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          toast({
+            title: t("geosearch.locationError"),
+            description: t("geosearch.locationErrorDesc"),
+            variant: "destructive",
+          });
+        }
+      );
+    }
   };
 
   // Determine if we need to show an empty state
   const showEmptyState = !isLoading && results.length === 0 && (filters.category || filters.subcategory || filters.query);
 
   return (
-    <div className="relative h-screen w-full">
+    <div className="relative h-screen w-full overflow-hidden">
       <SearchHeader
         filters={filters}
         onToggleFilters={toggleFilters}
         onSearch={(query) => updateFilters({ query })}
         onLocationSelect={handleLocationSelect}
+        onRequestUserLocation={handleUserLocationRequest}
       />
       
       <MapView 
@@ -115,8 +147,10 @@ const GeoSearch = () => {
         </div>
       )}
       
-      <MultiMapToggle />
-      <PrintButton results={results} />
+      <div className="fixed bottom-4 right-4 z-10 flex flex-col gap-2 sm:flex-row">
+        <MultiMapToggle />
+        <PrintButton results={results} />
+      </div>
     </div>
   );
 };

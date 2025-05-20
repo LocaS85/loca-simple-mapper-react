@@ -55,7 +55,12 @@
     "searchingAround": "Searching around {{place}}",
     "noResults": "No results found",
     "tryModifyingSearch": "Try modifying your search criteria or changing your location to find more results.",
-    "modifyFilters": "Modify filters"
+    "modifyFilters": "Modify filters",
+    "searchFilters": "Search filters",
+    "searchPlaceholder": "Search for a place or address...",
+    "usingCurrentLocation": "Using your current location for search",
+    "locationError": "Location error",
+    "locationErrorDesc": "Unable to get your location"
   },
   "categories": {
     "viewList": "View as list",
@@ -71,7 +76,9 @@
     "yourLocation": "Your location",
     "searchRadius": "Search radius",
     "distance": "Distance",
-    "duration": "Duration"
+    "duration": "Duration",
+    "kilometers": "Kilometers",
+    "miles": "Miles"
   },
   "filters": {
     "category": "Category",
@@ -80,6 +87,22 @@
     "maxDuration": "Max duration",
     "aroundMe": "Around me",
     "places": "Places",
-    "multiDirections": "Multi-directional routes"
+    "multiDirections": "Multi-directional routes",
+    "transportModes": {
+      "car": "Car",
+      "walking": "Walking",
+      "cycling": "Cycling",
+      "transit": "Transit"
+    }
+  },
+  "common": {
+    "back": "Back",
+    "filters": "Filters",
+    "category": "Category",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit"
   }
 }

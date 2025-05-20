@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Filter, MapPin } from 'lucide-react';
+import { ArrowLeft, Filter, MapPin, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import AutoSuggestSearch from './AutoSuggestSearch';
 import { GeoSearchFilters } from '@/types/geosearch';
+import { useTranslation } from 'react-i18next';
 
 interface SearchHeaderProps {
   filters: {
@@ -19,15 +20,18 @@ interface SearchHeaderProps {
   onToggleFilters: () => void;
   onSearch?: (query: string) => void;
   onLocationSelect?: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
+  onRequestUserLocation?: () => void;
 }
 
 const SearchHeader: React.FC<SearchHeaderProps> = ({
   filters,
   onToggleFilters,
   onSearch,
-  onLocationSelect
+  onLocationSelect,
+  onRequestUserLocation
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
     if (onLocationSelect) {
@@ -42,13 +46,13 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
   const formatTransport = (transport: string) => {
     switch (transport) {
       case 'car':
-        return 'Voiture';
+        return t('filters.transportModes.car');
       case 'walking':
-        return 'À pied';
+        return t('filters.transportModes.walking');
       case 'cycling':
-        return 'Vélo';
+        return t('filters.transportModes.cycling');
       case 'transit':
-        return 'Transport en commun';
+        return t('filters.transportModes.transit');
       default:
         return transport;
     }
@@ -62,7 +66,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           size="icon" 
           className="shrink-0"
           onClick={() => navigate('/categories')}
-          aria-label="Retour aux catégories"
+          aria-label={t('common.back')}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -70,17 +74,28 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         <div className="flex-1">
           <AutoSuggestSearch 
             onResultSelect={handleLocationSelect}
-            placeholder="Rechercher un lieu ou une adresse..."
+            placeholder={t('geosearch.searchPlaceholder')}
             initialValue={filters.query || ""}
           />
         </div>
+
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="shrink-0"
+          onClick={onRequestUserLocation}
+          aria-label={t('map.yourLocation')}
+          title={t('map.yourLocation')}
+        >
+          <Navigation className="h-4 w-4" />
+        </Button>
         
         <Button 
           variant="outline" 
           size="icon" 
           className="shrink-0 relative"
           onClick={onToggleFilters}
-          aria-label="Filtres"
+          aria-label={t('common.filters')}
         >
           <Filter className="h-4 w-4" />
           {/* Add a badge indicator when filters are applied */}
@@ -99,7 +114,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         )}
         {filters.category && (
           <Badge variant="secondary" className="text-xs">
-            Catégorie: {filters.category}
+            {t('common.category')}: {filters.category}
           </Badge>
         )}
         {filters.subcategory && (
