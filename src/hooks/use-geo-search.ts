@@ -29,10 +29,7 @@ export const useGeoSearch = ({
   const { t } = useTranslation();
   
   // State for filters
-  const [filters, setFilters] = useState<GeoSearchFilters & {
-    aroundMeCount?: number;
-    showMultiDirections?: boolean;
-  }>({
+  const [filters, setFilters] = useState<GeoSearchFilters>({
     category: initialCategory || null,
     subcategory: initialSubcategory || null,
     transport: initialTransport as TransportMode,
@@ -90,8 +87,8 @@ export const useGeoSearch = ({
     if (filters.query) newParams.set('query', filters.query);
     else newParams.delete('query');
     
-    if (filters.aroundMeCount) newParams.set('aroundMeCount', filters.aroundMeCount.toString());
-    if (filters.showMultiDirections) newParams.set('showMultiDirections', filters.showMultiDirections.toString());
+    newParams.set('aroundMeCount', filters.aroundMeCount.toString());
+    newParams.set('showMultiDirections', filters.showMultiDirections.toString());
     
     setSearchParams(newParams, { replace: true });
   }, [filters, setSearchParams]);
@@ -107,22 +104,21 @@ export const useGeoSearch = ({
     const aroundMeCount = searchParams.get('aroundMeCount');
     const showMultiDirections = searchParams.get('showMultiDirections');
     
-    const newFilters: Partial<typeof filters> = {};
-    if (category !== null && category !== filters.category) newFilters.category = category;
-    if (subcategory !== null && subcategory !== filters.subcategory) newFilters.subcategory = subcategory;
-    if (transport && transport !== filters.transport) newFilters.transport = transport as TransportMode;
-    if (distance && Number(distance) !== filters.distance) newFilters.distance = Number(distance);
-    if (unit && unit !== filters.unit) newFilters.unit = unit as 'km' | 'mi';
-    if (query !== null && query !== filters.query) newFilters.query = query;
-    if (aroundMeCount && Number(aroundMeCount) !== filters.aroundMeCount) 
-      newFilters.aroundMeCount = Number(aroundMeCount);
-    if (showMultiDirections !== null && String(showMultiDirections) !== String(filters.showMultiDirections)) 
-      newFilters.showMultiDirections = showMultiDirections === 'true';
+    const newFilters: Partial<GeoSearchFilters> = {};
+    
+    if (category !== null) newFilters.category = category;
+    if (subcategory !== null) newFilters.subcategory = subcategory;
+    if (transport) newFilters.transport = transport as TransportMode;
+    if (distance) newFilters.distance = Number(distance);
+    if (unit) newFilters.unit = unit as 'km' | 'mi';
+    if (query !== null) newFilters.query = query;
+    if (aroundMeCount) newFilters.aroundMeCount = Number(aroundMeCount);
+    if (showMultiDirections !== null) newFilters.showMultiDirections = showMultiDirections === 'true';
     
     if (Object.keys(newFilters).length > 0) {
       setFilters(prev => ({ ...prev, ...newFilters }));
     }
-  }, [searchParams, filters]);
+  }, [searchParams]);
 
   // Toggle filters popup
   const toggleFilters = useCallback(() => {
@@ -130,23 +126,22 @@ export const useGeoSearch = ({
   }, []);
 
   // Update filters
-  const updateFilters = useCallback((newFilters: Partial<GeoSearchFilters & {
-    aroundMeCount?: number;
-    showMultiDirections?: boolean;
-  }>) => {
+  const updateFilters = useCallback((newFilters: Partial<GeoSearchFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
 
   // Load results
   const loadResults = useCallback(async () => {
-    if (!userLocation) return;
+    if (!userLocation) {
+      console.log('No user location available');
+      return;
+    }
     
     setIsLoading(true);
+    console.log('Loading results with filters:', filters);
+    console.log('User location:', userLocation);
     
     try {
-      console.log('Loading results with filters:', filters);
-      console.log('User location:', userLocation);
-      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -156,8 +151,8 @@ export const useGeoSearch = ({
       // Mock data based on the filters
       const mockResults: SearchResult[] = Array.from({ length: resultCount }, (_, i) => ({
         id: `result-${i}`, 
-        name: `${filters.category || t('geosearch.place')} ${filters.subcategory || t('geosearch.popular')} ${i + 1}`, 
-        address: `${123 + i} ${t('geosearch.streetName')}, ${filters.query || 'Paris'}`,
+        name: `${filters.category || 'Place'} ${filters.subcategory || 'Popular'} ${i + 1}`, 
+        address: `${123 + i} Street Name, ${filters.query || 'Paris'}`,
         coordinates: [
           userLocation[0] + (Math.random() * 0.02 - 0.01), 
           userLocation[1] + (Math.random() * 0.02 - 0.01)
@@ -168,13 +163,13 @@ export const useGeoSearch = ({
         duration: Math.round(Math.random() * 30) 
       }));
       
-      // Si une requête de recherche est spécifiée, ajouter un résultat spécifique
+      // If a search query is specified, add a specific result
       if (filters.query) {
         // Simulate search-specific results with correctly typed coordinates
         const searchSpecificResult: SearchResult = { 
           id: 'search-result',
           name: filters.query,
-          address: `${t('geosearch.near')} ${filters.query}, ${t('geosearch.country')}`,
+          address: `Near ${filters.query}, Country`,
           coordinates: [userLocation[0] + 0.02, userLocation[1] + 0.02] as [number, number],
           type: 'search-result',
           category: filters.category || 'search',
@@ -185,20 +180,21 @@ export const useGeoSearch = ({
         mockResults.unshift(searchSpecificResult);
       }
       
+      console.log('Generated mock results:', mockResults);
       setResults(mockResults.slice(0, resultCount));
       
       // Only show toast when results are actually loaded (not on initial load)
       if (filters.category || filters.subcategory || filters.query) {
         toast({
-          title: t("geosearch.resultsFound"),
-          description: t("geosearch.placesFoundForSearch", { count: mockResults.length }),
+          title: t("geosearch.resultsFound", "Results found"),
+          description: t("geosearch.placesFoundForSearch", {count: mockResults.length}, "{{count}} places found for your search"),
         });
       }
     } catch (error) {
       console.error('Error loading results:', error);
       toast({
-        title: t('geosearch.error'),
-        description: t('geosearch.errorLoadingResults'),
+        title: t('geosearch.error', 'Error'),
+        description: t('geosearch.errorLoadingResults', 'Error loading results'),
         variant: 'destructive',
       });
       setResults([]);

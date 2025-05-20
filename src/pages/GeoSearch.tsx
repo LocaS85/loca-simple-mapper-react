@@ -48,13 +48,16 @@ const GeoSearch = () => {
 
   // Initial load of results when component mounts or URL params change
   useEffect(() => {
-    if (category || subcategory || query) {
+    console.log('GeoSearch useEffect triggered');
+    if (userLocation) {
+      console.log('Loading results because userLocation is available');
       loadResults();
     }
-  }, [category, subcategory, transport, distance, unit, query, aroundMeCount, showMultiDirections, loadResults]);
+  }, [userLocation, loadResults]);
 
   // Handle location selection from auto-suggestion
   const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
+    console.log('Location selected in GeoSearch:', location);
     // Update user location with selected place coordinates
     setUserLocation(location.coordinates);
     
@@ -72,10 +75,12 @@ const GeoSearch = () => {
 
   // Handle user location request
   const handleUserLocationRequest = () => {
+    console.log('Requesting user location');
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const coordinates: [number, number] = [position.coords.longitude, position.coords.latitude];
+          console.log('User location retrieved:', coordinates);
           setUserLocation(coordinates);
           
           toast({
@@ -100,12 +105,16 @@ const GeoSearch = () => {
   // Determine if we need to show an empty state
   const showEmptyState = !isLoading && results.length === 0 && (filters.category || filters.subcategory || filters.query);
 
+  console.log('GeoSearch render - results:', results);
+  console.log('GeoSearch render - filters:', filters);
+  console.log('GeoSearch render - userLocation:', userLocation);
+  console.log('GeoSearch render - showEmptyState:', showEmptyState);
+
   return (
     <div className="relative h-screen w-full overflow-hidden">
       <SearchHeader
         filters={filters}
         onToggleFilters={toggleFilters}
-        onSearch={(query) => updateFilters({ query })}
         onLocationSelect={handleLocationSelect}
         onRequestUserLocation={handleUserLocationRequest}
       />
@@ -113,7 +122,7 @@ const GeoSearch = () => {
       <MapView 
         results={results} 
         isLoading={isLoading} 
-        transport={transport as any} 
+        transport={filters.transport} 
       />
       
       {showFilters && (

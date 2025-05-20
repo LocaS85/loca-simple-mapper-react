@@ -9,14 +9,7 @@ import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
 
 interface SearchHeaderProps {
-  filters: {
-    category?: string | null;
-    subcategory?: string | null;
-    transport: string;
-    distance: number;
-    unit: string;
-    query?: string;
-  };
+  filters: GeoSearchFilters;
   onToggleFilters: () => void;
   onSearch?: (query: string) => void;
   onLocationSelect?: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
@@ -34,11 +27,9 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
   const { t } = useTranslation();
 
   const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
+    console.log('Location selected:', location);
     if (onLocationSelect) {
       onLocationSelect(location);
-    }
-    if (onSearch) {
-      onSearch(location.name);
     }
   };
 
@@ -99,7 +90,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         >
           <Filter className="h-4 w-4" />
           {/* Add a badge indicator when filters are applied */}
-          {(filters.category || filters.subcategory) && (
+          {(filters.category || filters.subcategory || filters.aroundMeCount > 3 || filters.showMultiDirections) && (
             <span className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full transform translate-x-1/2 -translate-y-1/2"></span>
           )}
         </Button>
@@ -128,6 +119,16 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         <Badge variant="secondary" className="text-xs">
           {filters.distance} {filters.unit}
         </Badge>
+        {filters.aroundMeCount > 3 && (
+          <Badge variant="secondary" className="text-xs">
+            {t('filters.aroundMe')}: {filters.aroundMeCount}
+          </Badge>
+        )}
+        {filters.showMultiDirections && (
+          <Badge variant="secondary" className="text-xs">
+            {t('filters.multiDirections')}
+          </Badge>
+        )}
       </div>
     </div>
   );

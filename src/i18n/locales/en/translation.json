@@ -60,7 +60,16 @@
     "searchPlaceholder": "Search for a place or address...",
     "usingCurrentLocation": "Using your current location for search",
     "locationError": "Location error",
-    "locationErrorDesc": "Unable to get your location"
+    "locationErrorDesc": "Unable to get your location",
+    "resultsFound": "Results found",
+    "placesFoundForSearch": "{{count}} places found for your search",
+    "error": "Error",
+    "errorLoadingResults": "Error loading results",
+    "place": "Place",
+    "popular": "Popular",
+    "streetName": "Street Name",
+    "near": "Near",
+    "country": "Country"
   },
   "categories": {
     "viewList": "View as list",
@@ -78,7 +87,11 @@
     "distance": "Distance",
     "duration": "Duration",
     "kilometers": "Kilometers",
-    "miles": "Miles"
+    "miles": "Miles",
+    "error": "Map error",
+    "errorLoading": "Error loading map",
+    "initError": "Map initialization error",
+    "initErrorDesc": "Could not initialize the map"
   },
   "filters": {
     "category": "Category",

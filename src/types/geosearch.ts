@@ -1,6 +1,4 @@
 
-// If file doesn't exist, we'll create it with these types
-
 import { TransportMode } from ".";
 
 export interface GeoSearchFilters {
@@ -10,8 +8,8 @@ export interface GeoSearchFilters {
   distance: number;
   unit: 'km' | 'mi';
   query?: string;
-  aroundMeCount?: number;
-  showMultiDirections?: boolean;
+  aroundMeCount: number;
+  showMultiDirections: boolean;
 }
 
 export interface SearchResult {
