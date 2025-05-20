@@ -49,5 +49,37 @@
     "en": "English",
     "es": "Spanish", 
     "de": "German"
+  },
+  "geosearch": {
+    "locationSelected": "Location selected",
+    "searchingAround": "Searching around {{place}}",
+    "noResults": "No results found",
+    "tryModifyingSearch": "Try modifying your search criteria or changing your location to find more results.",
+    "modifyFilters": "Modify filters"
+  },
+  "categories": {
+    "viewList": "View as list",
+    "viewMap": "View on map",
+    "myAddresses": "My addresses",
+    "addAddress": "Add an address",
+    "editAddress": "Edit address",
+    "deleteAddress": "Delete address",
+    "noAddresses": "No addresses saved yet",
+    "allCategories": "All categories"
+  },
+  "map": {
+    "yourLocation": "Your location",
+    "searchRadius": "Search radius",
+    "distance": "Distance",
+    "duration": "Duration"
+  },
+  "filters": {
+    "category": "Category",
+    "transport": "Transport mode",
+    "maxDistance": "Max distance",
+    "maxDuration": "Max duration",
+    "aroundMe": "Around me",
+    "places": "Places",
+    "multiDirections": "Multi-directional routes"
   }
 }

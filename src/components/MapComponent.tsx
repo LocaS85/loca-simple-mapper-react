@@ -10,6 +10,7 @@ import MapMarker from './MapMarker';
 import RadiusCircle from './RadiusCircle';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
+import { useTranslation } from 'react-i18next';
 
 interface MapComponentProps {
   center: [number, number] | null;
@@ -31,6 +32,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Définir le token Mapbox
   const mapboxToken = getMapboxToken();
@@ -43,6 +45,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     
     if (!map.current) {
       try {
+        console.log('Initializing map with token:', mapboxToken.substring(0, 8) + '...');
         const newMap = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v11',
@@ -61,8 +64,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
         newMap.on('error', (e) => {
           console.error('Map error:', e);
           toast({
-            title: "Erreur de carte",
-            description: "Une erreur est survenue avec la carte Mapbox",
+            title: t("map.error"),
+            description: t("map.errorLoading"),
             variant: "destructive",
           });
         });
@@ -71,8 +74,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
       } catch (error) {
         console.error('Error initializing Mapbox map:', error);
         toast({
-          title: "Erreur d'initialisation",
-          description: "Impossible d'initialiser la carte Mapbox",
+          title: t("map.initError"),
+          description: t("map.initErrorDesc"),
           variant: "destructive",
         });
       }
@@ -84,7 +87,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         map.current = null;
       }
     };
-  }, [center, isMobile, mapboxToken, toast]);
+  }, [center, isMobile, mapboxToken, toast, t]);
 
   // Update bounds to fit all markers
   useEffect(() => {

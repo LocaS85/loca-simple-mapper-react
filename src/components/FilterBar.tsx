@@ -10,6 +10,7 @@ import { categories } from "@/lib/data/categories";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useTranslation } from "react-i18next";
 
 interface FilterBarProps {
   mapRef: React.RefObject<any>;
@@ -67,6 +68,7 @@ export function FilterBar({
   const [aroundMeCount, setAroundMeCount] = useState(initialAroundMeCount);
   const [showMultiDirections, setShowMultiDirections] = useState(initialShowMultiDirections);
   const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>(initialDistanceUnit);
+  const { t } = useTranslation();
 
   // Update category if initialCategory changes
   useEffect(() => {
@@ -124,11 +126,11 @@ export function FilterBar({
         {/* Catégorie */}
         <div className="w-full md:w-auto flex-shrink-0">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Catégorie
+            {t("filters.category")}
           </label>
           <Select value={category} onValueChange={setCategory}>
             <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="Catégorie" />
+              <SelectValue placeholder={t("filters.category")} />
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat: CategoryItem) => {
@@ -149,7 +151,7 @@ export function FilterBar({
         {/* Mode de transport */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Mode de transport
+            {t("filters.transport")}
           </label>
           <ToggleGroup 
             type="single" 
@@ -182,7 +184,7 @@ export function FilterBar({
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Distance max
+              {t("filters.maxDistance")}
             </label>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{maxDistance} {distanceUnit}</span>
@@ -215,7 +217,7 @@ export function FilterBar({
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Durée max
+              {t("filters.maxDuration")}
             </label>
             <span className="text-sm font-medium">{maxDuration} min</span>
           </div>
@@ -234,7 +236,7 @@ export function FilterBar({
         <div className="flex items-center gap-2 mb-2">
           <Compass className="w-5 h-5 text-blue-600" />
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Autour de moi
+            {t("filters.aroundMe")}
           </h3>
         </div>
         
@@ -243,7 +245,7 @@ export function FilterBar({
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Nombre de lieux
+                {t("filters.places")}
               </label>
               <span className="text-sm font-medium">{aroundMeCount}</span>
             </div>
@@ -261,7 +263,7 @@ export function FilterBar({
             <div className="flex items-center gap-2">
               <Route className="w-4 h-4 text-blue-600" />
               <Label htmlFor="multi-directions" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Tracés multi-directionnels
+                {t("filters.multiDirections")}
               </Label>
             </div>
             <Switch 

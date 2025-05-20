@@ -12,12 +12,14 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import CategoryPageHeader from '@/components/categories/CategoryPageHeader';
 import { useAddressManagement } from '@/hooks/use-address-management';
 import { useCategoryManagement } from '@/hooks/use-category-management';
+import { useTranslation } from 'react-i18next';
 
 const Categories = () => {
   // State for map toggle
   const [showMap, setShowMap] = useState(false);
   
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   // Use custom hooks for state management
   const {

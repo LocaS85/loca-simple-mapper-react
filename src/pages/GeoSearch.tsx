@@ -8,10 +8,12 @@ import PrintButton from '@/components/geosearch/PrintButton';
 import MultiMapToggle from '@/components/geosearch/MultiMapToggle';
 import { useGeoSearch } from '@/hooks/use-geo-search';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 const GeoSearch = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Extract filters from URL
   const category = searchParams.get('category');
@@ -56,8 +58,8 @@ const GeoSearch = () => {
     updateFilters({ query: location.name });
     
     toast({
-      title: "Lieu sélectionné",
-      description: `Recherche autour de ${location.placeName || location.name}`,
+      title: t("geosearch.locationSelected"),
+      description: t("geosearch.searchingAround", { place: location.placeName || location.name }),
     });
     
     // Charger les résultats pour ce nouvel emplacement
@@ -98,16 +100,16 @@ const GeoSearch = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900">Aucun résultat trouvé</h3>
+          <h3 className="text-lg font-medium text-gray-900">{t("geosearch.noResults")}</h3>
           <p className="mt-2 text-sm text-gray-500">
-            Essayez de modifier vos critères de recherche ou changez de lieu pour trouver plus de résultats.
+            {t("geosearch.tryModifyingSearch")}
           </p>
           <div className="mt-4">
             <button
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
               onClick={toggleFilters}
             >
-              Modifier les filtres
+              {t("geosearch.modifyFilters")}
             </button>
           </div>
         </div>
