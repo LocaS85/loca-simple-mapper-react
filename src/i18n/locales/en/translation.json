@@ -69,7 +69,9 @@
     "popular": "Popular",
     "streetName": "Street Name",
     "near": "Near",
-    "country": "Country"
+    "country": "Country",
+    "yourPosition": "Your position",
+    "miniMapTitle": "Mini Map"
   },
   "categories": {
     "viewList": "View as list",
@@ -91,7 +93,10 @@
     "error": "Map error",
     "errorLoading": "Error loading map",
     "initError": "Map initialization error",
-    "initErrorDesc": "Could not initialize the map"
+    "initErrorDesc": "Could not initialize the map",
+    "miniMap": "Mini Map",
+    "expandMap": "Expand",
+    "collapseMap": "Collapse"
   },
   "filters": {
     "category": "Category",

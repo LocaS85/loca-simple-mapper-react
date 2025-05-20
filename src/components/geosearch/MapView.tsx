@@ -5,14 +5,12 @@ import { SearchResult } from '@/types/geosearch';
 import { TransportMode } from '@/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
-import UserLocationMarker from '@/components/UserLocationMarker';
-import MapMarker from '@/components/MapMarker';
-import RadiusCircle from '@/components/RadiusCircle';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useGeoSearch } from '@/hooks/use-geo-search';
 import { useTranslation } from 'react-i18next';
+import MultiMapToggle from './MultiMapToggle';
 
 interface MapViewProps {
   results: SearchResult[];
@@ -123,6 +121,11 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
       console.log('Adding user location marker');
       new mapboxgl.Marker({ color: '#3b82f6' })
         .setLngLat(userLocation)
+        .setPopup(new mapboxgl.Popup().setHTML(`
+          <div>
+            <h3 class="font-bold">${t('geosearch.yourPosition')}</h3>
+          </div>
+        `))
         .addTo(map.current);
     }
     
@@ -135,14 +138,14 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
           <div>
             <h3 class="font-bold">${place.name}</h3>
             <p>${place.address}</p>
-            <p>Distance: ${place.distance} km</p>
-            <p>Duration: ${place.duration} min</p>
+            <p>${t('map.distance')}: ${place.distance} ${place.distance > 1 ? 'km' : 'm'}</p>
+            <p>${t('map.duration')}: ${place.duration} min</p>
           </div>
         `))
         .addTo(map.current);
     });
     
-  }, [results, mapLoaded, userLocation]);
+  }, [results, mapLoaded, userLocation, t]);
 
   if (!isMapboxTokenValid()) {
     return <MapboxError />;

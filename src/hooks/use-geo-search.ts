@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { TransportMode } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -185,16 +186,17 @@ export const useGeoSearch = ({
       
       // Only show toast when results are actually loaded (not on initial load)
       if (filters.category || filters.subcategory || filters.query) {
+        // Fixed: Correct usage of t function with count interpolation
         toast({
-          title: t("geosearch.resultsFound", "Results found"),
-          description: t("geosearch.placesFoundForSearch", {count: mockResults.length}, "{{count}} places found for your search"),
+          title: t("geosearch.resultsFound"),
+          description: t("geosearch.placesFoundForSearch", { count: mockResults.length }),
         });
       }
     } catch (error) {
       console.error('Error loading results:', error);
       toast({
-        title: t('geosearch.error', 'Error'),
-        description: t('geosearch.errorLoadingResults', 'Error loading results'),
+        title: t('geosearch.error'),
+        description: t('geosearch.errorLoadingResults'),
         variant: 'destructive',
       });
       setResults([]);

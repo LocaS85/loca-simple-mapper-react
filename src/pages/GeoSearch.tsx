@@ -102,13 +102,15 @@ const GeoSearch = () => {
     }
   };
 
+  // Force initial location request if no location is set
+  useEffect(() => {
+    if (!userLocation) {
+      handleUserLocationRequest();
+    }
+  }, []);
+
   // Determine if we need to show an empty state
   const showEmptyState = !isLoading && results.length === 0 && (filters.category || filters.subcategory || filters.query);
-
-  console.log('GeoSearch render - results:', results);
-  console.log('GeoSearch render - filters:', filters);
-  console.log('GeoSearch render - userLocation:', userLocation);
-  console.log('GeoSearch render - showEmptyState:', showEmptyState);
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -135,7 +137,7 @@ const GeoSearch = () => {
       
       {/* Empty state when no results are found */}
       {showEmptyState && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-10 text-center max-w-md">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-10 text-center max-w-md mx-4">
           <div className="mb-4 text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -156,10 +158,13 @@ const GeoSearch = () => {
         </div>
       )}
       
+      {/* Fixed position controls */}
       <div className="fixed bottom-4 right-4 z-10 flex flex-col gap-2 sm:flex-row">
-        <MultiMapToggle />
         <PrintButton results={results} />
       </div>
+      
+      {/* Add MultiMapToggle component */}
+      <MultiMapToggle />
     </div>
   );
 };

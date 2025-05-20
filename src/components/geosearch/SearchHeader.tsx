@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Filter, MapPin, Navigation } from 'lucide-react';
+import { ArrowLeft, Filter, MapPin, Locate } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import AutoSuggestSearch from './AutoSuggestSearch';
@@ -78,7 +78,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           aria-label={t('map.yourLocation')}
           title={t('map.yourLocation')}
         >
-          <Navigation className="h-4 w-4" />
+          <Locate className="h-4 w-4 text-blue-600" />
         </Button>
         
         <Button 
@@ -96,11 +96,11 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         </Button>
       </div>
       
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 max-w-full">
         {filters.query && (
           <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-600 flex items-center gap-1">
             <MapPin size={12} />
-            {filters.query}
+            <span className="truncate max-w-[150px]">{filters.query}</span>
           </Badge>
         )}
         {filters.category && (
