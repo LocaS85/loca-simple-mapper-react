@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { FilterBar } from '@/components/FilterBar';
@@ -55,15 +54,18 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     distanceUnit: initialDistanceUnit
   });
 
-  // Update filters when selectedCategory changes
+  // Update filters when props change (from the CategoryFiltersSheet)
   useEffect(() => {
-    if (selectedCategory) {
-      setFilters(prev => ({
-        ...prev,
-        category: selectedCategory.id
-      }));
-    }
-  }, [selectedCategory]);
+    setFilters(prev => ({
+      ...prev,
+      transportMode: initialTransportMode,
+      maxDistance: initialMaxDistance,
+      maxDuration: initialMaxDuration,
+      aroundMeCount: initialAroundMeCount,
+      showMultiDirections: initialShowMultiDirections,
+      distanceUnit: initialDistanceUnit
+    }));
+  }, [initialTransportMode, initialMaxDistance, initialMaxDuration, initialAroundMeCount, initialShowMultiDirections, initialDistanceUnit]);
 
   // Get user location
   useEffect(() => {
@@ -371,7 +373,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
       });
     }
     
-    // Call parent handler if provided
+    // Call the parent handler to sync with the CategoryFiltersSheet
     if (onFiltersChange) {
       onFiltersChange(updatedFilters);
     }
@@ -379,8 +381,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      {/* Filter Bar for Map View */}
-      <div className="mb-4">
+      {/* We're hiding the FilterBar since we now use a Sheet for filters */}
+      <div className="hidden">
         <FilterBar 
           mapRef={mapRef} 
           onFiltersChange={handleFiltersChange} 

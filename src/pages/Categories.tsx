@@ -39,6 +39,7 @@ const Categories = () => {
     selectedCategory,
     isLoading,
     transportMode,
+    setTransportMode,
     maxDistance,
     setMaxDistance,
     maxDuration,
@@ -83,6 +84,8 @@ const Categories = () => {
         setShowMultiDirections={setShowMultiDirections}
         distanceUnit={distanceUnit}
         setDistanceUnit={setDistanceUnit}
+        transportMode={transportMode}
+        setTransportMode={setTransportMode}
       />
       
       {/* Loading indicator */}

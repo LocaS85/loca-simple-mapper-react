@@ -1,12 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MapToggle } from '@/components/categories';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Compass } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
+import { Filter } from "lucide-react";
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { TransportMode } from '@/lib/data/transportModes';
+import CategoryFiltersSheet from './CategoryFiltersSheet';
 
 interface CategoryPageHeaderProps {
   showMap: boolean;
@@ -21,6 +21,8 @@ interface CategoryPageHeaderProps {
   setShowMultiDirections?: (show: boolean) => void;
   distanceUnit?: 'km' | 'mi';
   setDistanceUnit?: (unit: 'km' | 'mi') => void;
+  transportMode: TransportMode;
+  setTransportMode: (mode: TransportMode) => void;
 }
 
 const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
@@ -35,115 +37,66 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
   showMultiDirections = false,
   setShowMultiDirections,
   distanceUnit = 'km',
-  setDistanceUnit
+  setDistanceUnit,
+  transportMode,
+  setTransportMode
 }) => {
-  // Get the appropriate max value for distance slider based on unit
-  const getMaxDistanceValue = () => {
-    return distanceUnit === 'km' ? 20 : 12; // 20 km or 12 miles for the header slider
-  };
+  const { t } = useTranslation();
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Check if filters are applied (for highlighting the filter button)
+  const isFiltersApplied = Boolean(
+    maxDistance !== 5 || 
+    maxDuration !== 20 || 
+    aroundMeCount > 3 || 
+    showMultiDirections ||
+    transportMode !== 'walking'
+  );
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-      <h1 className="text-2xl md:text-3xl font-bold">Catégories</h1>
-      <div className="flex items-center gap-4">
-        <div className="bg-white p-2 rounded-lg shadow-sm">
-          <Tabs 
-            defaultValue="distance" 
-            className="w-[250px]"
-            onValueChange={(value) => console.log("Tab changed:", value)}
+    <>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">{t('common.categories')}</h1>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant={isFiltersApplied ? "default" : "outline"}
+            onClick={() => setShowFilters(true)}
+            className={cn(
+              "flex items-center gap-2",
+              isFiltersApplied && "bg-primary text-primary-foreground"
+            )}
+            aria-label={t('common.filters')}
           >
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="distance">Distance</TabsTrigger>
-              <TabsTrigger value="duration">Durée</TabsTrigger>
-              <TabsTrigger value="around" className="flex items-center gap-1">
-                <Compass className="h-4 w-4" />
-                <span>Autour</span>
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="distance" className="pt-2">
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Unité:</span>
-                  <RadioGroup 
-                    value={distanceUnit} 
-                    onValueChange={(value: 'km' | 'mi') => setDistanceUnit && setDistanceUnit(value)}
-                    className="flex items-center space-x-2"
-                  >
-                    <div className="flex items-center">
-                      <RadioGroupItem value="km" id="header-km" className="h-3 w-3" />
-                      <Label htmlFor="header-km" className="ml-1 text-xs">km</Label>
-                    </div>
-                    <div className="flex items-center">
-                      <RadioGroupItem value="mi" id="header-mi" className="h-3 w-3" />
-                      <Label htmlFor="header-mi" className="ml-1 text-xs">mi</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Max:</span>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      className="w-32"
-                      value={[maxDistance]}
-                      min={1}
-                      max={getMaxDistanceValue()}
-                      step={1}
-                      onValueChange={(values) => setMaxDistance(values[0])}
-                    />
-                    <span className="text-sm font-medium min-w-[50px] text-right">{maxDistance} {distanceUnit}</span>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="duration" className="pt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Max:</span>
-                <div className="flex items-center gap-2">
-                  <Slider
-                    className="w-32"
-                    value={[maxDuration]}
-                    min={5}
-                    max={60}
-                    step={5}
-                    onValueChange={(values) => setMaxDuration(values[0])}
-                  />
-                  <span className="text-sm font-medium min-w-[40px] text-right">{maxDuration} min</span>
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="around" className="pt-2">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Nombre de lieux:</span>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      className="w-32"
-                      value={[aroundMeCount]}
-                      min={1}
-                      max={10}
-                      step={1}
-                      onValueChange={(values) => setAroundMeCount && setAroundMeCount(values[0])}
-                    />
-                    <span className="text-sm font-medium min-w-[40px] text-right">{aroundMeCount}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="multi-directions" className="text-sm font-medium">
-                    Tracés multi-directionnels
-                  </Label>
-                  <Switch 
-                    id="multi-directions" 
-                    checked={showMultiDirections}
-                    onCheckedChange={(checked) => setShowMultiDirections && setShowMultiDirections(checked)}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+            <Filter className="h-4 w-4" />
+            <span>{t('common.filters')}</span>
+            {isFiltersApplied && (
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+            )}
+          </Button>
+          <MapToggle showMap={showMap} setShowMap={setShowMap} />
         </div>
-        <MapToggle showMap={showMap} setShowMap={setShowMap} />
       </div>
-    </div>
+
+      <CategoryFiltersSheet
+        open={showFilters}
+        onClose={() => setShowFilters(false)}
+        maxDistance={maxDistance}
+        setMaxDistance={setMaxDistance}
+        maxDuration={maxDuration}
+        setMaxDuration={setMaxDuration}
+        aroundMeCount={aroundMeCount || 3}
+        setAroundMeCount={setAroundMeCount || (() => {})}
+        showMultiDirections={showMultiDirections || false}
+        setShowMultiDirections={setShowMultiDirections || (() => {})}
+        distanceUnit={distanceUnit || 'km'}
+        setDistanceUnit={setDistanceUnit || (() => {})}
+        transportMode={transportMode}
+        setTransportMode={setTransportMode}
+      />
+    </>
   );
 };
 
