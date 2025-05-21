@@ -127,13 +127,12 @@ const GeoSearch = () => {
         transport={filters.transport} 
       />
       
-      {showFilters && (
-        <FiltersPopup
-          filters={filters}
-          onChange={updateFilters}
-          onClose={toggleFilters}
-        />
-      )}
+      <FiltersPopup
+        filters={filters}
+        onChange={updateFilters}
+        onClose={toggleFilters}
+        open={showFilters}
+      />
       
       {/* Empty state when no results are found */}
       {showEmptyState && (
