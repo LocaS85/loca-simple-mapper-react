@@ -74,6 +74,7 @@ export function useCategoryManagement() {
     setSelectedCategory,
     isLoading,
     transportMode,
+    setTransportMode, // Exposer explicitement setTransportMode
     maxDistance,
     setMaxDistance,
     maxDuration,

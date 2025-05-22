@@ -18,6 +18,8 @@ declare module "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions" {
     onRemove(map: mapboxgl.Map): void;
     setOrigin(coordinates: [number, number]): void;
     setDestination(coordinates: [number, number]): void;
+    setProfile(profile: string): void;
+    on(event: string, callback: (e?: any) => void): void;
   }
 }
 
@@ -25,24 +27,33 @@ declare module "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions" {
 declare module "@mapbox/mapbox-gl-geocoder" {
   import mapboxgl from "mapbox-gl";
   
-  interface MapboxGeocoderOptions {
-    accessToken: string;
-    mapboxgl: typeof mapboxgl;
-    marker?: boolean;
-    proximity?: { longitude: number; latitude: number };
-    placeholder?: string;
-    language?: string;
-    countries?: string;
-    [key: string]: any;
+  namespace MapboxGeocoder {
+    interface Options {
+      accessToken: string;
+      mapboxgl?: typeof mapboxgl;
+      marker?: boolean | object;
+      proximity?: { longitude: number; latitude: number };
+      placeholder?: string;
+      language?: string;
+      countries?: string;
+      bbox?: [number, number, number, number];
+      types?: string;
+      minLength?: number;
+      limit?: number;
+      filter?: (feature: any) => boolean;
+      localGeocoder?: (query: string) => any[];
+      [key: string]: any;
+    }
   }
   
   class MapboxGeocoder implements mapboxgl.IControl {
-    constructor(options: MapboxGeocoderOptions);
+    constructor(options: MapboxGeocoder.Options);
     onAdd(map: mapboxgl.Map): HTMLElement;
     onRemove(map: mapboxgl.Map): void;
     addTo(container: HTMLElement): void;
     on(event: string, callback: Function): void;
     clear(): void;
+    setInput(value: string): this;
   }
   
   export default MapboxGeocoder;
