@@ -1,0 +1,37 @@
+
+{
+  "map": {
+    "searchPlaceholder": "Rechercher un lieu...",
+    "startPoint": "Point de départ",
+    "destination": "Destination",
+    "searchAddress": "Rechercher une adresse",
+    "yourPosition": "Votre position",
+    "origin": "Départ",
+    "noResults": "Aucun résultat trouvé",
+    "directionsProfile": {
+      "driving": "En voiture",
+      "walking": "À pied",
+      "cycling": "À vélo"
+    },
+    "distance": "Distance",
+    "duration": "Durée",
+    "radius": "Rayon",
+    "showDirections": "Afficher l'itinéraire",
+    "hideDirections": "Masquer l'itinéraire",
+    "routeCalculationError": "Erreur de calcul d'itinéraire",
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer",
+    "fullscreen": "Plein écran",
+    "exitFullscreen": "Quitter le plein écran",
+    "recenter": "Recentrer la carte",
+    "showMyLocation": "Ma position"
+  },
+  "filters": {
+    "transportProfiles": {
+      "car": "Voiture",
+      "walking": "Marche",
+      "cycling": "Vélo",
+      "transit": "Transport"
+    }
+  }
+}

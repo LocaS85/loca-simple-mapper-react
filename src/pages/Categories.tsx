@@ -39,7 +39,6 @@ const Categories = () => {
     selectedCategory,
     isLoading,
     transportMode,
-    setTransportMode,
     maxDistance,
     setMaxDistance,
     maxDuration,
@@ -51,7 +50,8 @@ const Categories = () => {
     distanceUnit,
     setDistanceUnit,
     handleFiltersChange,
-    handleSelectCategory
+    handleSelectCategory,
+    setTransportMode // Now correctly used from the hook
   } = useCategoryManagement();
 
   // Handle search from subcategory cards
