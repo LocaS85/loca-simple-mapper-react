@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { TransportMode } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { TransportMode } from '@/lib/data/transportModes';
 
 interface UseGeoSearchProps {
   category?: string | null;
@@ -85,6 +85,7 @@ export const useGeoSearch = ({
     newParams.set('unit', defaultFilters.unit);
     newParams.set('aroundMeCount', defaultFilters.aroundMeCount.toString());
     newParams.set('showMultiDirections', defaultFilters.showMultiDirections.toString());
+    if (defaultFilters.maxDuration) newParams.set('maxDuration', defaultFilters.maxDuration.toString());
     
     setSearchParams(newParams, { replace: true });
     

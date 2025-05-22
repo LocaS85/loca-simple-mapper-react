@@ -3,6 +3,7 @@ import React from 'react';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
 import UnifiedFilterSheet from '../filters/UnifiedFilterSheet';
+import { TransportMode } from '@/lib/data/transportModes';
 
 interface FiltersPopupProps {
   filters: GeoSearchFilters;
@@ -35,7 +36,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
     onChange({ distance: value });
   };
 
-  const handleTransportModeChange = (value: any) => {
+  const handleTransportModeChange = (value: TransportMode) => {
     setLocalFilters(prev => ({ ...prev, transport: value }));
     onChange({ transport: value });
   };
@@ -55,9 +56,9 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
     onChange({ unit: value });
   };
 
-  // For GeoSearch the duration isn't used directly but we'll store it for consistency
   const handleMaxDurationChange = (value: number) => {
     setLocalFilters(prev => ({ ...prev, maxDuration: value }));
+    onChange({ maxDuration: value });
   };
 
   const handleResetFilters = () => {
@@ -80,7 +81,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
       setShowMultiDirections={handleShowMultiDirectionsChange}
       distanceUnit={localFilters.unit}
       setDistanceUnit={handleDistanceUnitChange}
-      transportMode={localFilters.transport}
+      transportMode={localFilters.transport as TransportMode}
       setTransportMode={handleTransportModeChange}
       onReset={handleResetFilters}
     />

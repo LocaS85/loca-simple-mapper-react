@@ -10,6 +10,7 @@ export interface GeoSearchFilters {
   query?: string;
   aroundMeCount: number;
   showMultiDirections: boolean;
+  maxDuration?: number; // Adding this property to fix the build errors
 }
 
 export interface SearchResult {

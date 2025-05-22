@@ -8,6 +8,7 @@ import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
 import FilterButton from '../filters/FilterButton';
 import FilterBadges from '../filters/FilterBadges';
+import { TransportMode } from '@/lib/data/transportModes';
 
 interface SearchHeaderProps {
   filters: GeoSearchFilters;
@@ -68,7 +69,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         
         <FilterButton 
           onClick={onToggleFilters}
-          transportMode={filters.transport}
+          transportMode={filters.transport as TransportMode}
           distanceChanged={filters.distance !== 10}
           aroundMeChanged={filters.aroundMeCount > 3}
           showMultiDirections={filters.showMultiDirections}
@@ -81,7 +82,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
             query={filters.query}
             category={filters.category}
             subcategory={filters.subcategory}
-            transportMode={filters.transport}
+            transportMode={filters.transport as TransportMode}
             distance={filters.distance}
             distanceUnit={filters.unit}
             aroundMeCount={filters.aroundMeCount}
