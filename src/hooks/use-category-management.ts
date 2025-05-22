@@ -6,6 +6,16 @@ import { fullCategoriesData } from '../data/fullCategories';
 import { Category } from '@/types';
 import { TransportMode } from '@/lib/data/transportModes';
 
+export interface CategoryFilters {
+  category?: string;
+  transportMode: TransportMode;
+  maxDistance: number;
+  maxDuration: number;
+  aroundMeCount: number;
+  showMultiDirections: boolean;
+  distanceUnit: 'km' | 'mi';
+}
+
 export function useCategoryManagement() {
   const [convertedCategories, setConvertedCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -36,22 +46,28 @@ export function useCategoryManagement() {
     }
   }, [toast]);
 
-  const handleFiltersChange = (filters: {
-    category: string;
-    transportMode: TransportMode;
-    maxDistance: number;
-    maxDuration: number;
-    aroundMeCount: number;
-    showMultiDirections: boolean;
-    distanceUnit?: 'km' | 'mi';
-  }) => {
-    setTransportMode(filters.transportMode);
-    setMaxDistance(filters.maxDistance);
-    setMaxDuration(filters.maxDuration);
-    setAroundMeCount(filters.aroundMeCount);
-    setShowMultiDirections(filters.showMultiDirections);
+  const handleFiltersChange = (filters: Partial<CategoryFilters>) => {
+    if (filters.transportMode !== undefined) {
+      setTransportMode(filters.transportMode);
+    }
     
-    if (filters.distanceUnit) {
+    if (filters.maxDistance !== undefined) {
+      setMaxDistance(filters.maxDistance);
+    }
+    
+    if (filters.maxDuration !== undefined) {
+      setMaxDuration(filters.maxDuration);
+    }
+    
+    if (filters.aroundMeCount !== undefined) {
+      setAroundMeCount(filters.aroundMeCount);
+    }
+    
+    if (filters.showMultiDirections !== undefined) {
+      setShowMultiDirections(filters.showMultiDirections);
+    }
+    
+    if (filters.distanceUnit !== undefined) {
       setDistanceUnit(filters.distanceUnit);
     }
     
@@ -67,6 +83,29 @@ export function useCategoryManagement() {
   const handleSelectCategory = (category: Category) => {
     setSelectedCategory(category);
   };
+  
+  // Fonction pour obtenir tous les filtres actuels
+  const getCurrentFilters = (): CategoryFilters => {
+    return {
+      category: selectedCategory?.id,
+      transportMode,
+      maxDistance,
+      maxDuration,
+      aroundMeCount,
+      showMultiDirections,
+      distanceUnit
+    };
+  };
+
+  // Fonction pour réinitialiser les filtres
+  const resetFilters = () => {
+    setTransportMode("walking");
+    setMaxDistance(5);
+    setMaxDuration(20);
+    setAroundMeCount(3);
+    setShowMultiDirections(false);
+    setDistanceUnit('km');
+  };
 
   return {
     convertedCategories,
@@ -74,7 +113,7 @@ export function useCategoryManagement() {
     setSelectedCategory,
     isLoading,
     transportMode,
-    setTransportMode, // Exposer explicitement setTransportMode
+    setTransportMode,
     maxDistance,
     setMaxDistance,
     maxDuration,
@@ -86,6 +125,8 @@ export function useCategoryManagement() {
     distanceUnit,
     setDistanceUnit,
     handleFiltersChange,
-    handleSelectCategory
+    handleSelectCategory,
+    getCurrentFilters,
+    resetFilters
   };
 }

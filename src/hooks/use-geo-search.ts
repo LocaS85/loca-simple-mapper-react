@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { TransportMode } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +28,19 @@ export const useGeoSearch = ({
 }: UseGeoSearchProps) => {
   const { t } = useTranslation();
   
+  // Default filter values
+  const defaultFilters = {
+    category: null,
+    subcategory: null,
+    transport: 'car' as TransportMode,
+    distance: 10,
+    unit: 'km' as 'km' | 'mi',
+    query: '',
+    aroundMeCount: 3,
+    showMultiDirections: false,
+    maxDuration: 20
+  };
+  
   // State for filters
   const [filters, setFilters] = useState<GeoSearchFilters>({
     category: initialCategory || null,
@@ -38,7 +50,8 @@ export const useGeoSearch = ({
     unit: (initialUnit || 'km') as 'km' | 'mi',
     query: initialQuery || '',
     aroundMeCount: initialAroundMeCount || 3,
-    showMultiDirections: initialShowMultiDirections || false
+    showMultiDirections: initialShowMultiDirections || false,
+    maxDuration: 20
   });
 
   // State for search results
@@ -49,6 +62,37 @@ export const useGeoSearch = ({
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Reset filters function
+  const resetFilters = useCallback(() => {
+    const newFilters = {
+      ...filters,
+      ...defaultFilters
+    };
+    
+    // Keep the existing query and location
+    if (filters.query) {
+      newFilters.query = filters.query;
+    }
+    
+    setFilters(newFilters);
+    
+    // Update URL params
+    const newParams = new URLSearchParams();
+    if (filters.query) newParams.set('query', filters.query);
+    newParams.set('transport', defaultFilters.transport);
+    newParams.set('distance', defaultFilters.distance.toString());
+    newParams.set('unit', defaultFilters.unit);
+    newParams.set('aroundMeCount', defaultFilters.aroundMeCount.toString());
+    newParams.set('showMultiDirections', defaultFilters.showMultiDirections.toString());
+    
+    setSearchParams(newParams, { replace: true });
+    
+    toast({
+      title: t("filters.reset"),
+      description: t("filters.resetSuccess"),
+    });
+  }, [filters, setSearchParams, toast, t]);
 
   // Initialize user location
   useEffect(() => {
@@ -90,6 +134,7 @@ export const useGeoSearch = ({
     
     newParams.set('aroundMeCount', filters.aroundMeCount.toString());
     newParams.set('showMultiDirections', filters.showMultiDirections.toString());
+    if (filters.maxDuration) newParams.set('maxDuration', filters.maxDuration.toString());
     
     setSearchParams(newParams, { replace: true });
   }, [filters, setSearchParams]);
@@ -104,6 +149,7 @@ export const useGeoSearch = ({
     const query = searchParams.get('query');
     const aroundMeCount = searchParams.get('aroundMeCount');
     const showMultiDirections = searchParams.get('showMultiDirections');
+    const maxDuration = searchParams.get('maxDuration');
     
     const newFilters: Partial<GeoSearchFilters> = {};
     
@@ -115,6 +161,7 @@ export const useGeoSearch = ({
     if (query !== null) newFilters.query = query;
     if (aroundMeCount) newFilters.aroundMeCount = Number(aroundMeCount);
     if (showMultiDirections !== null) newFilters.showMultiDirections = showMultiDirections === 'true';
+    if (maxDuration) newFilters.maxDuration = Number(maxDuration);
     
     if (Object.keys(newFilters).length > 0) {
       setFilters(prev => ({ ...prev, ...newFilters }));
@@ -214,6 +261,7 @@ export const useGeoSearch = ({
     showFilters,
     toggleFilters,
     userLocation,
-    setUserLocation
+    setUserLocation,
+    resetFilters
   };
 };

@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Filter, MapPin, Navigation } from 'lucide-react';
+import { ArrowLeft, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import AutoSuggestSearch from './AutoSuggestSearch';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
+import FilterButton from '../filters/FilterButton';
+import FilterBadges from '../filters/FilterBadges';
 
 interface SearchHeaderProps {
   filters: GeoSearchFilters;
@@ -33,19 +33,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
       onLocationSelect(location);
     }
   };
-
-  // Format transport mode for display
-  const formatTransport = (transport: string) => {
-    return t(`filters.transportModes.${transport}`);
-  };
-
-  // Check if filters are applied
-  const isFiltersApplied = Boolean(
-    filters.category || 
-    filters.subcategory || 
-    filters.aroundMeCount > 3 || 
-    filters.showMultiDirections
-  );
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md p-3">
@@ -79,57 +66,27 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           <Navigation className="h-4 w-4 text-blue-600" />
         </Button>
         
-        <Button 
-          variant={isFiltersApplied ? "default" : "outline"}
-          size="icon" 
-          className={cn(
-            "shrink-0 relative",
-            isFiltersApplied && "bg-primary text-primary-foreground"
-          )}
+        <FilterButton 
           onClick={onToggleFilters}
-          aria-label={t('common.filters')}
-        >
-          <Filter className="h-4 w-4" />
-          {isFiltersApplied && (
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full transform translate-x-1/2 -translate-y-1/2"></span>
-          )}
-        </Button>
+          transportMode={filters.transport}
+          distanceChanged={filters.distance !== 10}
+          aroundMeChanged={filters.aroundMeCount > 3}
+          showMultiDirections={filters.showMultiDirections}
+        />
       </div>
       
       {(filters.query || filters.category || filters.subcategory || filters.aroundMeCount > 3) && (
         <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 max-w-full">
-          {filters.query && (
-            <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-600 flex items-center gap-1">
-              <MapPin size={12} />
-              <span className="truncate max-w-[150px]">{filters.query}</span>
-            </Badge>
-          )}
-          {filters.category && (
-            <Badge variant="secondary" className="text-xs">
-              {t('common.category')}: {filters.category}
-            </Badge>
-          )}
-          {filters.subcategory && (
-            <Badge variant="secondary" className="text-xs">
-              {filters.subcategory}
-            </Badge>
-          )}
-          <Badge variant="secondary" className="text-xs">
-            {formatTransport(filters.transport)}
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            {filters.distance} {filters.unit}
-          </Badge>
-          {filters.aroundMeCount > 3 && (
-            <Badge variant="secondary" className="text-xs">
-              {t('filters.aroundMe')}: {filters.aroundMeCount}
-            </Badge>
-          )}
-          {filters.showMultiDirections && (
-            <Badge variant="secondary" className="text-xs">
-              {t('filters.multiDirections')}
-            </Badge>
-          )}
+          <FilterBadges
+            query={filters.query}
+            category={filters.category}
+            subcategory={filters.subcategory}
+            transportMode={filters.transport}
+            distance={filters.distance}
+            distanceUnit={filters.unit}
+            aroundMeCount={filters.aroundMeCount}
+            showMultiDirections={filters.showMultiDirections}
+          />
         </div>
       )}
     </div>

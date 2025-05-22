@@ -34,7 +34,8 @@ const GeoSearch = () => {
     showFilters,
     toggleFilters,
     setUserLocation,
-    userLocation
+    userLocation,
+    resetFilters
   } = useGeoSearch({ 
     category, 
     subcategory, 
@@ -132,6 +133,7 @@ const GeoSearch = () => {
         onChange={updateFilters}
         onClose={toggleFilters}
         open={showFilters}
+        onReset={resetFilters}
       />
       
       {/* Empty state when no results are found */}

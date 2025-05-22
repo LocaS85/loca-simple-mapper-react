@@ -1,12 +1,10 @@
 
 import React, { useState } from 'react';
 import { MapToggle } from '@/components/categories';
-import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 import { TransportMode } from '@/lib/data/transportModes';
-import CategoryFiltersSheet from './CategoryFiltersSheet';
+import UnifiedFilterSheet from '../filters/UnifiedFilterSheet';
+import FilterButton from '../filters/FilterButton';
 
 interface CategoryPageHeaderProps {
   showMap: boolean;
@@ -23,6 +21,7 @@ interface CategoryPageHeaderProps {
   setDistanceUnit?: (unit: 'km' | 'mi') => void;
   transportMode: TransportMode;
   setTransportMode: (mode: TransportMode) => void;
+  onResetFilters?: () => void;
 }
 
 const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
@@ -39,48 +38,30 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
   distanceUnit = 'km',
   setDistanceUnit,
   transportMode,
-  setTransportMode
+  setTransportMode,
+  onResetFilters
 }) => {
   const { t } = useTranslation();
   const [showFilters, setShowFilters] = useState(false);
-
-  // Check if filters are applied (for highlighting the filter button)
-  const isFiltersApplied = Boolean(
-    maxDistance !== 5 || 
-    maxDuration !== 20 || 
-    aroundMeCount > 3 || 
-    showMultiDirections ||
-    transportMode !== 'walking'
-  );
 
   return (
     <>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl md:text-3xl font-bold">{t('common.categories')}</h1>
         <div className="flex items-center gap-2">
-          <Button 
-            variant={isFiltersApplied ? "default" : "outline"}
+          <FilterButton 
             onClick={() => setShowFilters(true)}
-            className={cn(
-              "flex items-center gap-2",
-              isFiltersApplied && "bg-primary text-primary-foreground"
-            )}
-            aria-label={t('common.filters')}
-          >
-            <Filter className="h-4 w-4" />
-            <span>{t('common.filters')}</span>
-            {isFiltersApplied && (
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-            )}
-          </Button>
+            transportMode={transportMode}
+            distanceChanged={maxDistance !== 5}
+            durationChanged={maxDuration !== 20}
+            aroundMeChanged={(aroundMeCount || 3) > 3}
+            showMultiDirections={showMultiDirections}
+          />
           <MapToggle showMap={showMap} setShowMap={setShowMap} />
         </div>
       </div>
 
-      <CategoryFiltersSheet
+      <UnifiedFilterSheet
         open={showFilters}
         onClose={() => setShowFilters(false)}
         maxDistance={maxDistance}
@@ -95,6 +76,7 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
         setDistanceUnit={setDistanceUnit || (() => {})}
         transportMode={transportMode}
         setTransportMode={setTransportMode}
+        onReset={onResetFilters}
       />
     </>
   );

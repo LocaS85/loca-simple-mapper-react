@@ -51,7 +51,8 @@ const Categories = () => {
     setDistanceUnit,
     handleFiltersChange,
     handleSelectCategory,
-    setTransportMode // Now correctly used from the hook
+    setTransportMode,
+    resetFilters
   } = useCategoryManagement();
 
   // Handle search from subcategory cards
@@ -86,6 +87,7 @@ const Categories = () => {
         setDistanceUnit={setDistanceUnit}
         transportMode={transportMode}
         setTransportMode={setTransportMode}
+        onResetFilters={resetFilters}
       />
       
       {/* Loading indicator */}
