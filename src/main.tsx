@@ -5,7 +5,6 @@ import App from './App';
 import './index.css';
 import { ThemeProvider } from "@/hooks/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setupMapbox, checkMapboxSetup } from './utils/mapboxPreload';
 import './i18n'; // Import i18n configuration
@@ -29,13 +28,8 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <QueryClientProvider client={queryClient}>
-          <App />
-          <Toaster />
-        </QueryClientProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
   </React.StrictMode>,
 );

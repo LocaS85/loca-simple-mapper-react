@@ -1,114 +1,114 @@
 
 import React from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import BoutonRetour from '@/components/ui/BoutonRetour';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Container } from '@/components/ui/container';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 
 const TermsOfService = () => {
-  const isMobile = useIsMobile();
-  
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="fixed top-4 left-4 z-10">
-        <BoutonRetour route="/"/>
-      </div>
-      
-      <div className={`max-w-4xl mx-auto ${isMobile ? 'text-sm pt-12' : 'text-base pt-4'}`}>
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">Conditions Générales d'Utilisation</h1>
-        
-        <p className="mb-4">Dernière mise à jour : 19 mai 2025</p>
-        
-        <div className="prose max-w-none">
-          <h2 className="text-xl font-semibold mt-6 mb-3">1. Introduction</h2>
-          <p className="mb-4">
-            Bienvenue sur LocaSimple (ci-après « le Service »). En utilisant notre application web ou mobile, vous acceptez d'être lié par les présentes Conditions Générales d'Utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser le Service.
-          </p>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1 py-12">
+        <Container>
+          <div className="mb-6">
+            <RouteBackButton route="/" />
+          </div>
           
-          <h2 className="text-xl font-semibold mt-6 mb-3">2. Description du Service</h2>
-          <p className="mb-4">
-            LocaSimple est une application de géolocalisation permettant aux utilisateurs de rechercher et de localiser des points d'intérêt à proximité. Le Service propose également des fonctionnalités de filtrage par catégorie, distance et mode de transport.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">3. Compte utilisateur</h2>
-          <p className="mb-4">
-            Pour accéder à certaines fonctionnalités du Service, vous devez créer un compte. Vous êtes responsable du maintien de la confidentialité de vos identifiants et de toutes les activités qui se produisent sous votre compte.
-          </p>
-          <p className="mb-4">
-            Vous acceptez de fournir des informations exactes, à jour et complètes lors de la création de votre compte et de les mettre à jour si nécessaire. Nous nous réservons le droit de suspendre ou de résilier votre compte si nous constatons que les informations fournies sont inexactes, trompeuses ou incomplètes.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">4. Utilisation du Service</h2>
-          <p className="mb-4">
-            Vous acceptez d'utiliser le Service conformément à toutes les lois applicables et aux présentes conditions. Vous ne devez pas :
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>Utiliser le Service d'une manière qui pourrait endommager, désactiver, surcharger ou compromettre les systèmes ou la sécurité de LocaSimple</li>
-            <li>Tenter d'accéder à des parties du Service auxquelles vous n'êtes pas autorisé à accéder</li>
-            <li>Utiliser des robots, des scrapers ou d'autres moyens automatisés pour accéder au Service</li>
-            <li>Collecter ou récolter des données personnelles sur d'autres utilisateurs du Service</li>
-            <li>Contourner les mesures de sécurité mises en place par LocaSimple</li>
-            <li>Violer les droits de propriété intellectuelle de LocaSimple ou de tiers</li>
-          </ul>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">5. Contenu de l'utilisateur</h2>
-          <p className="mb-4">
-            Notre Service peut vous permettre de publier, de lier, de stocker, de partager et de mettre à disposition certaines informations, textes, graphiques, vidéos ou autres contenus (« Contenu de l'utilisateur »). Vous êtes responsable de votre Contenu de l'utilisateur et de toutes les conséquences qui peuvent en découler.
-          </p>
-          <p className="mb-4">
-            En publiant du Contenu de l'utilisateur sur ou via le Service, vous nous accordez une licence mondiale, non exclusive, gratuite, cessible et pouvant faire l'objet d'une sous-licence pour utiliser, reproduire, modifier, adapter, publier, traduire, distribuer, afficher publiquement et exécuter ce Contenu de l'utilisateur dans le cadre du Service.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">6. Abonnements et paiements</h2>
-          <p className="mb-4">
-            Certaines fonctionnalités du Service sont proposées sur la base d'un abonnement payant. Si vous choisissez de souscrire à un abonnement payant, vous acceptez de payer tous les frais associés à l'abonnement choisi, aux tarifs en vigueur au moment de l'achat.
-          </p>
-          <p className="mb-4">
-            Les abonnements se renouvellent automatiquement à moins que vous ne les annuliez avant la fin de la période en cours. Vous pouvez annuler votre abonnement à tout moment via les paramètres de votre compte.
-          </p>
-          <p className="mb-4">
-            Nous nous réservons le droit de modifier les prix de nos abonnements à tout moment. Toute modification de prix prendra effet à la fin de votre période de facturation en cours. Nous vous informerons de tout changement de prix au moins 30 jours avant son entrée en vigueur.
-          </p>
-          <p className="mb-4">
-            En cas de résiliation de votre abonnement, vous perdrez l'accès aux fonctionnalités premium à la fin de votre période de facturation en cours. Aucun remboursement ne sera effectué pour les périodes d'abonnement partiellement utilisées.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">7. Propriété intellectuelle</h2>
-          <p className="mb-4">
-            Le Service et son contenu original, ses fonctionnalités et sa conception sont et resteront la propriété exclusive de LocaSimple et de ses concédants. Le Service est protégé par le droit d'auteur, les marques commerciales et d'autres lois en France et à l'étranger.
-          </p>
-          <p className="mb-4">
-            Nos marques et notre habillage commercial ne peuvent pas être utilisés en relation avec un produit ou un service sans notre consentement écrit préalable.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">8. Limitation de responsabilité</h2>
-          <p className="mb-4">
-            En aucun cas, LocaSimple, ses dirigeants, administrateurs, employés, partenaires ou agents ne seront responsables envers vous de tout dommage direct, indirect, accessoire, spécial, punitif ou consécutif découlant de votre accès ou de votre utilisation du Service.
-          </p>
-          <p className="mb-4">
-            Nous ne garantissons pas que le Service sera disponible à tout moment ou lieu particulier, ni que le Service sera ininterrompu, sécurisé ou sans erreur.
-          </p>
-          <p className="mb-4">
-            Les informations géographiques et de navigation fournies par le Service sont destinées à des fins d'information uniquement et ne doivent pas être utilisées comme unique source d'orientation. LocaSimple ne peut garantir l'exactitude, l'exhaustivité ou la fiabilité des données cartographiques.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">9. Modifications des conditions</h2>
-          <p className="mb-4">
-            Nous nous réservons le droit de modifier ces Conditions à tout moment. Si nous le faisons, nous vous informerons en publiant les conditions modifiées sur cette page et en mettant à jour la date de « dernière mise à jour » en haut de ces Conditions.
-          </p>
-          <p className="mb-4">
-            Il est de votre responsabilité de consulter régulièrement ces Conditions pour prendre connaissance des modifications. Votre utilisation continue du Service après la publication des Conditions modifiées constitue votre acceptation de ces modifications.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">10. Loi applicable</h2>
-          <p className="mb-4">
-            Ces Conditions sont régies et interprétées conformément aux lois françaises, sans égard aux principes de conflits de lois. Tout litige découlant de ces Conditions sera soumis à la compétence exclusive des tribunaux de Paris, France.
-          </p>
-          
-          <h2 className="text-xl font-semibold mt-6 mb-3">11. Contact</h2>
-          <p className="mb-4">
-            Si vous avez des questions concernant ces Conditions, veuillez nous contacter à l'adresse suivante : contact@locasimple.fr
-          </p>
-        </div>
-      </div>
+          <div className="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none">
+            <h1 className="text-3xl font-bold mb-6">Conditions Générales d'Utilisation</h1>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">1. Acceptation des conditions</h2>
+              <p>
+                En accédant à cette application ou en l'utilisant, vous acceptez d'être lié par ces 
+                conditions d'utilisation. Si vous n'acceptez pas l'intégralité de ces conditions,
+                vous ne pouvez pas accéder au site web ni utiliser aucun service.
+              </p>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">2. Modifications</h2>
+              <p>
+                Nous nous réservons le droit de modifier ces conditions à tout moment.
+                Les modifications entreront en vigueur dès leur publication sur cette page.
+                Votre utilisation continue de l'application après la publication des modifications 
+                constitue votre acceptation des nouvelles conditions.
+              </p>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">3. Utilisation de l'application</h2>
+              <p>
+                Vous acceptez d'utiliser l'application uniquement à des fins légitimes et conformément
+                aux présentes conditions et à toutes les lois et réglementations applicables.
+              </p>
+              <p className="mt-4">
+                Vous ne pouvez pas :
+              </p>
+              <ul className="list-disc pl-6 mt-4">
+                <li>Utiliser l'application d'une manière qui pourrait l'endommager ou compromettre son fonctionnement</li>
+                <li>Accéder sans autorisation à nos systèmes ou à ceux de nos partenaires</li>
+                <li>Collecter des données de notre application par des moyens automatisés</li>
+                <li>Utiliser notre application pour transmettre du matériel publicitaire non sollicité</li>
+              </ul>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">4. Comptes utilisateurs</h2>
+              <p>
+                Lorsque vous créez un compte, vous devez fournir des informations exactes et complètes.
+                Vous êtes responsable de la protection de votre mot de passe et de toutes les activités
+                qui se produisent sous votre compte.
+              </p>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">5. Propriété intellectuelle</h2>
+              <p>
+                Le contenu de l'application, y compris, mais sans s'y limiter, les textes, graphiques,
+                logos, images, ainsi que leur compilation, sont la propriété de notre entreprise
+                et sont protégés par les lois sur la propriété intellectuelle.
+              </p>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">6. Limitation de responsabilité</h2>
+              <p>
+                Dans la mesure maximale permise par la loi, nous ne serons pas responsables des dommages
+                directs, indirects, accessoires, spéciaux ou consécutifs résultant de l'utilisation
+                ou de l'impossibilité d'utiliser notre application.
+              </p>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">7. Indemnisation</h2>
+              <p>
+                Vous acceptez d'indemniser et de dégager de toute responsabilité notre entreprise
+                et ses dirigeants, administrateurs, employés et agents contre toutes réclamations,
+                responsabilités, dommages, pertes et dépenses résultant de votre violation de ces conditions.
+              </p>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">8. Loi applicable</h2>
+              <p>
+                Ces conditions sont régies et interprétées conformément aux lois françaises,
+                sans égard aux principes de conflits de lois.
+              </p>
+            </section>
+            
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">9. Contact</h2>
+              <p>
+                Pour toute question concernant ces conditions d'utilisation,
+                veuillez nous contacter à l'adresse suivante : contact@example.com
+              </p>
+            </section>
+          </div>
+        </Container>
+      </main>
+      <Footer />
     </div>
   );
 };

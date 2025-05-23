@@ -2,34 +2,38 @@
 import { navigationRoutes, footerRoutes, authRoutes } from '@/routes';
 
 /**
- * Get route object by path
- * @param path - Route path to search for
- * @returns Route object if found, undefined otherwise
+ * Get the label for a route from the route path
  */
-export const getRouteByPath = (path: string) => {
+export const getRouteLabel = (path: string): string => {
+  // Check all route collections to find the matching route
   const allRoutes = [...navigationRoutes, ...footerRoutes, ...authRoutes];
-  return allRoutes.find(route => route.path === path);
+  const route = allRoutes.find(r => r.path === path);
+  return route?.label || path;
 };
 
 /**
- * Get route label by path
- * @param path - Route path to search for
- * @returns Route label if found, path otherwise
+ * Get breadcrumb navigation items from a route path
  */
-export const getRouteLabel = (path: string) => {
-  const route = getRouteByPath(path);
-  return route ? route.label : path;
-};
-
-/**
- * Check if route is active
- * @param currentPath - Current location path
- * @param routePath - Route path to check
- * @returns Boolean indicating if route is active
- */
-export const isRouteActive = (currentPath: string, routePath: string) => {
-  if (routePath === '/') {
-    return currentPath === '/';
-  }
-  return currentPath.startsWith(routePath);
+export const getBreadcrumbItems = (path: string): { label: string; path: string }[] => {
+  const segments = path.split('/').filter(Boolean);
+  
+  // Always start with home
+  const breadcrumbs: { label: string; path: string }[] = [
+    { label: 'Accueil', path: '/' }
+  ];
+  
+  // Build breadcrumb path progressively
+  let currentPath = '';
+  
+  segments.forEach(segment => {
+    currentPath += `/${segment}`;
+    const label = getRouteLabel(currentPath) || segment;
+    
+    breadcrumbs.push({
+      label,
+      path: currentPath
+    });
+  });
+  
+  return breadcrumbs;
 };
