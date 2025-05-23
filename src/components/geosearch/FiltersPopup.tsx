@@ -2,7 +2,7 @@
 import React from 'react';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
-import UnifiedFilterSheet from '../filters/UnifiedFilterSheet';
+import { FenetreFiltrageUnifiee } from '../filters';
 import { TransportMode } from '@/lib/data/transportModes';
 
 interface FiltersPopupProps {
@@ -68,7 +68,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
   };
 
   return (
-    <UnifiedFilterSheet
+    <FenetreFiltrageUnifiee
       open={open}
       onClose={onClose}
       maxDistance={localFilters.distance}

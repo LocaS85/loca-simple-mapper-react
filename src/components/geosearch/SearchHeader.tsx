@@ -6,8 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import AutoSuggestSearch from './AutoSuggestSearch';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
-import FilterButton from '../filters/FilterButton';
-import FilterBadges from '../filters/FilterBadges';
+import { BoutonFiltre, BadgesFiltres } from '../filters';
 import { TransportMode } from '@/lib/data/transportModes';
 
 interface SearchHeaderProps {
@@ -67,7 +66,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           <Navigation className="h-4 w-4 text-blue-600" />
         </Button>
         
-        <FilterButton 
+        <BoutonFiltre 
           onClick={onToggleFilters}
           transportMode={filters.transport as TransportMode}
           distanceChanged={filters.distance !== 10}
@@ -78,7 +77,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
       
       {(filters.query || filters.category || filters.subcategory || filters.aroundMeCount > 3) && (
         <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 max-w-full">
-          <FilterBadges
+          <BadgesFiltres
             query={filters.query}
             category={filters.category}
             subcategory={filters.subcategory}

@@ -1,13 +1,18 @@
 
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import BoutonRetour from '@/components/ui/BoutonRetour';
 
 const TermsOfService = () => {
   const isMobile = useIsMobile();
   
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className={`max-w-4xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
+      <div className="fixed top-4 left-4 z-10">
+        <BoutonRetour route="/"/>
+      </div>
+      
+      <div className={`max-w-4xl mx-auto ${isMobile ? 'text-sm pt-12' : 'text-base pt-4'}`}>
         <h1 className="text-2xl md:text-3xl font-bold mb-6">Conditions Générales d'Utilisation</h1>
         
         <p className="mb-4">Dernière mise à jour : 19 mai 2025</p>

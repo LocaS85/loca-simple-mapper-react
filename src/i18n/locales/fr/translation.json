@@ -28,6 +28,37 @@
     "fullApp": "Application complète de recherche",
     "myFavorites": "Mes favoris"
   },
+  "common": {
+    "back": "Retour",
+    "submit": "Valider",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "reset": "Réinitialiser",
+    "search": "Rechercher",
+    "apply": "Appliquer",
+    "filters": "Filtres",
+    "category": "Catégorie",
+    "subcategory": "Sous-catégorie",
+    "distance": "Distance"
+  },
+  "filters": {
+    "category": "Catégorie",
+    "subcategory": "Sous-catégorie",
+    "transportMode": "Mode de transport",
+    "distance": "Distance",
+    "duration": "Durée",
+    "aroundMe": "Autour de moi",
+    "places": "Nombre de lieux",
+    "multiDirections": "Multi-directions",
+    "reset": "Filtres réinitialisés",
+    "resetSuccess": "Tous les filtres ont été réinitialisés",
+    "transportModes": {
+      "car": "Voiture",
+      "walking": "À pied",
+      "cycling": "Vélo",
+      "bus": "Transport"
+    }
+  },
   "footer": {
     "description": "L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.",
     "navigation": "Navigation",
