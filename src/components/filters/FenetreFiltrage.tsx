@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useTranslation } from 'react-i18next';
 import { TransportMode } from '@/lib/data/transportModes';
+import { Car, User, Bike, Bus } from 'lucide-react';
 
 export interface FenetreFiltrageProp {
   isOpen: boolean;
@@ -58,6 +59,14 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
     }
   };
 
+  // Map transport modes to their icons
+  const transportModeIcons = {
+    car: <Car className="h-4 w-4" />,
+    walking: <User className="h-4 w-4" />,
+    cycling: <Bike className="h-4 w-4" />,
+    bus: <Bus className="h-4 w-4" />,
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-[90%] sm:max-w-md">
@@ -78,6 +87,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
                   onClick={() => onTransportModeChange(mode)}
                   className="flex items-center gap-2"
                 >
+                  {transportModeIcons[mode]}
                   {t(`filters.transportModes.${mode}`)}
                 </Button>
               ))}
