@@ -11,6 +11,7 @@ import Privacy from '@/pages/Privacy';
 import Premium from '@/pages/Premium';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import Payment from '@/pages/Payment';
 import ModernGeoSearch from '@/pages/ModernGeoSearch';
 
 /**
@@ -29,6 +30,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/premium" element={<Premium />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/payment" element={<Payment />} />
       <Route path="/modern-search" element={<ModernGeoSearch />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

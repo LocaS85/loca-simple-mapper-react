@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/card';
 import RouteBackButton from '@/components/ui/RouteBackButton';
 import { Eye, EyeOff, AlertCircle, CheckCircle, Check, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -97,17 +98,28 @@ const Register = () => {
     }
 
     try {
-      // Simulation d'inscription
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Registration form submitted', formData);
-      
-      setMessage({ type: 'success', text: 'Inscription réussie ! Redirection vers la connexion...' });
-      
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1500);
-      
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+          },
+        },
+      });
+
+      if (error) {
+        setMessage({ type: 'error', text: error.message });
+      } else {
+        setMessage({ 
+          type: 'success', 
+          text: 'Inscription réussie ! Vérifiez votre email pour confirmer votre compte.' 
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      }
     } catch (error) {
       setMessage({ type: 'error', text: 'Une erreur est survenue. Veuillez réessayer.' });
     } finally {
@@ -115,8 +127,21 @@ const Register = () => {
     }
   };
 
-  const handleGoogleSignUp = () => {
-    setMessage({ type: 'error', text: 'Inscription Google en cours de développement...' });
+  const handleGoogleSignUp = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/account`
+        }
+      });
+      
+      if (error) {
+        setMessage({ type: 'error', text: 'Erreur lors de la connexion avec Google' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Inscription Google en cours de développement...' });
+    }
   };
 
   return (

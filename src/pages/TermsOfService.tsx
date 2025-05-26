@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -12,7 +11,7 @@ const TermsOfService = () => {
       <main className="flex-1 py-12">
         <Container>
           <div className="mb-6">
-            <RouteBackButton route="/" />
+            <RouteBackButton />
           </div>
           
           <div className="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none">

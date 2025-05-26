@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,12 +10,14 @@ import Footer from '@/components/Footer';
 
 const Premium = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   const plans = [
     {
       name: "Mensuel",
       price: "9,99€",
       period: "par mois",
+      planType: "monthly",
       features: [
         "Recherche illimitée",
         "Accès aux cartes détaillées",
@@ -28,6 +31,7 @@ const Premium = () => {
       name: "Annuel",
       price: "89,99€",
       period: "par an",
+      planType: "annual",
       features: [
         "Recherche illimitée",
         "Accès aux cartes détaillées",
@@ -44,6 +48,7 @@ const Premium = () => {
       name: "Famille",
       price: "149,99€",
       period: "par an",
+      planType: "family",
       features: [
         "Jusqu'à 5 utilisateurs",
         "Recherche illimitée",
@@ -58,6 +63,10 @@ const Premium = () => {
       popular: false
     }
   ];
+
+  const handleSubscribe = (planType: string) => {
+    navigate(`/payment?plan=${planType}`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -103,7 +112,11 @@ const Premium = () => {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" variant={plan.popular ? "default" : "outline"}>
+                  <Button 
+                    className="w-full" 
+                    variant={plan.popular ? "default" : "outline"}
+                    onClick={() => handleSubscribe(plan.planType)}
+                  >
                     S'abonner
                   </Button>
                 </CardFooter>
