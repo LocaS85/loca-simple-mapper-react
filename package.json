@@ -77,7 +77,8 @@
     "use-supercluster": "^1.1.0",
     "vaul": "^0.9.3",
     "vite-plugin-checker": "^0.9.3",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

@@ -1,24 +1,20 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { SearchResult } from '@/types/geosearch';
 import { TransportMode } from '@/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { useGeoSearch } from '@/hooks/use-geo-search';
 import { useTranslation } from 'react-i18next';
-import MultiMapToggle from './MultiMapToggle';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface MapViewProps {
-  results: SearchResult[];
-  isLoading: boolean;
-  transport: TransportMode;
+  transport?: TransportMode; // Optionnel maintenant car on utilise le store
 }
 
-const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
+const MapView: React.FC<MapViewProps> = ({ transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -26,13 +22,18 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   
-  // Get user location from the GeoSearch hook
-  const { userLocation } = useGeoSearch({});
+  // Utiliser le store Zustand
+  const {
+    userLocation,
+    results,
+    isLoading,
+    filters
+  } = useGeoSearchStore();
 
   console.log('MapView rendering with results:', results);
   console.log('MapView rendering with userLocation:', userLocation);
 
-  // Initialize map
+  // Initialiser la carte
   useEffect(() => {
     if (!mapContainer.current || !isMapboxTokenValid()) return;
     
@@ -45,7 +46,7 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: userLocation || [2.35, 48.85], // Use user location or Paris as default
+        center: userLocation || [2.35, 48.85], // Utiliser la position depuis le store
         zoom: isMobile ? 10 : 12
       });
       
@@ -72,17 +73,17 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
     }
   }, [isMobile, toast, userLocation, t]);
 
-  // Fit map to bounds when results change
+  // Ajuster la carte aux résultats
   useEffect(() => {
     if (!map.current || !mapLoaded || !userLocation) return;
     
     try {
       const bounds = new mapboxgl.LngLatBounds();
       
-      // Add user location to bounds
+      // Ajouter la localisation utilisateur aux limites
       bounds.extend(userLocation);
       
-      // Add all results to bounds if there are any
+      // Ajouter tous les résultats aux limites s'il y en a
       if (results.length > 0) {
         console.log('Extending bounds with results:', results);
         results.forEach(place => {
@@ -94,7 +95,7 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
           maxZoom: isMobile ? 13 : 15
         });
       } else {
-        // If no results, center on user location
+        // Si pas de résultats, centrer sur la position utilisateur
         console.log('No results, centering on user location');
         map.current.setCenter(userLocation);
         map.current.setZoom(isMobile ? 10 : 12);
@@ -104,19 +105,19 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
     }
   }, [results, mapLoaded, userLocation, isMobile]);
 
-  // Update markers when results change
+  // Mettre à jour les marqueurs quand les résultats changent
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     
     console.log('Updating markers with results:', results);
     
-    // Clear existing markers
+    // Effacer les marqueurs existants
     const markerElements = document.querySelectorAll('.mapboxgl-marker');
     markerElements.forEach(marker => {
       marker.remove();
     });
     
-    // Add user location marker
+    // Ajouter le marqueur de position utilisateur
     if (userLocation) {
       console.log('Adding user location marker');
       new mapboxgl.Marker({ color: '#3b82f6' })
@@ -129,7 +130,7 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
         .addTo(map.current);
     }
     
-    // Add result markers
+    // Ajouter les marqueurs de résultats
     results.forEach(place => {
       console.log('Adding marker for place:', place);
       new mapboxgl.Marker({ color: '#ef4444' })
@@ -154,7 +155,7 @@ const MapView: React.FC<MapViewProps> = ({ results, isLoading, transport }) => {
   return (
     <div className="w-full h-full pt-24 pb-16">
       <div ref={mapContainer} className="relative w-full h-full">
-        {/* Loading indicator */}
+        {/* Indicateur de chargement */}
         {(isLoading || !mapLoaded) && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
             <LoadingSpinner />

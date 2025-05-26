@@ -6,60 +6,51 @@ import { Slider } from '@/components/ui/slider';
 import { useTranslation } from 'react-i18next';
 import { TransportMode } from '@/lib/data/transportModes';
 import { Car, User, Bike, Bus } from 'lucide-react';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 export interface FenetreFiltrageProp {
-  isOpen: boolean;
-  onClose: () => void;
-  transportMode: TransportMode;
-  distance: number;
-  distanceUnit: 'km' | 'mi';
-  aroundMeCount: number;
-  showMultiDirections: boolean;
-  maxDuration?: number;
-  onTransportModeChange: (mode: TransportMode) => void;
-  onDistanceChange: (distance: number) => void;
-  onUnitChange: (unit: 'km' | 'mi') => void;
-  onAroundMeCountChange: (count: number) => void;
-  onShowMultiDirectionsChange: (show: boolean) => void;
-  onMaxDurationChange?: (duration: number) => void;
-  onReset: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
   isOpen,
-  onClose,
-  transportMode,
-  distance,
-  distanceUnit,
-  aroundMeCount,
-  showMultiDirections,
-  maxDuration = 20,
-  onTransportModeChange,
-  onDistanceChange,
-  onUnitChange,
-  onAroundMeCountChange,
-  onShowMultiDirectionsChange,
-  onMaxDurationChange,
-  onReset
+  onClose
 }) => {
   const { t } = useTranslation();
+  
+  // Utiliser le store Zustand
+  const {
+    filters,
+    showFilters,
+    updateFilters,
+    resetFilters,
+    toggleFilters,
+    setShowFilters
+  } = useGeoSearchStore();
 
-  // Convert between km and mi
+  // Utiliser les props ou le store
+  const isSheetOpen = isOpen !== undefined ? isOpen : showFilters;
+  const handleClose = onClose || (() => setShowFilters(false));
+
+  // Convertir entre km et mi
   const convertDistance = (value: number, from: 'km' | 'mi', to: 'km' | 'mi'): number => {
     if (from === to) return value;
     return from === 'km' ? value * 0.621371 : value * 1.60934;
   };
 
-  // Handle unit change
+  // Gérer le changement d'unité
   const handleUnitChange = (unit: 'km' | 'mi') => {
-    if (unit !== distanceUnit) {
-      const newDistance = convertDistance(distance, distanceUnit, unit);
-      onDistanceChange(Math.round(newDistance * 10) / 10);
-      onUnitChange(unit);
+    if (unit !== filters.unit) {
+      const newDistance = convertDistance(filters.distance, filters.unit, unit);
+      updateFilters({
+        distance: Math.round(newDistance * 10) / 10,
+        unit
+      });
     }
   };
 
-  // Map transport modes to their icons
+  // Associer les modes de transport à leurs icônes
   const transportModeIcons = {
     car: <Car className="h-4 w-4" />,
     walking: <User className="h-4 w-4" />,
@@ -68,23 +59,23 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={isSheetOpen} onOpenChange={(open) => !open && handleClose()}>
       <SheetContent className="w-[90%] sm:max-w-md">
         <SheetHeader>
           <SheetTitle>{t('filters.title')}</SheetTitle>
         </SheetHeader>
 
         <div className="py-6 space-y-8">
-          {/* Transport Mode */}
+          {/* Mode de transport */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium">{t('filters.transportMode')}</h3>
             <div className="flex flex-wrap gap-2">
               {(['car', 'walking', 'cycling', 'bus'] as TransportMode[]).map((mode) => (
                 <Button
                   key={mode}
-                  variant={transportMode === mode ? "default" : "outline"}
+                  variant={filters.transport === mode ? "default" : "outline"}
                   size="sm"
-                  onClick={() => onTransportModeChange(mode)}
+                  onClick={() => updateFilters({ transport: mode })}
                   className="flex items-center gap-2"
                 >
                   {transportModeIcons[mode]}
@@ -99,12 +90,12 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-medium">{t('filters.distance')}</h3>
               <div className="flex items-center gap-2">
-                <span className="font-semibold">{distance}</span>
+                <span className="font-semibold">{filters.distance}</span>
                 <div className="flex rounded-md overflow-hidden border border-border">
                   <button
                     onClick={() => handleUnitChange('km')}
                     className={`px-2 py-1 text-xs ${
-                      distanceUnit === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background'
+                      filters.unit === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background'
                     }`}
                   >
                     km
@@ -112,7 +103,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
                   <button
                     onClick={() => handleUnitChange('mi')}
                     className={`px-2 py-1 text-xs ${
-                      distanceUnit === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background'
+                      filters.unit === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background'
                     }`}
                   >
                     mi
@@ -121,66 +112,66 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
               </div>
             </div>
             <Slider
-              value={[distance]}
+              value={[filters.distance]}
               min={1}
-              max={distanceUnit === 'km' ? 50 : 30}
+              max={filters.unit === 'km' ? 50 : 30}
               step={1}
-              onValueChange={(values) => onDistanceChange(values[0])}
+              onValueChange={(values) => updateFilters({ distance: values[0] })}
             />
           </div>
 
-          {/* "Around Me" Count */}
+          {/* Nombre "Autour de moi" */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-medium">{t('filters.aroundMeCount')}</h3>
-              <span className="font-semibold">{aroundMeCount}</span>
+              <span className="font-semibold">{filters.aroundMeCount}</span>
             </div>
             <Slider
-              value={[aroundMeCount]}
+              value={[filters.aroundMeCount]}
               min={1}
               max={10}
               step={1}
-              onValueChange={(values) => onAroundMeCountChange(values[0])}
+              onValueChange={(values) => updateFilters({ aroundMeCount: values[0] })}
             />
           </div>
 
-          {/* Max Duration */}
-          {onMaxDurationChange && (
+          {/* Durée maximale */}
+          {filters.maxDuration && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-medium">{t('filters.maxDuration')}</h3>
                 <span className="font-semibold">
-                  {maxDuration} {t('common.minutes')}
+                  {filters.maxDuration} {t('common.minutes')}
                 </span>
               </div>
               <Slider
-                value={[maxDuration]}
+                value={[filters.maxDuration]}
                 min={5}
                 max={60}
                 step={5}
-                onValueChange={(values) => onMaxDurationChange(values[0])}
+                onValueChange={(values) => updateFilters({ maxDuration: values[0] })}
               />
             </div>
           )}
 
-          {/* Show Multi Directions */}
+          {/* Afficher les directions multiples */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium">{t('filters.showMultiDirections')}</h3>
             <Button
-              variant={showMultiDirections ? "default" : "outline"}
+              variant={filters.showMultiDirections ? "default" : "outline"}
               size="sm"
-              onClick={() => onShowMultiDirectionsChange(!showMultiDirections)}
+              onClick={() => updateFilters({ showMultiDirections: !filters.showMultiDirections })}
             >
-              {showMultiDirections ? t('common.yes') : t('common.no')}
+              {filters.showMultiDirections ? t('common.yes') : t('common.no')}
             </Button>
           </div>
         </div>
 
         <div className="flex flex-col gap-2 mt-4">
-          <Button className="w-full" onClick={onClose}>
+          <Button className="w-full" onClick={handleClose}>
             {t('common.apply')}
           </Button>
-          <Button variant="outline" className="w-full" onClick={onReset}>
+          <Button variant="outline" className="w-full" onClick={resetFilters}>
             {t('common.reset')}
           </Button>
         </div>

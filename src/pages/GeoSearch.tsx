@@ -6,48 +6,54 @@ import FiltersPopup from '@/components/geosearch/FiltersPopup';
 import SearchHeader from '@/components/geosearch/SearchHeader';
 import PrintButton from '@/components/geosearch/PrintButton';
 import MultiMapToggle from '@/components/geosearch/MultiMapToggle';
-import { useGeoSearch } from '@/hooks/use-geo-search';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 const GeoSearch = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  // Extract filters from URL
-  const category = searchParams.get('category');
-  const subcategory = searchParams.get('subcategory');
-  const transport = searchParams.get('transport') || 'car';
-  const distance = Number(searchParams.get('distance')) || 10;
-  const unit = searchParams.get('unit') || 'km';
-  const query = searchParams.get('query') || '';
-  const aroundMeCount = Number(searchParams.get('aroundMeCount')) || 3;
-  const showMultiDirections = searchParams.get('showMultiDirections') === 'true';
-
+  // Utiliser le store Zustand
   const {
     results,
-    loadResults,
     filters,
-    updateFilters,
     isLoading,
     showFilters,
-    toggleFilters,
-    setUserLocation,
     userLocation,
+    setUserLocation,
+    updateFilters,
+    loadResults,
+    toggleFilters,
     resetFilters
-  } = useGeoSearch({ 
-    category, 
-    subcategory, 
-    transport, 
-    distance, 
-    unit,
-    query,
-    aroundMeCount,
-    showMultiDirections
-  });
+  } = useGeoSearchStore();
 
-  // Initial load of results when component mounts or URL params change
+  // Extraire les filtres depuis l'URL
+  useEffect(() => {
+    const category = searchParams.get('category');
+    const subcategory = searchParams.get('subcategory');
+    const transport = searchParams.get('transport') || 'car';
+    const distance = Number(searchParams.get('distance')) || 10;
+    const unit = searchParams.get('unit') || 'km';
+    const query = searchParams.get('query') || '';
+    const aroundMeCount = Number(searchParams.get('aroundMeCount')) || 3;
+    const showMultiDirections = searchParams.get('showMultiDirections') === 'true';
+
+    // Mettre à jour les filtres depuis l'URL
+    updateFilters({
+      category,
+      subcategory,
+      transport: transport as any,
+      distance,
+      unit: unit as any,
+      query,
+      aroundMeCount,
+      showMultiDirections
+    });
+  }, [searchParams, updateFilters]);
+
+  // Chargement initial des résultats quand le composant se monte ou que les paramètres URL changent
   useEffect(() => {
     console.log('GeoSearch useEffect triggered');
     if (userLocation) {
@@ -56,13 +62,13 @@ const GeoSearch = () => {
     }
   }, [userLocation, loadResults]);
 
-  // Handle location selection from auto-suggestion
+  // Gérer la sélection de localisation depuis l'auto-suggestion
   const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
     console.log('Location selected in GeoSearch:', location);
-    // Update user location with selected place coordinates
+    // Mettre à jour la localisation utilisateur avec les coordonnées du lieu sélectionné
     setUserLocation(location.coordinates);
     
-    // Update filters with place name
+    // Mettre à jour les filtres avec le nom du lieu
     updateFilters({ query: location.name });
     
     toast({
@@ -70,11 +76,11 @@ const GeoSearch = () => {
       description: t("geosearch.searchingAround", { place: location.placeName || location.name }),
     });
     
-    // Load results for this new location
+    // Charger les résultats pour cette nouvelle localisation
     loadResults();
   };
 
-  // Handle user location request
+  // Gérer la demande de localisation utilisateur
   const handleUserLocationRequest = () => {
     console.log('Requesting user location');
     if (navigator.geolocation) {
@@ -103,14 +109,14 @@ const GeoSearch = () => {
     }
   };
 
-  // Force initial location request if no location is set
+  // Forcer la demande de localisation initiale si aucune localisation n'est définie
   useEffect(() => {
     if (!userLocation) {
       handleUserLocationRequest();
     }
-  }, []);
+  }, [userLocation]);
 
-  // Determine if we need to show an empty state
+  // Déterminer si nous devons afficher un état vide
   const showEmptyState = !isLoading && results.length === 0 && (filters.category || filters.subcategory || filters.query);
 
   return (
@@ -122,11 +128,7 @@ const GeoSearch = () => {
         onRequestUserLocation={handleUserLocationRequest}
       />
       
-      <MapView 
-        results={results} 
-        isLoading={isLoading} 
-        transport={filters.transport} 
-      />
+      <MapView transport={filters.transport} />
       
       <FiltersPopup
         filters={filters}
@@ -136,7 +138,7 @@ const GeoSearch = () => {
         onReset={resetFilters}
       />
       
-      {/* Empty state when no results are found */}
+      {/* État vide quand aucun résultat n'est trouvé */}
       {showEmptyState && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-10 text-center max-w-md mx-4">
           <div className="mb-4 text-gray-400">
@@ -159,12 +161,12 @@ const GeoSearch = () => {
         </div>
       )}
       
-      {/* Fixed position controls */}
+      {/* Contrôles en position fixe */}
       <div className="fixed bottom-4 right-4 z-10 flex flex-col gap-2 sm:flex-row">
         <PrintButton results={results} />
       </div>
       
-      {/* Add MultiMapToggle component */}
+      {/* Ajouter le composant MultiMapToggle */}
       <MultiMapToggle />
     </div>
   );
