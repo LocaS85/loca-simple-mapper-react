@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { 
@@ -20,12 +19,13 @@ import { CheckIcon, CreditCard, Shield, Lock, AlertCircle, CheckCircle } from 'l
 type PlanType = 'monthly' | 'annual';
 type CardBrand = 'visa' | 'mastercard' | 'amex' | '';
 type PaymentMethod = 'card' | 'paypal';
+type BillingType = 'auto' | 'manual';
 
 const Payment = () => {
   const isMobile = useIsMobile();
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('monthly');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
-  const [autoRenewal, setAutoRenewal] = useState(true);
+  const [billingType, setBillingType] = useState<BillingType>('auto');
   const [cardNumber, setCardNumber] = useState('');
   const [cardBrand, setCardBrand] = useState<CardBrand>('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -116,7 +116,7 @@ const Payment = () => {
       console.log('Payment processed', {
         plan: selectedPlan,
         paymentMethod,
-        autoRenewal,
+        billingType,
         amount: selectedPlan === 'monthly' ? monthlyPrice : annualPrice
       });
       
@@ -167,6 +167,7 @@ const Payment = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Plan selection options */}
                 <div 
                   className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-200 ${
                     selectedPlan === 'monthly' 
@@ -225,23 +226,62 @@ const Payment = () => {
                   )}
                 </div>
 
-                {selectedPlan === 'monthly' && (
-                  <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="autoRenewal"
-                      checked={autoRenewal}
-                      onChange={() => setAutoRenewal(!autoRenewal)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <label htmlFor="autoRenewal" className="text-sm text-gray-700 dark:text-gray-300">
-                      Prélèvement automatique (recommandé)
-                    </label>
+                {/* Billing Type Selection */}
+                <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Type de prélèvement :</h4>
+                  <div className="space-y-2">
+                    <div 
+                      className={`p-3 rounded-lg cursor-pointer border-2 transition-all ${
+                        billingType === 'auto' 
+                          ? 'border-blue-500 bg-blue-100 dark:bg-blue-800/30' 
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
+                      }`}
+                      onClick={() => setBillingType('auto')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          checked={billingType === 'auto'}
+                          onChange={() => setBillingType('auto')}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 dark:text-white">Prélèvement automatique</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Renouvellement automatique (recommandé)</div>
+                        </div>
+                        <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-2 py-1 rounded-full">
+                          Recommandé
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-3 rounded-lg cursor-pointer border-2 transition-all ${
+                        billingType === 'manual' 
+                          ? 'border-blue-500 bg-blue-100 dark:bg-blue-800/30' 
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
+                      }`}
+                      onClick={() => setBillingType('manual')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          checked={billingType === 'manual'}
+                          onChange={() => setBillingType('manual')}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 dark:text-white">Prélèvement manuel</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Paiement {selectedPlan === 'monthly' ? 'mois par mois' : 'annuel'}</div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
                 
                 <Separator />
                 
+                {/* Features list */}
                 <div className="space-y-3">
                   <h4 className="font-semibold text-gray-900 dark:text-white">Fonctionnalités incluses :</h4>
                   <div className="space-y-2">
@@ -424,6 +464,10 @@ const Payment = () => {
                         </div>
                       )}
                       <div className="flex justify-between">
+                        <span>Type de prélèvement</span>
+                        <span>{billingType === 'auto' ? 'Automatique' : 'Manuel'}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span>TVA (20%)</span>
                         <span>Incluse</span>
                       </div>
@@ -432,9 +476,9 @@ const Payment = () => {
                         <span>Total TTC</span>
                         <span>{selectedPlan === 'monthly' ? monthlyPrice : annualPrice}€</span>
                       </div>
-                      {autoRenewal && selectedPlan === 'monthly' && (
+                      {billingType === 'auto' && (
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Renouvellement automatique mensuel
+                          Renouvellement automatique {selectedPlan === 'monthly' ? 'mensuel' : 'annuel'}
                         </p>
                       )}
                     </div>

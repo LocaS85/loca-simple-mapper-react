@@ -15,69 +15,88 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import RouteBackButton from '@/components/ui/RouteBackButton';
-import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle, Mail, Lock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
   const isMobile = useIsMobile();
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage(null);
 
-    // Validation basique
-    if (!email || !password) {
-      setMessage({ type: 'error', text: 'Veuillez remplir tous les champs' });
-      setIsLoading(false);
-      return;
-    }
-
-    if (!email.includes('@')) {
+    if (!formData.email || !formData.email.includes('@')) {
       setMessage({ type: 'error', text: 'Veuillez entrer une adresse e-mail valide' });
       setIsLoading(false);
       return;
     }
 
+    if (!formData.password) {
+      setMessage({ type: 'error', text: 'Le mot de passe est requis' });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Simulation de connexion
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Logique de connexion ici
-      console.log('Login form submitted', { email, password, rememberMe });
-      
-      setMessage({ type: 'success', text: 'Connexion réussie ! Redirection...' });
-      
-      setTimeout(() => {
-        window.location.href = '/account';
-      }, 1000);
-      
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        setMessage({ type: 'error', text: error.message });
+      } else {
+        setMessage({ type: 'success', text: 'Connexion réussie ! Redirection...' });
+        setTimeout(() => {
+          window.location.href = '/account';
+        }, 1500);
+      }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Identifiants incorrects. Veuillez réessayer.' });
+      setMessage({ type: 'error', text: 'Une erreur est survenue. Veuillez réessayer.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignIn = () => {
-    setMessage({ type: 'error', text: 'Connexion Google en cours de développement...' });
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/account`
+        }
+      });
+      
+      if (error) {
+        setMessage({ type: 'error', text: 'Erreur lors de la connexion avec Google' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Connexion Google en cours de développement...' });
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="container mx-auto flex justify-center">
-        <Card className={`${isMobile ? 'w-full max-w-md' : 'w-[400px]'} shadow-xl border-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm`}>
+        <Card className={`${isMobile ? 'w-full max-w-md' : 'w-[450px]'} shadow-xl border-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm`}>
           <CardHeader className="space-y-4">
             <div className="flex items-center justify-between">
               <RouteBackButton route="/" variant="ghost" size="icon" showLabel={false} />
               <div className="flex-1 text-center">
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Connexion
+                  Se connecter
                 </CardTitle>
               </div>
             </div>
@@ -99,38 +118,34 @@ const Login = () => {
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Adresse e-mail
                 </Label>
-                <Input 
-                  id="email"
-                  type="email"
-                  placeholder="exemple@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12 text-base border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input 
+                    id="email"
+                    type="email"
+                    placeholder="exemple@email.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    required
+                    className="h-12 text-base pl-10 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Mot de passe
-                  </Label>
-                  <Link 
-                    to="/forgot-password" 
-                    className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline transition-colors"
-                  >
-                    Mot de passe oublié?
-                  </Link>
-                </div>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Mot de passe
+                </Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input 
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Votre mot de passe"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
                     required
-                    className="h-12 text-base pr-12 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                    className="h-12 text-base pl-10 pr-12 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
                   />
                   <button
                     type="button"
@@ -142,27 +157,33 @@ const Login = () => {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  checked={rememberMe}
-                  onChange={() => setRememberMe(!rememberMe)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-                />
-                <label htmlFor="remember" className="text-sm text-gray-700 dark:text-gray-300">
-                  Se souvenir de moi
-                </label>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                  />
+                  <label htmlFor="remember" className="text-sm text-gray-700 dark:text-gray-300">
+                    Se souvenir de moi
+                  </label>
+                </div>
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-medium transition-colors"
+                >
+                  Mot de passe oublié ?
+                </Link>
               </div>
             </CardContent>
             
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-200 transform hover:scale-[1.02]"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50"
                 disabled={isLoading}
               >
-                {isLoading ? 'Connexion...' : 'Se connecter'}
+                {isLoading ? 'Connexion en cours...' : 'Se connecter'}
               </Button>
 
               <div className="relative w-full">
@@ -178,7 +199,7 @@ const Login = () => {
                 type="button"
                 variant="outline" 
                 className="w-full h-12 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-                onClick={handleGoogleSignIn}
+                onClick={handleGoogleLogin}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -190,7 +211,7 @@ const Login = () => {
               </Button>
               
               <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-                Pas encore de compte? {' '}
+                Vous n'avez pas de compte ?{' '}
                 <Link to="/register" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-medium transition-colors">
                   S'inscrire
                 </Link>

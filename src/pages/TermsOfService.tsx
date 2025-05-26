@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -101,7 +102,7 @@ const TermsOfService = () => {
               <h2 className="text-2xl font-semibold mb-4">9. Contact</h2>
               <p>
                 Pour toute question concernant ces conditions d'utilisation,
-                veuillez nous contacter à l'adresse suivante : contact@example.com
+                veuillez nous contacter à l'adresse suivante : contact@locasimple.com
               </p>
             </section>
           </div>

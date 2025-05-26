@@ -13,6 +13,9 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Payment from '@/pages/Payment';
 import ModernGeoSearch from '@/pages/ModernGeoSearch';
+import Account from '@/pages/Account';
+import ForgotPassword from '@/pages/ForgotPassword';
+import Favorites from '@/pages/Favorites';
 
 /**
  * Application routes configuration
@@ -32,6 +35,9 @@ export const AppRoutes: React.FC = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/payment" element={<Payment />} />
       <Route path="/modern-search" element={<ModernGeoSearch />} />
+      <Route path="/account" element={<Account />} />
+      <Route path="/favorites" element={<Favorites />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -57,6 +63,7 @@ export const footerRoutes = [
 export const authRoutes = [
   { path: '/login', label: 'Connexion' },
   { path: '/register', label: 'Inscription' },
+  { path: '/account', label: 'Mon Compte' },
 ];
 
 export default AppRoutes;
