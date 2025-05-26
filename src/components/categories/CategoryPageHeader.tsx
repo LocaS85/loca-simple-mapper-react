@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { TransportMode } from '@/lib/data/transportModes';
 import UnifiedFilterSheet from '../filters/UnifiedFilterSheet';
 import FilterButton from '../filters/FilterButton';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 
 interface CategoryPageHeaderProps {
   showMap: boolean;
@@ -46,18 +47,21 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">{t('common.categories')}</h1>
-        <div className="flex items-center gap-2">
-          <FilterButton 
-            onClick={() => setShowFilters(true)}
-            transportMode={transportMode}
-            distanceChanged={maxDistance !== 5}
-            durationChanged={maxDuration !== 20}
-            aroundMeChanged={(aroundMeCount || 3) > 3}
-            showMultiDirections={showMultiDirections}
-          />
-          <MapToggle showMap={showMap} setShowMap={setShowMap} />
+      <div className="mb-6">
+        <RouteBackButton route="/" className="mb-4" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold">Catégories</h1>
+          <div className="flex items-center gap-2">
+            <FilterButton 
+              onClick={() => setShowFilters(true)}
+              transportMode={transportMode}
+              distanceChanged={maxDistance !== 5}
+              durationChanged={maxDuration !== 20}
+              aroundMeChanged={(aroundMeCount || 3) > 3}
+              showMultiDirections={showMultiDirections}
+            />
+            <MapToggle showMap={showMap} setShowMap={setShowMap} />
+          </div>
         </div>
       </div>
 

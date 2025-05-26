@@ -20,7 +20,8 @@ const CategoryCard3D: React.FC<CategoryCard3DProps> = ({
         scale: 1.05,
         rotateY: 5,
         rotateX: -5,
-        boxShadow: "0 20px 30px rgba(0,0,0,0.2)" 
+        boxShadow: "0 20px 30px rgba(0,0,0,0.2)",
+        backgroundColor: category.color
       }}
       animate={{ 
         scale: isSelected ? 1.05 : 1,
@@ -31,10 +32,10 @@ const CategoryCard3D: React.FC<CategoryCard3DProps> = ({
       onClick={onClick}
       style={{ backgroundColor: isSelected ? category.color : undefined }}
       className={`
-        cursor-pointer rounded-xl p-4 
+        cursor-pointer rounded-xl p-4 group
         ${isSelected 
           ? 'text-white shadow-lg transform -translate-y-1' 
-          : 'bg-white shadow-md hover:shadow-lg'
+          : 'bg-white shadow-md hover:shadow-lg hover:text-white'
         }
         transition-all duration-300 perspective-1000
       `}
