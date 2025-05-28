@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { TransportMode } from '@/lib/data/transportModes';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
+import { searchPlacesWithFilters, FilterSearchParams } from '@/services/mapboxFilterService';
 
 interface GeoSearchState {
   // Position et localisation
@@ -94,7 +95,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
       
-      // Action de recherche
+      // Action de recherche améliorée avec l'API Mapbox
       loadResults: async () => {
         const { userLocation, filters, setIsLoading, setResults } = get();
         
@@ -108,13 +109,42 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         console.log('User location:', userLocation);
         
         try {
-          // Simuler un délai d'API
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Préparer les paramètres de recherche
+          const searchParams: FilterSearchParams = {
+            query: filters.query || undefined,
+            category: filters.category || undefined,
+            subcategory: filters.subcategory || undefined,
+            center: userLocation,
+            radius: filters.distance,
+            unit: filters.unit,
+            transportMode: filters.transport,
+            maxDuration: filters.maxDuration,
+            limit: filters.aroundMeCount
+          };
+
+          // Utiliser le service Mapbox
+          const mapboxResults = await searchPlacesWithFilters(searchParams);
           
-          // Calculer le nombre de résultats basé sur aroundMeCount
+          // Convertir vers le format SearchResult
+          const searchResults: SearchResult[] = mapboxResults.map(result => ({
+            id: result.id,
+            name: result.name,
+            address: result.address,
+            coordinates: result.coordinates,
+            type: result.category,
+            category: result.category,
+            distance: result.distance,
+            duration: result.duration
+          }));
+          
+          console.log('Mapbox API results:', searchResults);
+          setResults(searchResults);
+          
+        } catch (error) {
+          console.error('Error loading results from Mapbox:', error);
+          
+          // Fallback vers des données mockées si l'API échoue
           const resultCount = filters.aroundMeCount || 3;
-          
-          // Données mockées basées sur les filtres
           const mockResults: SearchResult[] = Array.from({ length: resultCount }, (_, i) => ({
             id: `result-${i}`, 
             name: `${filters.category || 'Place'} ${filters.subcategory || 'Popular'} ${i + 1}`, 
@@ -129,28 +159,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
             duration: Math.round(Math.random() * 30) 
           }));
           
-          // Si une requête de recherche est spécifiée, ajouter un résultat spécifique
-          if (filters.query) {
-            const searchSpecificResult: SearchResult = { 
-              id: 'search-result',
-              name: filters.query,
-              address: `Near ${filters.query}, Country`,
-              coordinates: [userLocation[0] + 0.02, userLocation[1] + 0.02] as [number, number],
-              type: 'search-result',
-              category: filters.category || 'search',
-              distance: Math.round(Math.random() * filters.distance * 10) / 10,
-              duration: Math.round(Math.random() * 30)
-            };
-            
-            mockResults.unshift(searchSpecificResult);
-          }
-          
-          console.log('Generated mock results:', mockResults);
-          setResults(mockResults.slice(0, resultCount));
-          
-        } catch (error) {
-          console.error('Error loading results:', error);
-          setResults([]);
+          setResults(mockResults);
         } finally {
           setIsLoading(false);
         }
