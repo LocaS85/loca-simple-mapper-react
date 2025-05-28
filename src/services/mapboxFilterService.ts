@@ -1,7 +1,9 @@
 
-import { getMapboxToken, MAPBOX_CONFIG } from '@/utils/mapboxConfig';
+import { getMapboxToken } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/lib/data/transportModes';
+import { captureMapboxError } from './monitoring';
 
+// Interface pour les paramètres de recherche avec filtres
 export interface FilterSearchParams {
   query?: string;
   category?: string;
@@ -14,6 +16,7 @@ export interface FilterSearchParams {
   limit?: number;
 }
 
+// Interface pour les résultats de recherche
 export interface FilterSearchResult {
   id: string;
   name: string;
@@ -21,115 +24,276 @@ export interface FilterSearchResult {
   coordinates: [number, number];
   category: string;
   distance: number;
-  duration: number;
-  rating?: number;
+  duration?: number;
+  relevance?: number;
 }
 
-// Convert transport mode to Mapbox profile
-const getMapboxProfile = (mode: TransportMode): string => {
-  switch (mode) {
-    case 'car': return 'driving';
-    case 'walking': return 'walking';
-    case 'cycling': return 'cycling';
-    case 'bus': return 'driving'; // Fallback to driving for transit
-    default: return 'driving';
-  }
-};
+// Interface pour les directions
+export interface DirectionResult {
+  route: {
+    geometry: {
+      coordinates: [number, number][];
+    };
+    distance: number;
+    duration: number;
+    instructions?: string[];
+  };
+}
 
-// Convert category to Mapbox category
-const getMapboxCategory = (category?: string): string => {
-  if (!category) return '';
-  
-  const categoryMap: Record<string, string> = {
-    'restaurant': 'restaurant',
-    'cafe': 'cafe',
-    'magasin': 'shop',
-    'hopital': 'hospital',
-    'pharmacie': 'pharmacy',
-    'ecole': 'school',
-    'banque': 'bank',
-    'essence': 'fuel',
-    'parking': 'parking'
+// Interface pour les isochrones
+export interface IsochroneResult {
+  polygon: {
+    type: 'Feature';
+    geometry: {
+      type: 'Polygon';
+      coordinates: [number, number][][];
+    };
+    properties: {
+      fillColor: string;
+      fillOpacity: number;
+      fill: string;
+      color: string;
+    };
+  };
+}
+
+// Mapping des modes de transport Mapbox
+const getMapboxProfile = (transportMode: TransportMode): string => {
+  const profileMap: Record<TransportMode, string> = {
+    'car': 'driving',
+    'walking': 'walking',
+    'cycling': 'cycling',
+    'bus': 'driving', // Fallback pour bus
+    'train': 'driving' // Fallback pour train
   };
   
-  return categoryMap[category.toLowerCase()] || category;
+  return profileMap[transportMode] || 'driving';
 };
 
-// Search places with filters
+// Recherche de lieux avec filtres avancés
 export const searchPlacesWithFilters = async (params: FilterSearchParams): Promise<FilterSearchResult[]> => {
   const token = getMapboxToken();
-  if (!token) {
-    throw new Error('Token Mapbox manquant');
-  }
-
+  
   try {
-    const { query, category, center, radius, unit, limit = 10 } = params;
-    
-    // Build search query
-    let searchQuery = query || '';
-    if (category && !query) {
-      searchQuery = getMapboxCategory(category);
+    // Construire la requête de base
+    let query = params.query || '';
+    if (params.category && !query) {
+      query = params.category;
+    }
+    if (params.subcategory) {
+      query = `${query} ${params.subcategory}`.trim();
     }
     
-    // Convert radius to meters for proximity search
-    const radiusInMeters = unit === 'mi' ? radius * 1609.34 : radius * 1000;
-    
-    // Build URL for geocoding search with category filtering
-    const url = new URL(`${MAPBOX_CONFIG.geocoding.endpoint}/${encodeURIComponent(searchQuery)}.json`);
-    url.searchParams.set('access_token', token);
-    url.searchParams.set('limit', limit.toString());
-    url.searchParams.set('proximity', `${center[0]},${center[1]}`);
-    url.searchParams.set('country', MAPBOX_CONFIG.geocoding.country);
-    url.searchParams.set('language', MAPBOX_CONFIG.geocoding.language);
-    
-    if (category) {
-      const mapboxCategory = getMapboxCategory(category);
-      if (mapboxCategory) {
-        url.searchParams.set('types', 'poi');
-        url.searchParams.set('category', mapboxCategory);
-      }
+    if (!query) {
+      query = 'point of interest'; // Requête par défaut
     }
-
-    const response = await fetch(url.toString());
+    
+    // Paramètres de la requête Geocoding API
+    const searchParams = new URLSearchParams({
+      access_token: token,
+      proximity: params.center.join(','),
+      limit: (params.limit || 10).toString(),
+      country: 'fr',
+      language: 'fr'
+    });
+    
+    // Ajouter un rayon de recherche si spécifié
+    if (params.radius) {
+      const bbox = calculateBbox(params.center, params.radius, params.unit);
+      searchParams.append('bbox', bbox.join(','));
+    }
+    
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
+    
+    console.log('Mapbox Geocoding request:', url);
+    
+    const response = await fetch(url);
+    
     if (!response.ok) {
-      throw new Error(`Erreur API Mapbox: ${response.status}`);
+      throw new Error(`Mapbox API error: ${response.status} ${response.statusText}`);
     }
-
+    
     const data = await response.json();
     
-    // Filter results by radius and transform to our format
-    const results: FilterSearchResult[] = [];
+    if (!data.features || data.features.length === 0) {
+      console.log('No results found for query:', query);
+      return [];
+    }
     
-    for (const feature of data.features) {
-      const coordinates: [number, number] = feature.geometry.coordinates;
-      const distance = calculateDistance(center, coordinates);
-      
-      // Filter by radius
-      const maxDistance = unit === 'mi' ? radius * 1.609344 : radius;
-      if (distance <= maxDistance) {
-        results.push({
-          id: feature.id || `place-${results.length}`,
+    // Traiter les résultats
+    const results: FilterSearchResult[] = await Promise.all(
+      data.features.map(async (feature: any, index: number) => {
+        const coordinates: [number, number] = feature.center;
+        const distance = calculateDistance(params.center, coordinates, params.unit);
+        
+        // Calculer la durée si possible
+        let duration: number | undefined;
+        if (params.maxDuration) {
+          try {
+            const directions = await getDirectionsWithFilters(
+              params.center,
+              coordinates,
+              params.transportMode
+            );
+            duration = directions.route.duration;
+            
+            // Filtrer par durée maximale
+            if (duration > params.maxDuration * 60) {
+              return null;
+            }
+          } catch (error) {
+            console.warn('Could not calculate duration for', feature.place_name);
+          }
+        }
+        
+        return {
+          id: feature.id || `result-${index}`,
           name: feature.text || feature.place_name,
           address: feature.place_name,
           coordinates,
-          category: feature.properties?.category || category || 'unknown',
-          distance: Math.round(distance * 100) / 100,
-          duration: Math.round(distance * 12), // Rough estimate: 5km/h walking speed
-          rating: feature.properties?.rating
-        });
-      }
-    }
-
-    return results;
+          category: determineCategory(feature),
+          distance: Math.round(distance * 10) / 10,
+          duration: duration ? Math.round(duration / 60) : undefined,
+          relevance: feature.relevance
+        };
+      })
+    );
+    
+    // Filtrer les résultats nulls et trier par pertinence/distance
+    return results
+      .filter(result => result !== null)
+      .sort((a, b) => {
+        if (a.relevance && b.relevance) {
+          return b.relevance - a.relevance;
+        }
+        return a.distance - b.distance;
+      }) as FilterSearchResult[];
+    
   } catch (error) {
-    console.error('Erreur lors de la recherche avec filtres:', error);
+    console.error('Error in searchPlacesWithFilters:', error);
+    captureMapboxError(error as Error, {
+      apiCall: 'geocoding/search',
+      params,
+      userLocation: params.center
+    });
     throw error;
   }
 };
 
-// Calculate distance between two points (Haversine formula)
-const calculateDistance = (point1: [number, number], point2: [number, number]): number => {
-  const R = 6371; // Earth's radius in kilometers
+// Obtenir des directions avec filtres
+export const getDirectionsWithFilters = async (
+  origin: [number, number],
+  destination: [number, number],
+  transportMode: TransportMode
+): Promise<DirectionResult> => {
+  const token = getMapboxToken();
+  const profile = getMapboxProfile(transportMode);
+  
+  try {
+    const coordinates = `${origin.join(',')};${destination.join(',')}`;
+    const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinates}`;
+    
+    const params = new URLSearchParams({
+      access_token: token,
+      geometries: 'geojson',
+      overview: 'full',
+      steps: 'true'
+    });
+    
+    const response = await fetch(`${url}?${params}`);
+    
+    if (!response.ok) {
+      throw new Error(`Directions API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.routes || data.routes.length === 0) {
+      throw new Error('No route found');
+    }
+    
+    const route = data.routes[0];
+    
+    return {
+      route: {
+        geometry: {
+          coordinates: route.geometry.coordinates
+        },
+        distance: route.distance,
+        duration: route.duration,
+        instructions: route.legs?.[0]?.steps?.map((step: any) => step.maneuver?.instruction).filter(Boolean)
+      }
+    };
+    
+  } catch (error) {
+    console.error('Error in getDirectionsWithFilters:', error);
+    captureMapboxError(error as Error, {
+      apiCall: 'directions',
+      params: { origin, destination, transportMode }
+    });
+    throw error;
+  }
+};
+
+// Créer une isochrone
+export const createIsochrone = async (
+  center: [number, number],
+  duration: number,
+  transportMode: TransportMode
+): Promise<IsochroneResult> => {
+  const token = getMapboxToken();
+  const profile = getMapboxProfile(transportMode);
+  
+  try {
+    const coordinates = center.join(',');
+    const url = `https://api.mapbox.com/isochrone/v1/mapbox/${profile}/${coordinates}`;
+    
+    const params = new URLSearchParams({
+      access_token: token,
+      contours_minutes: duration.toString(),
+      polygons: 'true'
+    });
+    
+    const response = await fetch(`${url}?${params}`);
+    
+    if (!response.ok) {
+      throw new Error(`Isochrone API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.features || data.features.length === 0) {
+      throw new Error('No isochrone generated');
+    }
+    
+    const feature = data.features[0];
+    
+    return {
+      polygon: {
+        type: 'Feature',
+        geometry: feature.geometry,
+        properties: {
+          fillColor: '#3b82f6',
+          fillOpacity: 0.3,
+          fill: '#3b82f6',
+          color: '#1d4ed8'
+        }
+      }
+    };
+    
+  } catch (error) {
+    console.error('Error in createIsochrone:', error);
+    captureMapboxError(error as Error, {
+      apiCall: 'isochrone',
+      params: { center, duration, transportMode }
+    });
+    throw error;
+  }
+};
+
+// Fonctions utilitaires
+const calculateDistance = (point1: [number, number], point2: [number, number], unit: 'km' | 'mi'): number => {
+  const R = unit === 'km' ? 6371 : 3959; // Rayon de la Terre
   const dLat = (point2[1] - point1[1]) * Math.PI / 180;
   const dLon = (point2[0] - point1[0]) * Math.PI / 180;
   const a = 
@@ -140,67 +304,29 @@ const calculateDistance = (point1: [number, number], point2: [number, number]): 
   return R * c;
 };
 
-// Get directions with duration
-export const getDirectionsWithFilters = async (
-  origin: [number, number],
-  destination: [number, number],
-  transportMode: TransportMode
-): Promise<{ distance: number; duration: number; geometry?: any }> => {
-  const token = getMapboxToken();
-  if (!token) {
-    throw new Error('Token Mapbox manquant');
-  }
-
-  try {
-    const profile = getMapboxProfile(transportMode);
-    const url = `${MAPBOX_CONFIG.directions.endpoint}/${profile}/${origin[0]},${origin[1]};${destination[0]},${destination[1]}`;
-    
-    const response = await fetch(`${url}?access_token=${token}&geometries=geojson`);
-    if (!response.ok) {
-      throw new Error(`Erreur API Directions: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (data.routes && data.routes.length > 0) {
-      const route = data.routes[0];
-      return {
-        distance: Math.round(route.distance / 1000 * 100) / 100, // Convert to km
-        duration: Math.round(route.duration / 60), // Convert to minutes
-        geometry: route.geometry
-      };
-    }
-
-    throw new Error('Aucun itinéraire trouvé');
-  } catch (error) {
-    console.error('Erreur lors du calcul d\'itinéraire:', error);
-    throw error;
-  }
+const calculateBbox = (center: [number, number], radius: number, unit: 'km' | 'mi'): [number, number, number, number] => {
+  const radiusInDegrees = unit === 'km' ? radius / 111.32 : radius / 69.17;
+  return [
+    center[0] - radiusInDegrees,
+    center[1] - radiusInDegrees,
+    center[0] + radiusInDegrees,
+    center[1] + radiusInDegrees
+  ];
 };
 
-// Create isochrone for radius visualization
-export const createIsochrone = async (
-  center: [number, number],
-  duration: number,
-  transportMode: TransportMode
-): Promise<any> => {
-  const token = getMapboxToken();
-  if (!token) {
-    throw new Error('Token Mapbox manquant');
+const determineCategory = (feature: any): string => {
+  if (feature.properties?.category) {
+    return feature.properties.category;
   }
-
-  try {
-    const profile = getMapboxProfile(transportMode);
-    const url = `${MAPBOX_CONFIG.isochrone.endpoint}/${profile}/${center[0]},${center[1]}`;
-    
-    const response = await fetch(`${url}?contours_minutes=${duration}&access_token=${token}`);
-    if (!response.ok) {
-      throw new Error(`Erreur API Isochrone: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Erreur lors de la création d\'isochrone:', error);
-    throw error;
-  }
+  
+  const placeType = feature.place_type?.[0];
+  const categoryMap: Record<string, string> = {
+    'poi': 'Point of Interest',
+    'address': 'Address',
+    'place': 'Place',
+    'region': 'Region',
+    'country': 'Country'
+  };
+  
+  return categoryMap[placeType] || 'Unknown';
 };

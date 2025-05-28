@@ -1,43 +1,34 @@
 
-import * as Sentry from '@sentry/react';
-
-// Configuration Sentry
+// Service de monitoring simple sans dépendances externes
 export const initMonitoring = () => {
-  Sentry.init({
-    dsn: process.env.REACT_APP_SENTRY_DSN, // À définir dans les variables d'environnement
-    environment: process.env.NODE_ENV || 'development',
-    integrations: [
-      new Sentry.BrowserTracing(),
-    ],
-    tracesSampleRate: 0.1,
-    beforeSend(event) {
-      // Filtrer les erreurs en développement
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Sentry Event:', event);
-      }
-      return event;
-    }
+  console.log('Monitoring initialized (development mode)');
+  
+  // Capture des erreurs globales
+  window.addEventListener('error', (event) => {
+    console.error('Global error captured:', event.error);
+  });
+  
+  // Capture des promesses rejetées
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
   });
 };
 
 // Fonctions utilitaires pour le monitoring
 export const captureError = (error: Error, context?: Record<string, any>) => {
-  Sentry.withScope(scope => {
-    if (context) {
-      Object.keys(context).forEach(key => {
-        scope.setTag(key, context[key]);
-      });
-    }
-    Sentry.captureException(error);
+  console.error('Error captured:', {
+    message: error.message,
+    stack: error.stack,
+    context
   });
 };
 
 export const captureMessage = (message: string, level: 'info' | 'warning' | 'error' = 'info') => {
-  Sentry.captureMessage(message, level);
+  console[level]('Message captured:', message);
 };
 
 export const setUserContext = (user: { id: string; email?: string }) => {
-  Sentry.setUser(user);
+  console.log('User context set:', user);
 };
 
 // Wrapper pour les erreurs Mapbox
