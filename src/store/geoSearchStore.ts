@@ -41,7 +41,7 @@ interface GeoSearchState {
 const defaultFilters: GeoSearchFilters = {
   category: null,
   subcategory: null,
-  transport: 'car' as TransportMode, // Utiliser le bon type
+  transport: 'car' as TransportMode,
   distance: 10,
   unit: 'km' as 'km' | 'mi',
   query: '',

@@ -4,7 +4,7 @@ import { inject } from '@vercel/analytics';
 // Configuration des événements analytics
 export const trackEvent = (name: string, properties?: Record<string, any>) => {
   try {
-    // Si on utilise Vercel Analytics - utilisation correcte de l'API
+    // Si on utilise Vercel Analytics - utilisation correcte de l'API (2 arguments max)
     if (typeof window !== 'undefined' && window.va) {
       window.va('track', name, properties);
     }

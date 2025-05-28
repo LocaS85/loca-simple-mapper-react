@@ -1,5 +1,5 @@
 
-import { TransportMode } from ".";
+import { TransportMode } from "@/lib/data/transportModes";
 
 export interface GeoSearchFilters {
   category: string | null;
@@ -10,7 +10,7 @@ export interface GeoSearchFilters {
   query?: string;
   aroundMeCount: number;
   showMultiDirections: boolean;
-  maxDuration?: number; // Adding this property to fix the build errors
+  maxDuration?: number;
 }
 
 export interface SearchResult {
