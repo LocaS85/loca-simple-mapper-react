@@ -48,7 +48,7 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
   return (
     <>
       <div className="mb-6">
-        <RouteBackButton route="/" className="mb-4" />
+        <RouteBackButton className="mb-4" />
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl md:text-3xl font-bold">Catégories</h1>
           <div className="flex items-center gap-2">

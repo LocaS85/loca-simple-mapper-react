@@ -16,6 +16,7 @@ import ModernGeoSearch from '@/pages/ModernGeoSearch';
 import Account from '@/pages/Account';
 import ForgotPassword from '@/pages/ForgotPassword';
 import Favorites from '@/pages/Favorites';
+import FAQ from '@/pages/FAQ';
 
 /**
  * Application routes configuration
@@ -38,6 +39,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/account" element={<Account />} />
       <Route path="/favorites" element={<Favorites />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/faq" element={<FAQ />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -57,6 +59,7 @@ export const footerRoutes = [
   { path: '/conditions', label: 'Conditions Générales' },
   { path: '/confidentialite', label: 'Politique de Confidentialité' },
   { path: '/about', label: 'À Propos' },
+  { path: '/faq', label: 'FAQ' },
 ];
 
 // Authentication routes

@@ -1,5 +1,9 @@
 
 import React, { useState } from 'react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Container } from '@/components/ui/container';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Accordion,
@@ -90,51 +94,61 @@ const FAQ = () => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6">Questions fréquemment posées</h1>
-      
-      <div className={`flex ${isMobile ? 'flex-col' : 'flex-row gap-8'}`}>
-        {/* Categories sidebar */}
-        <div className={`${isMobile ? 'mb-6' : 'w-1/4'}`}>
-          <h2 className="text-lg font-semibold mb-3">Catégories</h2>
-          <div className={`${isMobile ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}`}>
-            {faqCategories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`px-4 py-2 rounded-md ${
-                  activeCategory === category.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                } transition-colors ${isMobile ? 'text-sm' : 'text-base'}`}
-              >
-                {category.title}
-              </button>
-            ))}
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1 py-12">
+        <Container>
+          <div className="mb-6">
+            <RouteBackButton />
           </div>
-        </div>
-        
-        {/* FAQ content */}
-        <div className={`${isMobile ? 'w-full' : 'w-3/4'}`}>
-          <h2 className="text-xl font-semibold mb-4">
-            {faqCategories.find(cat => cat.id === activeCategory)?.title || "Questions fréquentes"}
-          </h2>
-          <Accordion type="single" collapsible className="w-full">
-            {faqCategories
-              .find(cat => cat.id === activeCategory)
-              ?.faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`}>
-                  <AccordionTrigger className="text-left font-medium">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-600">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-          </Accordion>
-        </div>
-      </div>
+          
+          <h1 className="text-2xl md:text-3xl font-bold mb-6">Questions fréquemment posées</h1>
+          
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-row gap-8'}`}>
+            {/* Categories sidebar */}
+            <div className={`${isMobile ? 'mb-6' : 'w-1/4'}`}>
+              <h2 className="text-lg font-semibold mb-3">Catégories</h2>
+              <div className={`${isMobile ? 'flex flex-wrap gap-2' : 'flex flex-col gap-2'}`}>
+                {faqCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveCategory(category.id)}
+                    className={`px-4 py-2 rounded-md ${
+                      activeCategory === category.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    } transition-colors ${isMobile ? 'text-sm' : 'text-base'}`}
+                  >
+                    {category.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* FAQ content */}
+            <div className={`${isMobile ? 'w-full' : 'w-3/4'}`}>
+              <h2 className="text-xl font-semibold mb-4">
+                {faqCategories.find(cat => cat.id === activeCategory)?.title || "Questions fréquentes"}
+              </h2>
+              <Accordion type="single" collapsible className="w-full">
+                {faqCategories
+                  .find(cat => cat.id === activeCategory)
+                  ?.faqs.map((faq, index) => (
+                    <AccordionItem key={index} value={`item-${index}`}>
+                      <AccordionTrigger className="text-left font-medium">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-gray-600">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+              </Accordion>
+            </div>
+          </div>
+        </Container>
+      </main>
+      <Footer />
     </div>
   );
 };

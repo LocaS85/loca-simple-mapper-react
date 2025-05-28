@@ -30,7 +30,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/geo" className="text-gray-600 hover:text-blue-600">
+                <Link to="/geosearch" className="text-gray-600 hover:text-blue-600">
                   {t('header.geosearch')}
                 </Link>
               </li>
@@ -94,12 +94,12 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/cgu" className="text-gray-600 hover:text-blue-600">
+                <Link to="/conditions" className="text-gray-600 hover:text-blue-600">
                   {t('footer.terms')}
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-gray-600 hover:text-blue-600">
+                <Link to="/confidentialite" className="text-gray-600 hover:text-blue-600">
                   {t('footer.privacy')}
                 </Link>
               </li>

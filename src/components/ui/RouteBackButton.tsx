@@ -29,10 +29,11 @@ const RouteBackButton: React.FC<RouteBackButtonProps> = ({
   const { t } = useTranslation();
   
   const handleClick = () => {
-    if (route) {
-      navigate(route);
-    } else {
+    // Si aucune route spécifique n'est fournie, utiliser l'historique de navigation
+    if (!route) {
       navigate(-1);
+    } else {
+      navigate(route);
     }
   };
 
