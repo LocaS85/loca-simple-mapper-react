@@ -26,9 +26,9 @@ class TranslationService {
     }
   }
 
-  // Changer la langue avec persistance
-  changeLanguage(language: string): Promise<void> {
-    return i18n.changeLanguage(language);
+  // Changer la langue avec persistance - correction du type de retour
+  async changeLanguage(language: string): Promise<void> {
+    await i18n.changeLanguage(language);
   }
 
   // Obtenir la langue actuelle

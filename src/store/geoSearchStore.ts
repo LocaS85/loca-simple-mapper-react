@@ -83,7 +83,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       // Actions pour la position
       setUserLocation: (location) => {
         set({ userLocation: location }, false, 'setUserLocation');
-        // Nettoyer le cache lors du changement de position
         if (location) {
           get().clearCache();
         }
@@ -97,16 +96,13 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         const currentFilters = get().filters;
         const updatedFilters = { ...currentFilters, ...newFilters };
         
-        // Valider les filtres avant mise à jour
         if (filterSyncService.validateFilters(updatedFilters)) {
           set({ filters: updatedFilters }, false, 'updateFilters');
           
-          // Recherche automatique intelligente
           const criticalFilters = ['category', 'subcategory', 'transport', 'distance', 'maxDuration', 'aroundMeCount'];
           const shouldRefresh = Object.keys(newFilters).some(key => criticalFilters.includes(key));
             
           if (shouldRefresh && get().userLocation) {
-            // Debounce optimisé
             setTimeout(() => {
               const state = get();
               if (state.userLocation) {
@@ -150,17 +146,16 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           return;
         }
         
-        // Mesurer les performances
+        // Mesurer les performances - correction de l'appel
         const endSearchTimer = performanceService.startSearchTimer();
         
-        // Créer une clé unique pour cette recherche
         const searchKey = JSON.stringify({ userLocation, filters });
         
         // Vérifier le cache (valide pendant 5 minutes)
         const cached = searchCache.get(searchKey);
         const now = Date.now();
         
-        if (cached && (now - cached.timestamp) < 300000) { // 5 minutes
+        if (cached && (now - cached.timestamp) < 300000) {
           console.log('Utilisation du cache pour les résultats');
           setResults(cached.results);
           performanceService.incrementCacheHits();
@@ -168,7 +163,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           return;
         }
         
-        // Éviter les recherches dupliquées
         if (searchKey === lastSearchParams && !cached) {
           console.log('Recherche identique en cours, ignorée');
           return;
@@ -179,7 +173,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         console.log('Chargement des résultats avec filtres validés:', filters);
         
         try {
-          // Utiliser le service unifié avec synchronisation des filtres
           const unifiedFilters = filterSyncService.geoSearchToUnified(filters);
           const searchParams = {
             ...unifiedFilters,
@@ -189,7 +182,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           performanceService.incrementApiCalls();
           const places = await unifiedSearchService.searchPlaces(searchParams);
           
-          // Convertir vers le format SearchResult
           const searchResults = places.map(convertToSearchResult);
           
           console.log('Résultats API convertis:', searchResults);
@@ -199,7 +191,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           const newCache = new Map(searchCache);
           newCache.set(searchKey, { results: searchResults, timestamp: now });
           
-          // Limiter la taille du cache (max 50 entrées)
           if (newCache.size > 50) {
             const firstKey = newCache.keys().next().value;
             newCache.delete(firstKey);
@@ -213,7 +204,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         } catch (error) {
           console.error('Erreur lors du chargement des résultats:', error);
           
-          // Fallback vers des données mockées uniquement en cas d'erreur réseau
           if (error instanceof Error && error.message.includes('network')) {
             const mockResults: SearchResult[] = Array.from({ length: filters.aroundMeCount }, (_, i) => ({
               id: `fallback-result-${i}`, 
@@ -237,7 +227,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           setIsLoading(false);
           endSearchTimer();
           
-          // Log des performances en développement
           if (process.env.NODE_ENV === 'development') {
             console.log(performanceService.analyzePerformance());
           }

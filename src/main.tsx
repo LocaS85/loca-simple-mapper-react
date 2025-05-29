@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import { AppProvider } from '@/components/core/AppProvider';
+import '@/i18n';
 import './index.css';
 import '@/utils/mapboxPreload';
 
@@ -11,16 +12,16 @@ import '@/utils/mapboxPreload';
 if (process.env.NODE_ENV === 'development') {
   console.log('LocaSimple - Mode développement activé');
   
-  // Observer les métriques Web Vitals
-  if ('web-vital' in window) {
-    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-      getCLS(console.log);
-      getFID(console.log);
-      getFCP(console.log);
-      getLCP(console.log);
-      getTTFB(console.log);
-    });
-  }
+  // Observer les métriques Web Vitals avec la nouvelle API
+  import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
+    onCLS(console.log);
+    onFID(console.log);
+    onFCP(console.log);
+    onLCP(console.log);
+    onTTFB(console.log);
+  }).catch(err => {
+    console.warn('Web vitals non disponibles:', err);
+  });
 }
 
 createRoot(document.getElementById('root')!).render(
