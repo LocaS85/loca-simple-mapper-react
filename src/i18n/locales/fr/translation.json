@@ -107,7 +107,9 @@
     "showingResults": "Affichage de {{count}} résultats",
     "searchComplete": "Recherche terminée",
     "searchInProgress": "Recherche en cours...",
-    "refineSearch": "Affiner la recherche"
+    "refineSearch": "Affiner la recherche",
+    "miniMapTitle": "Mini carte",
+    "yourPosition": "Votre position"
   },
   "map": {
     "searchPlaceholder": "Rechercher un lieu...",
@@ -138,7 +140,10 @@
     "fullscreen": "Plein écran",
     "exitFullscreen": "Quitter le plein écran",
     "recenter": "Recentrer la carte",
-    "showMyLocation": "Ma position"
+    "showMyLocation": "Ma position",
+    "miniMap": "Mini carte",
+    "expandMap": "Agrandir la carte",
+    "collapseMap": "Réduire la carte"
   },
   "categories": {
     "title": "Catégories",

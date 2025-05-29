@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { TransportMode } from '@/lib/data/transportModes';
@@ -107,7 +106,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
       
-      // Action de recherche optimisée avec le service unifié
+      // Action de recherche corrigée
       loadResults: async () => {
         const { userLocation, filters, setIsLoading, setResults } = get();
         
@@ -120,10 +119,11 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         console.log('Chargement des résultats avec filtres:', filters);
         
         try {
-          // Utiliser le service unifié
+          // Utiliser le service unifié avec paramètres corrigés
           const searchParams = {
             ...filters,
-            center: userLocation
+            center: userLocation,
+            query: filters.query || '' // S'assurer que query est défini
           };
 
           const places = await unifiedSearchService.searchPlaces(searchParams);

@@ -5,7 +5,7 @@ import { LayoutGrid, Maximize, Minimize } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import mapboxgl from 'mapbox-gl';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
-import { useGeoSearch } from '@/hooks/use-geo-search';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useTranslation } from 'react-i18next';
 
 const MultiMapToggle: React.FC = () => {
@@ -13,7 +13,7 @@ const MultiMapToggle: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const miniMapRef = React.useRef<HTMLDivElement>(null);
   const map = React.useRef<mapboxgl.Map | null>(null);
-  const { userLocation, results } = useGeoSearch({});
+  const { userLocation, results } = useGeoSearchStore();
   const { t } = useTranslation();
 
   const toggleMultiView = () => {

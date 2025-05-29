@@ -1,4 +1,3 @@
-
 import { getMapboxToken } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/lib/data/transportModes';
 import { captureMapboxError } from './monitoring';
@@ -18,6 +17,7 @@ export interface SearchPlace {
 
 export interface UnifiedSearchParams extends UnifiedFilters {
   center: [number, number];
+  query?: string; // Rendre query optionnel
 }
 
 // Service unifié pour toutes les recherches
@@ -29,7 +29,7 @@ export const unifiedSearchService = {
     try {
       console.log('Recherche unifiée avec paramètres:', params);
       
-      // Construire la requête
+      // Construire la requête avec valeur par défaut
       let query = params.query || '';
       if (params.category && !query) {
         query = params.category;
