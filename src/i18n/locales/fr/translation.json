@@ -10,7 +10,17 @@
     "loading": "Chargement...",
     "error": "Erreur",
     "retry": "Réessayer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "apply": "Appliquer"
+  },
+  "header": {
+    "home": "Accueil",
+    "geosearch": "GeoRecherche",
+    "categories": "Catégories",
+    "premium": "Premium",
+    "about": "À propos",
+    "login": "Connexion",
+    "register": "S'inscrire"
   },
   "home": {
     "title": "Découvrez les lieux autour de vous",
@@ -36,7 +46,13 @@
     "miniMapTitle": "Mini carte",
     "noResults": "Aucun résultat trouvé",
     "searchError": "Erreur lors de la recherche",
-    "locationError": "Impossible d'obtenir votre position"
+    "locationError": "Impossible d'obtenir votre position",
+    "locationErrorDesc": "Veuillez vérifier vos paramètres de géolocalisation",
+    "locationSelected": "Localisation sélectionnée",
+    "searchingAround": "Recherche autour de {{place}}",
+    "usingCurrentLocation": "Utilisation de votre position actuelle",
+    "tryModifyingSearch": "Essayez de modifier votre recherche ou vos filtres",
+    "modifyFilters": "Modifier les filtres"
   },
   "map": {
     "yourLocation": "Votre position",
@@ -50,7 +66,10 @@
   },
   "filters": {
     "category": "Catégorie",
+    "subcategory": "Sous-catégorie",
     "transportMode": "Mode de transport",
+    "distance": "Distance",
+    "duration": "Durée",
     "labels": {
       "maxDistance": "Distance maximale",
       "maxDuration": "Durée maximale"
@@ -60,6 +79,16 @@
       "walking": "À pied", 
       "cycling": "Vélo",
       "bus": "Transport"
+    },
+    "transportProfiles": {
+      "car": "Voiture",
+      "walking": "Marche",
+      "cycling": "Vélo",
+      "transit": "Transport"
+    },
+    "units": {
+      "km": "km",
+      "mi": "mi"
     },
     "aroundMe": "Autour de moi",
     "places": "Lieux",
@@ -71,5 +100,27 @@
     "allCategories": "Toutes les catégories",
     "title": "Catégories",
     "subtitle": "Découvrez les lieux par catégorie"
+  },
+  "footer": {
+    "description": "L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.",
+    "navigation": "Navigation",
+    "account": "Compte",
+    "information": "Information",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "myAccount": "Mon compte",
+    "favorites": "Mes favoris",
+    "savedSearches": "Recherches sauvegardées",
+    "faq": "FAQ",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "premium": "Abonnement Premium",
+    "copyright": "© 2025 LocaSimple. Tous droits réservés."
+  },
+  "language": {
+    "fr": "Français",
+    "en": "Anglais",
+    "es": "Espagnol",
+    "de": "Allemand"
   }
 }
