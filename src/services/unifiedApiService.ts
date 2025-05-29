@@ -1,9 +1,9 @@
-
 import { getMapboxToken } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/lib/data/transportModes';
-import { captureMapboxError } from './monitoring';
 import { trackSearchEvent } from './analytics';
 import { UnifiedFilters } from '@/hooks/useUnifiedFilters';
+import { filterSyncService } from '@/store/filterSync';
+import { apiErrorHandler, ApiError } from './apiErrorHandler';
 
 export interface SearchPlace {
   id: string;
@@ -20,40 +20,47 @@ export interface UnifiedSearchParams extends UnifiedFilters {
   center: [number, number];
 }
 
-// Service unifié pour toutes les recherches
+// Service unifié pour toutes les recherches avec gestion d'erreurs améliorée
 export const unifiedSearchService = {
-  // Recherche principale avec tous les filtres
+  // Recherche principale avec gestion d'erreurs robuste
   async searchPlaces(params: UnifiedSearchParams): Promise<SearchPlace[]> {
     const token = getMapboxToken();
     
-    try {
-      console.log('Recherche unifiée avec paramètres:', params);
+    // Valider les paramètres
+    const validatedParams = filterSyncService.prepareApiParams(params, params.center);
+    if (!validatedParams) {
+      console.warn('Paramètres de recherche invalides:', params);
+      return this.generateMockResults(params);
+    }
+    
+    const searchOperation = async (): Promise<SearchPlace[]> => {
+      console.log('Recherche unifiée avec paramètres validés:', validatedParams);
       
-      // Construire la requête avec valeur par défaut
-      let query = params.query || '';
-      if (params.category && !query) {
-        query = params.category;
+      // Construire la requête avec fallback
+      let query = validatedParams.query || '';
+      if (validatedParams.category && !query) {
+        query = validatedParams.category;
       }
-      if (params.subcategory) {
-        query = `${query} ${params.subcategory}`.trim();
+      if (validatedParams.subcategory) {
+        query = `${query} ${validatedParams.subcategory}`.trim();
       }
       
       if (!query) {
         query = 'point of interest';
       }
       
-      // Paramètres Mapbox
+      // Paramètres Mapbox optimisés
       const searchParams = new URLSearchParams({
         access_token: token,
-        proximity: params.center.join(','),
-        limit: params.aroundMeCount.toString(),
+        proximity: validatedParams.center.join(','),
+        limit: Math.min(validatedParams.aroundMeCount, 10).toString(),
         country: 'fr',
         language: 'fr'
       });
       
-      // Bbox pour le rayon
-      if (params.distance) {
-        const bbox = this.calculateBbox(params.center, params.distance, params.unit);
+      // Bbox pour le rayon avec validation
+      if (validatedParams.distance && validatedParams.distance > 0) {
+        const bbox = this.calculateBbox(validatedParams.center, validatedParams.distance, validatedParams.unit);
         searchParams.append('bbox', bbox.join(','));
       }
       
@@ -62,7 +69,7 @@ export const unifiedSearchService = {
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error(`Mapbox API error: ${response.status}`);
+        throw new Error(`Mapbox API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -72,26 +79,26 @@ export const unifiedSearchService = {
         return [];
       }
       
-      // Traitement des résultats avec calcul de durée si nécessaire
-      const results = await Promise.all(
-        data.features.slice(0, params.aroundMeCount).map(async (feature: any, index: number) => {
+      // Traitement des résultats avec gestion des erreurs
+      const results = await Promise.allSettled(
+        data.features.slice(0, validatedParams.aroundMeCount).map(async (feature: any, index: number) => {
           const coordinates: [number, number] = feature.center;
-          const distance = this.calculateDistance(params.center, coordinates, params.unit);
+          const distance = this.calculateDistance(validatedParams.center, coordinates, validatedParams.unit);
           
           let duration: number | undefined;
           
-          // Calculer la durée si maxDuration est spécifié
-          if (params.maxDuration && params.maxDuration > 0) {
+          // Calculer la durée si nécessaire avec timeout
+          if (validatedParams.maxDuration && validatedParams.maxDuration > 0) {
             try {
-              const directions = await this.getDirections(
-                params.center,
-                coordinates,
-                params.transport
-              );
+              const directions = await Promise.race([
+                this.getDirections(validatedParams.center, coordinates, validatedParams.transport),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+              ]) as any;
+              
               duration = Math.round(directions.duration / 60);
               
               // Filtrer par durée maximale
-              if (duration > params.maxDuration) {
+              if (duration > validatedParams.maxDuration) {
                 return null;
               }
             } catch (error) {
@@ -112,13 +119,18 @@ export const unifiedSearchService = {
         })
       );
       
-      const validResults = results.filter(result => result !== null) as SearchPlace[];
+      // Filtrer les résultats réussis
+      const validResults = results
+        .filter((result): result is PromiseFulfilledResult<SearchPlace | null> => 
+          result.status === 'fulfilled' && result.value !== null
+        )
+        .map(result => result.value as SearchPlace);
       
       // Analytics
       trackSearchEvent({
-        category: params.category || undefined,
-        transport: params.transport,
-        distance: params.distance,
+        category: validatedParams.category || undefined,
+        transport: validatedParams.transport,
+        distance: validatedParams.distance,
         resultsCount: validResults.length
       });
       
@@ -128,21 +140,27 @@ export const unifiedSearchService = {
         }
         return a.distance - b.distance;
       });
+    };
+
+    try {
+      // Utiliser retry avec backoff pour les erreurs récupérables
+      return await apiErrorHandler.retryWithBackoff(searchOperation, 2, 1000);
       
     } catch (error) {
-      console.error('Erreur dans la recherche unifiée:', error);
-      captureMapboxError(error as Error, {
+      const apiError = apiErrorHandler.handleMapboxError(error, {
         apiCall: 'unified-search',
-        params,
+        params: validatedParams,
         userLocation: params.center
       });
+      
+      console.error('Erreur dans la recherche unifiée:', apiError);
       
       // Fallback avec données mockées
       return this.generateMockResults(params);
     }
   },
 
-  // Calculs d'itinéraires
+  // Calculs d'itinéraires avec gestion d'erreurs
   async getDirections(
     origin: [number, number],
     destination: [number, number],
@@ -230,14 +248,14 @@ export const unifiedSearchService = {
     return categoryMap[placeType] || 'Inconnu';
   },
 
-  // Génération de données mockées en cas d'erreur API
+  // Génération de données mockées améliorées
   generateMockResults(params: UnifiedSearchParams): SearchPlace[] {
-    const resultCount = params.aroundMeCount || 3;
+    const resultCount = Math.min(params.aroundMeCount || 3, 5);
     
     return Array.from({ length: resultCount }, (_, i) => ({
       id: `mock-result-${i}`,
       name: `${params.category || 'Lieu'} ${i + 1}`,
-      address: `${123 + i} Rue d'Exemple, Paris`,
+      address: `${123 + i} Rue d'Exemple, France`,
       coordinates: [
         params.center[0] + (Math.random() * 0.02 - 0.01),
         params.center[1] + (Math.random() * 0.02 - 0.01)

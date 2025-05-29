@@ -4,25 +4,27 @@ import { devtools } from 'zustand/middleware';
 import { TransportMode } from '@/lib/data/transportModes';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 import { unifiedSearchService, SearchPlace } from '@/services/unifiedApiService';
+import { filterSyncService } from './filterSync';
 
 interface GeoSearchState {
   // Position et localisation
   userLocation: [number, number] | null;
   startingPosition: [number, number] | null;
   
-  // Filtres de recherche
+  // Filtres de recherche avec synchronisation
   filters: GeoSearchFilters;
   
   // Résultats et état
   results: SearchResult[];
   isLoading: boolean;
   showFilters: boolean;
+  lastSearchParams: string | null; // Pour éviter les recherches dupliquées
   
   // Actions pour la position
   setUserLocation: (location: [number, number] | null) => void;
   setStartingPosition: (position: [number, number] | null) => void;
   
-  // Actions pour les filtres
+  // Actions pour les filtres avec validation
   updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
   resetFilters: () => void;
   
@@ -34,7 +36,7 @@ interface GeoSearchState {
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
   
-  // Actions de recherche
+  // Actions de recherche avec cache et debouncing
   loadResults: () => Promise<void>;
 }
 
@@ -50,7 +52,7 @@ const defaultFilters: GeoSearchFilters = {
   maxDuration: 20
 };
 
-// Fonction de conversion entre les types
+// Fonction de conversion améliorée
 const convertToSearchResult = (place: SearchPlace): SearchResult => ({
   id: place.id,
   name: place.name,
@@ -72,6 +74,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       results: [],
       isLoading: false,
       showFilters: false,
+      lastSearchParams: null,
       
       // Actions pour la position
       setUserLocation: (location) => 
@@ -80,18 +83,32 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setStartingPosition: (position) => 
         set({ startingPosition: position }, false, 'setStartingPosition'),
       
-      // Actions pour les filtres
-      updateFilters: (newFilters) =>
-        set(
-          (state) => ({
-            filters: { ...state.filters, ...newFilters }
-          }),
-          false,
-          'updateFilters'
-        ),
+      // Actions pour les filtres avec validation
+      updateFilters: (newFilters) => {
+        const currentFilters = get().filters;
+        const updatedFilters = { ...currentFilters, ...newFilters };
+        
+        // Valider les filtres avant mise à jour
+        if (filterSyncService.validateFilters(updatedFilters)) {
+          set({ filters: updatedFilters }, false, 'updateFilters');
+          
+          // Déclencher une nouvelle recherche si les filtres affectent les résultats
+          const shouldRefresh = ['category', 'subcategory', 'transport', 'distance', 'maxDuration', 'aroundMeCount']
+            .some(key => key in newFilters);
+            
+          if (shouldRefresh && get().userLocation) {
+            // Debouncer la recherche
+            setTimeout(() => {
+              get().loadResults();
+            }, 300);
+          }
+        } else {
+          console.warn('Filtres invalides ignorés:', newFilters);
+        }
+      },
         
       resetFilters: () =>
-        set({ filters: { ...defaultFilters } }, false, 'resetFilters'),
+        set({ filters: { ...defaultFilters }, lastSearchParams: null }, false, 'resetFilters'),
       
       // Actions pour les résultats
       setResults: (results) => 
@@ -107,22 +124,32 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
       
-      // Action de recherche corrigée
+      // Action de recherche optimisée avec cache
       loadResults: async () => {
-        const { userLocation, filters, setIsLoading, setResults } = get();
+        const { userLocation, filters, setIsLoading, setResults, lastSearchParams } = get();
         
         if (!userLocation) {
           console.log('Aucune localisation utilisateur disponible pour la recherche');
           return;
         }
         
+        // Créer une clé unique pour cette recherche
+        const searchKey = JSON.stringify({ userLocation, filters });
+        
+        // Éviter les recherches dupliquées
+        if (searchKey === lastSearchParams) {
+          console.log('Recherche identique ignorée (cache)');
+          return;
+        }
+        
         setIsLoading(true);
-        console.log('Chargement des résultats avec filtres:', filters);
+        console.log('Chargement des résultats avec filtres validés:', filters);
         
         try {
-          // Utiliser le service unifié avec paramètres corrigés
+          // Utiliser le service unifié avec synchronisation des filtres
+          const unifiedFilters = filterSyncService.geoSearchToUnified(filters);
           const searchParams = {
-            ...filters,
+            ...unifiedFilters,
             center: userLocation
           };
 
@@ -131,28 +158,35 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           // Convertir vers le format SearchResult
           const searchResults = places.map(convertToSearchResult);
           
-          console.log('Résultats Mapbox API convertis:', searchResults);
+          console.log('Résultats API convertis:', searchResults);
           setResults(searchResults);
+          
+          // Mettre à jour le cache
+          set({ lastSearchParams: searchKey }, false, 'updateSearchCache');
           
         } catch (error) {
           console.error('Erreur lors du chargement des résultats:', error);
           
-          // Fallback vers des données mockées
-          const mockResults: SearchResult[] = Array.from({ length: filters.aroundMeCount }, (_, i) => ({
-            id: `result-${i}`, 
-            name: `${filters.category || 'Lieu'} ${filters.subcategory || 'Populaire'} ${i + 1}`, 
-            address: `${123 + i} Nom de rue, ${filters.query || 'Paris'}`,
-            coordinates: [
-              userLocation[0] + (Math.random() * 0.02 - 0.01), 
-              userLocation[1] + (Math.random() * 0.02 - 0.01)
-            ] as [number, number], 
-            type: filters.subcategory || 'default',
-            category: filters.category || 'default', 
-            distance: Math.round(Math.random() * filters.distance * 10) / 10, 
-            duration: Math.round(Math.random() * 30) 
-          }));
-          
-          setResults(mockResults);
+          // Fallback vers des données mockées uniquement en cas d'erreur réseau
+          if (error instanceof Error && error.message.includes('network')) {
+            const mockResults: SearchResult[] = Array.from({ length: filters.aroundMeCount }, (_, i) => ({
+              id: `fallback-result-${i}`, 
+              name: `${filters.category || 'Lieu'} ${i + 1}`, 
+              address: `${123 + i} Rue d'Exemple, France`,
+              coordinates: [
+                userLocation[0] + (Math.random() * 0.02 - 0.01), 
+                userLocation[1] + (Math.random() * 0.02 - 0.01)
+              ] as [number, number], 
+              type: filters.subcategory || 'default',
+              category: filters.category || 'default', 
+              distance: Math.round(Math.random() * filters.distance * 10) / 10, 
+              duration: Math.round(Math.random() * 30) 
+            }));
+            
+            setResults(mockResults);
+          } else {
+            setResults([]);
+          }
         } finally {
           setIsLoading(false);
         }

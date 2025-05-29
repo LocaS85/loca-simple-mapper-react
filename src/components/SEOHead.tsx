@@ -56,10 +56,15 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     }
     canonicalLink.href = canonicalUrl;
 
-    // JSON-LD Schema
-    const jsonLdScript = document.querySelector('#json-ld') || document.createElement('script');
-    jsonLdScript.id = 'json-ld';
-    jsonLdScript.type = 'application/ld+json';
+    // JSON-LD Schema - Corriger l'erreur TypeScript
+    let jsonLdScript = document.querySelector('#json-ld') as HTMLScriptElement;
+    if (!jsonLdScript) {
+      jsonLdScript = document.createElement('script');
+      jsonLdScript.id = 'json-ld';
+      jsonLdScript.type = 'application/ld+json';
+      document.head.appendChild(jsonLdScript);
+    }
+    
     jsonLdScript.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -78,9 +83,6 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         "name": "LocaSimple"
       }
     });
-    if (!document.querySelector('#json-ld')) {
-      document.head.appendChild(jsonLdScript);
-    }
 
   }, [title, description, keywords, ogImage, currentUrl, canonicalUrl]);
 
