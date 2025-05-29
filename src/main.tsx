@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import { AppProvider } from '@/components/core/AppProvider';
+import GlobalLayout from '@/components/layout/GlobalLayout';
 import '@/i18n';
 import './index.css';
 import '@/utils/mapboxPreload';
@@ -35,7 +36,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AppProvider>
-        <App />
+        <GlobalLayout>
+          <App />
+        </GlobalLayout>
       </AppProvider>
     </BrowserRouter>
   </StrictMode>,

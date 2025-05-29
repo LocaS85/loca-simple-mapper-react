@@ -16,6 +16,7 @@ export const useAppInitialization = () => {
   // Initialisation de l'application
   useEffect(() => {
     if (!isInitialized) {
+      console.log('Initialisation de l\'application...');
       initializeApp();
     }
   }, [isInitialized, initializeApp]);
@@ -37,14 +38,23 @@ export const useAppInitialization = () => {
     };
 
     // Mettre à jour les filtres si des paramètres URL sont présents
-    const hasUrlParams = Object.values(urlFilters).some(value => 
-      value !== null && value !== '' && value !== 0
-    );
+    const hasUrlParams = Object.entries(urlFilters).some(([key, value]) => {
+      if (key === 'transport' && value === 'walking') return false;
+      if (key === 'distance' && value === 10) return false;
+      if (key === 'unit' && value === 'km') return false;
+      if (key === 'aroundMeCount' && value === 3) return false;
+      if (key === 'maxDuration' && value === 20) return false;
+      return value !== null && value !== '';
+    });
 
     if (hasUrlParams) {
+      console.log('Mise à jour des filtres depuis URL:', urlFilters);
       updateFilters(urlFilters);
       // Déclencher une recherche après un court délai
-      setTimeout(() => performSearch(), 1000);
+      setTimeout(() => {
+        console.log('Déclenchement de la recherche automatique');
+        performSearch();
+      }, 1000);
     }
   }, [searchParams, isInitialized, updateFilters, performSearch]);
 
