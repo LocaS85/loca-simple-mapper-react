@@ -73,7 +73,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
       onClose={onClose}
       maxDistance={localFilters.distance}
       setMaxDistance={handleMaxDistanceChange}
-      maxDuration={localFilters.maxDuration || 20}
+      maxDuration={localFilters.maxDuration}
       setMaxDuration={handleMaxDurationChange}
       aroundMeCount={localFilters.aroundMeCount}
       setAroundMeCount={handleAroundMeCountChange}
@@ -81,7 +81,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
       setShowMultiDirections={handleShowMultiDirectionsChange}
       distanceUnit={localFilters.unit}
       setDistanceUnit={handleDistanceUnitChange}
-      transportMode={localFilters.transport as TransportMode}
+      transportMode={localFilters.transport}
       setTransportMode={handleTransportModeChange}
       onReset={handleResetFilters}
     />

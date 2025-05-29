@@ -6,15 +6,20 @@ import { getMapboxToken } from "@/utils/mapboxConfig";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type MapboxSearchBarProps = {
-  mapRef: React.RefObject<mapboxgl.Map>; // référence vers la carte Mapbox
+  mapRef: React.RefObject<mapboxgl.Map>;
   onResult?: (location: {
     lng: number;
     lat: number;
     place_name: string;
   }) => void;
+  placeholder?: string;
 };
 
-const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) => {
+const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ 
+  mapRef, 
+  onResult,
+  placeholder = "Rechercher un lieu..."
+}) => {
   const geocoderContainerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
   const isMobile = useIsMobile();
@@ -25,7 +30,7 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
     const geocoder = new MapboxGeocoder({
       accessToken: getMapboxToken(),
       mapboxgl: mapboxgl,
-      placeholder: "Rechercher un lieu...",
+      placeholder,
       marker: false,
       language: "fr",
       countries: "fr",
@@ -38,33 +43,28 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
       const { center, place_name } = e.result;
       const [lng, lat] = center;
       
-      // Call the onResult callback if provided
       onResult?.({ lng, lat, place_name });
       
-      // Fly to location
       mapRef.current?.flyTo({ 
         center: [lng, lat], 
         zoom: isMobile ? 14 : 16,
         duration: 1000
       });
 
-      // Remove previous marker if exists
       if (markerRef.current) {
         markerRef.current.remove();
       }
 
-      // Create new marker with popup
       const popup = new mapboxgl.Popup({ offset: 25 }).setText(place_name);
 
-      markerRef.current = new mapboxgl.Marker({ color: "#3B82F6" }) // blue color
+      markerRef.current = new mapboxgl.Marker({ color: "#3B82F6" })
         .setLngLat([lng, lat])
         .setPopup(popup)
         .addTo(mapRef.current);
 
-      markerRef.current.togglePopup(); // Open popup immediately
+      markerRef.current.togglePopup();
     });
 
-    // Handle errors
     geocoder.on('error', () => {
       console.error('Geocoder error occurred');
     });
@@ -75,7 +75,7 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({ mapRef, onResult }) =
         markerRef.current.remove();
       }
     };
-  }, [mapRef, onResult, isMobile]);
+  }, [mapRef, onResult, isMobile, placeholder]);
 
   return (
     <div

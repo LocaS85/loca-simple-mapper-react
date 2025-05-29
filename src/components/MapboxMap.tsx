@@ -6,9 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 import { getMapboxToken, isMapboxTokenValid, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { SearchResult } from '@/types/geosearch';
 
 interface MapboxMapProps {
-  results?: any[];
+  results?: SearchResult[];
   transport?: string;
   radius?: number;
   count?: number;
@@ -33,7 +34,6 @@ export default function MapboxMap({
   const [mapError, setMapError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Get Mapbox token from environment variables
   const mapboxToken = getMapboxToken();
 
   // Obtain the user's position
@@ -73,7 +73,6 @@ export default function MapboxMap({
     }
   };
 
-  // Check if Mapbox token is available
   if (!isMapboxTokenValid()) {
     return <MapboxError onRetry={() => window.location.reload()} />;
   }
@@ -85,7 +84,7 @@ export default function MapboxMap({
         mapboxAccessToken={mapboxToken}
         initialViewState={{
           ...viewport,
-          zoom: isMobile ? viewport.zoom - 1 : viewport.zoom // Smaller zoom on mobile
+          zoom: isMobile ? viewport.zoom - 1 : viewport.zoom
         }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         style={{ width: '100%', height: '100%' }}
@@ -95,17 +94,14 @@ export default function MapboxMap({
           setMapError(e.error?.message || "Error loading map");
         }}
       >
-        {/* Navigation (zoom) */}
         <NavigationControl position="top-left" />
         
-        {/* User location control */}
         <GeolocateControl
           position="top-left"
           trackUserLocation
           showAccuracyCircle={false}
         />
 
-        {/* User position marker */}
         {userLocation && (
           <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="bottom">
             <div className="flex flex-col items-center">
@@ -119,25 +115,23 @@ export default function MapboxMap({
           </Marker>
         )}
 
-        {/* Result markers */}
         {results.map((result, index) => (
-          result.lng && result.lat && (
+          result.coordinates && (
             <Marker 
-              key={index}
-              longitude={result.lng} 
-              latitude={result.lat} 
+              key={result.id || index}
+              longitude={result.coordinates[0]} 
+              latitude={result.coordinates[1]} 
               anchor="bottom"
             >
               <MapPin 
                 className="w-6 h-6" 
-                style={{ color: getColorForCategory(result.type || category) }} 
+                style={{ color: getColorForCategory(result.category || category) }} 
               />
             </Marker>
           )
         ))}
       </Map>
 
-      {/* Error overlay */}
       {mapError && (
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
           <div className="text-center p-4">
@@ -152,7 +146,6 @@ export default function MapboxMap({
         </div>
       )}
 
-      {/* Floating "my position" button */}
       <button
         className="absolute bottom-4 right-4 z-10 p-3 rounded-full bg-white shadow-md hover:bg-gray-100 transition"
         onClick={() => {

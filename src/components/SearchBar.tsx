@@ -8,12 +8,14 @@ interface SearchBarProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   onSearch: () => void;
+  placeholder?: string;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
   searchTerm,
   onSearchChange,
   onSearch,
+  placeholder = "Rechercher un lieu ou une catégorie..."
 }) => {
   return (
     <div className="p-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between shadow-md bg-white sticky top-0 z-50">
@@ -21,9 +23,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <MapPin className="text-gray-500" />
         <Input 
           className="w-full" 
-          placeholder="Rechercher un lieu ou une catégorie..." 
+          placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              onSearch();
+            }
+          }}
         />
         <Mic className="text-gray-500" />
       </div>

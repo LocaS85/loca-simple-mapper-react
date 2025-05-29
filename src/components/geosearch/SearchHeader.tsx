@@ -51,7 +51,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           <AutoSuggestSearch 
             onResultSelect={handleLocationSelect}
             placeholder={t('geosearch.searchPlaceholder')}
-            initialValue={filters.query || ""}
+            initialValue={filters.query}
           />
         </div>
 
@@ -68,7 +68,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         
         <BoutonFiltre 
           onClick={onToggleFilters}
-          transportMode={filters.transport as TransportMode}
+          transportMode={filters.transport}
           distanceChanged={filters.distance !== 10}
           aroundMeChanged={filters.aroundMeCount > 3}
           showMultiDirections={filters.showMultiDirections}
@@ -81,7 +81,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
             query={filters.query}
             category={filters.category}
             subcategory={filters.subcategory}
-            transportMode={filters.transport as TransportMode}
+            transportMode={filters.transport}
             distance={filters.distance}
             distanceUnit={filters.unit}
             aroundMeCount={filters.aroundMeCount}
