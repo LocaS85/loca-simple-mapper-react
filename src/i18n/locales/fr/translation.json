@@ -1,126 +1,122 @@
 
 {
   "common": {
-    "back": "Retour",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
     "search": "Rechercher",
     "filters": "Filtres",
     "reset": "Réinitialiser",
-    "save": "Sauvegarder",
-    "cancel": "Annuler",
-    "loading": "Chargement...",
-    "error": "Erreur",
-    "retry": "Réessayer",
+    "apply": "Appliquer",
     "close": "Fermer",
-    "apply": "Appliquer"
-  },
-  "header": {
+    "open": "Ouvrir",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "retry": "Réessayer",
+    "next": "Suivant",
+    "previous": "Précédent",
     "home": "Accueil",
-    "geosearch": "GeoRecherche",
-    "categories": "Catégories",
-    "premium": "Premium",
-    "about": "À propos",
-    "login": "Connexion",
-    "register": "S'inscrire"
+    "back": "Retour"
   },
-  "home": {
-    "title": "Découvrez les lieux autour de vous",
-    "subtitle": "Trouvez facilement des restaurants, services, et points d'intérêt dans votre région",
-    "startExplore": "Commencer l'exploration",
-    "seeCategories": "Voir les catégories",
-    "features": "Fonctionnalités",
-    "featureDesc": "Notre application vous offre tous les outils nécessaires pour découvrir votre environnement",
-    "featureList": {
-      "maps": "Cartes interactives avec Mapbox",
-      "categorySearch": "Recherche par catégories",
-      "filter": "Filtres avancés",
-      "favorites": "Système de favoris"
+  "navigation": {
+    "home": "Accueil",
+    "search": "Recherche",
+    "categories": "Catégories",
+    "favorites": "Favoris",
+    "account": "Compte",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "about": "À propos",
+    "contact": "Contact"
+  },
+  "filters": {
+    "title": "Filtres de recherche",
+    "category": "Catégorie",
+    "subcategory": "Sous-catégorie",
+    "transportMode": "Mode de transport",
+    "distance": "Distance maximale",
+    "duration": "Durée maximale",
+    "aroundMe": "Autour de moi",
+    "places": "Nombre de lieux",
+    "multiDirections": "Itinéraires multiples",
+    "adjust": "Ajuster",
+    "labels": {
+      "maxDistance": "Distance max",
+      "maxDuration": "Durée max"
     },
-    "mapViews": "Vues de carte",
-    "basicSearch": "Recherche basique",
-    "modernSearch": "Recherche moderne",
-    "fullApp": "Application complète",
-    "myFavorites": "Mes favoris"
+    "transportModes": {
+      "walking": "À pied",
+      "car": "Voiture",
+      "cycling": "Vélo",
+      "bus": "Transport",
+      "train": "Train"
+    },
+    "reset": "Filtres réinitialisés",
+    "resetSuccess": "Les filtres ont été remis à zéro"
+  },
+  "search": {
+    "placeholder": "Rechercher un lieu...",
+    "results": "Résultats",
+    "resultsCount_one": "{{count}} résultat trouvé",
+    "resultsCount_other": "{{count}} résultats trouvés",
+    "noResults": "Aucun résultat trouvé",
+    "noResultsDesc": "Essayez de modifier vos critères de recherche ou filtres",
+    "found_one": "{{count}} trouvé",
+    "found_other": "{{count}} trouvés",
+    "searching": "Recherche en cours...",
+    "searchError": "Erreur lors de la recherche"
+  },
+  "display": {
+    "grid": "Grille",
+    "list": "Liste",
+    "map": "Carte"
+  },
+  "categories": {
+    "allCategories": "Toutes les catégories",
+    "food": "Restaurants",
+    "shopping": "Shopping",
+    "health": "Santé",
+    "services": "Services",
+    "entertainment": "Divertissement",
+    "transport": "Transport"
   },
   "geosearch": {
-    "searchPlaceholder": "Rechercher un lieu, une adresse...",
-    "miniMapTitle": "Mini carte",
-    "noResults": "Aucun résultat trouvé",
-    "searchError": "Erreur lors de la recherche",
-    "locationError": "Impossible d'obtenir votre position",
-    "locationErrorDesc": "Veuillez vérifier vos paramètres de géolocalisation",
-    "locationSelected": "Localisation sélectionnée",
+    "title": "Recherche géolocalisée",
+    "locationSelected": "Lieu sélectionné",
     "searchingAround": "Recherche autour de {{place}}",
     "usingCurrentLocation": "Utilisation de votre position actuelle",
+    "locationError": "Erreur de géolocalisation",
+    "locationErrorDesc": "Impossible d'accéder à votre position",
+    "noResults": "Aucun résultat trouvé",
     "tryModifyingSearch": "Essayez de modifier votre recherche ou vos filtres",
     "modifyFilters": "Modifier les filtres"
   },
   "map": {
-    "yourLocation": "Votre position",
-    "miniMap": "Mini carte",
-    "expandMap": "Agrandir la carte",
-    "collapseMap": "Réduire la carte",
     "error": "Erreur de carte",
-    "errorLoading": "Erreur lors du chargement de la carte",
+    "errorLoading": "Impossible de charger la carte",
     "initError": "Erreur d'initialisation",
-    "initErrorDesc": "Impossible d'initialiser la carte Mapbox"
+    "initErrorDesc": "Impossible d'initialiser la carte",
+    "yourLocation": "Votre position"
   },
-  "filters": {
-    "category": "Catégorie",
-    "subcategory": "Sous-catégorie",
-    "transportMode": "Mode de transport",
-    "distance": "Distance",
-    "duration": "Durée",
-    "labels": {
-      "maxDistance": "Distance maximale",
-      "maxDuration": "Durée maximale"
-    },
-    "transportModes": {
-      "car": "Voiture",
-      "walking": "À pied", 
-      "cycling": "Vélo",
-      "bus": "Transport"
-    },
-    "transportProfiles": {
-      "car": "Voiture",
-      "walking": "Marche",
-      "cycling": "Vélo",
-      "transit": "Transport"
-    },
-    "units": {
-      "km": "km",
-      "mi": "mi"
-    },
-    "aroundMe": "Autour de moi",
-    "places": "Lieux",
-    "multiDirections": "Multi-directions",
-    "reset": "Filtres réinitialisés",
-    "resetSuccess": "Les filtres ont été réinitialisés avec succès"
+  "errors": {
+    "generic": "Une erreur est survenue",
+    "network": "Erreur de connexion",
+    "api": "Erreur de l'API",
+    "location": "Erreur de géolocalisation",
+    "retry": "Réessayer"
   },
-  "categories": {
-    "allCategories": "Toutes les catégories",
-    "title": "Catégories",
-    "subtitle": "Découvrez les lieux par catégorie"
-  },
-  "footer": {
-    "description": "L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.",
-    "navigation": "Navigation",
-    "account": "Compte",
-    "information": "Information",
-    "login": "Connexion",
-    "register": "S'inscrire",
-    "myAccount": "Mon compte",
-    "favorites": "Mes favoris",
-    "savedSearches": "Recherches sauvegardées",
-    "faq": "FAQ",
-    "terms": "Conditions d'utilisation",
-    "privacy": "Politique de confidentialité",
-    "premium": "Abonnement Premium",
-    "copyright": "© 2025 LocaSimple. Tous droits réservés."
-  },
-  "language": {
-    "fr": "Français",
-    "en": "Anglais",
-    "es": "Espagnol",
-    "de": "Allemand"
+  "performance": {
+    "loading": "Chargement des performances...",
+    "metrics": "Métriques",
+    "cacheHitRate": "Taux de cache",
+    "searchTime": "Temps de recherche",
+    "apiCalls": "Appels API",
+    "errors": "Erreurs"
   }
 }

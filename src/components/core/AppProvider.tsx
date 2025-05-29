@@ -21,13 +21,6 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (remplace cacheTime)
       refetchOnWindowFocus: false,
-      onError: (error: any) => {
-        errorService.captureError(error, {
-          component: 'QueryClient',
-          action: 'query-error'
-        });
-        performanceService.incrementErrors();
-      }
     },
     mutations: {
       retry: 1,
@@ -41,6 +34,15 @@ const queryClient = new QueryClient({
     }
   }
 });
+
+// Gestionnaire global d'erreurs pour les queries
+queryClient.getQueryCache().config.onError = (error: any) => {
+  errorService.captureError(error, {
+    component: 'QueryClient',
+    action: 'query-error'
+  });
+  performanceService.incrementErrors();
+};
 
 interface AppProviderProps {
   children: ReactNode;

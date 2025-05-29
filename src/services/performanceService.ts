@@ -28,14 +28,14 @@ class PerformanceService {
     this.initializePageMetrics();
   }
 
-  // Initialiser les métriques de page
+  // Initialiser les métriques de page avec correction
   private initializePageMetrics(): void {
     if (typeof window !== 'undefined' && 'performance' in window) {
-      // Mesurer le temps de chargement de la page
       window.addEventListener('load', () => {
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
         if (navigation) {
-          this.metrics.pageLoadTime = navigation.loadEventEnd - navigation.navigationStart;
+          // Correction: utiliser loadEventEnd - fetchStart au lieu de navigationStart
+          this.metrics.pageLoadTime = navigation.loadEventEnd - navigation.fetchStart;
           this.metrics.navigationTiming = navigation;
         }
       });
@@ -61,7 +61,7 @@ class PerformanceService {
   }
 
   // Démarrer un timer de recherche - retourne une fonction pour arrêter le timer
-  startSearchTimer(): () => void {
+  startSearchTimer(): () => number {
     const timerId = `search-${Date.now()}`;
     this.startTimer(timerId);
     
