@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { TransportMode } from '@/lib/data/transportModes';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
-import { searchPlacesWithFilters, FilterSearchParams } from '@/services/mapboxFilterService';
+import { unifiedSearchService, SearchPlace } from '@/services/unifiedApiService';
 
 interface GeoSearchState {
   // Position et localisation
@@ -50,6 +50,18 @@ const defaultFilters: GeoSearchFilters = {
   maxDuration: 20
 };
 
+// Fonction de conversion entre les types
+const convertToSearchResult = (place: SearchPlace): SearchResult => ({
+  id: place.id,
+  name: place.name,
+  address: place.address,
+  coordinates: place.coordinates,
+  type: place.category,
+  category: place.category,
+  distance: place.distance,
+  duration: place.duration || 0
+});
+
 export const useGeoSearchStore = create<GeoSearchState>()(
   devtools(
     (set, get) => ({
@@ -95,57 +107,38 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
       
-      // Action de recherche améliorée avec l'API Mapbox
+      // Action de recherche optimisée avec le service unifié
       loadResults: async () => {
         const { userLocation, filters, setIsLoading, setResults } = get();
         
         if (!userLocation) {
-          console.log('No user location available for search');
+          console.log('Aucune localisation utilisateur disponible pour la recherche');
           return;
         }
         
         setIsLoading(true);
-        console.log('Loading results with filters:', filters);
-        console.log('User location:', userLocation);
+        console.log('Chargement des résultats avec filtres:', filters);
         
         try {
-          // Préparer les paramètres de recherche
-          const searchParams: FilterSearchParams = {
-            query: filters.query || undefined,
-            category: filters.category || undefined,
-            subcategory: filters.subcategory || undefined,
-            center: userLocation,
-            radius: filters.distance,
-            unit: filters.unit,
-            transportMode: filters.transport,
-            maxDuration: filters.maxDuration,
-            limit: filters.aroundMeCount
+          // Utiliser le service unifié
+          const searchParams = {
+            ...filters,
+            center: userLocation
           };
 
-          // Utiliser le service Mapbox
-          const mapboxResults = await searchPlacesWithFilters(searchParams);
+          const places = await unifiedSearchService.searchPlaces(searchParams);
           
           // Convertir vers le format SearchResult
-          const searchResults: SearchResult[] = mapboxResults.map(result => ({
-            id: result.id,
-            name: result.name,
-            address: result.address,
-            coordinates: result.coordinates,
-            type: result.category,
-            category: result.category,
-            distance: result.distance,
-            duration: result.duration
-          }));
+          const searchResults = places.map(convertToSearchResult);
           
-          console.log('Mapbox API results:', searchResults);
+          console.log('Résultats Mapbox API convertis:', searchResults);
           setResults(searchResults);
           
         } catch (error) {
-          console.error('Error loading results from Mapbox:', error);
+          console.error('Erreur lors du chargement des résultats:', error);
           
-          // Fallback vers des données mockées si l'API échoue
-          const resultCount = filters.aroundMeCount || 3;
-          const mockResults: SearchResult[] = Array.from({ length: resultCount }, (_, i) => ({
+          // Fallback vers des données mockées
+          const mockResults: SearchResult[] = Array.from({ length: filters.aroundMeCount }, (_, i) => ({
             id: `result-${i}`, 
             name: `${filters.category || 'Lieu'} ${filters.subcategory || 'Populaire'} ${i + 1}`, 
             address: `${123 + i} Nom de rue, ${filters.query || 'Paris'}`,

@@ -44,7 +44,8 @@
     "error": "Erreur",
     "noResults": "Aucun résultat",
     "retry": "Réessayer",
-    "transport": "Transport"
+    "transport": "Transport",
+    "close": "Fermer"
   },
   "filters": {
     "category": "Catégorie",
@@ -54,16 +55,18 @@
     "distance": "Distance",
     "duration": "Durée maximale",
     "aroundMe": "Autour de moi",
-    "places": "Lieux",
-    "multiDirections": "Multi-directions",
-    "reset": "Réinitialiser les filtres",
-    "resetSuccess": "Tous les filtres ont été réinitialisés",
+    "places": "Lieux à afficher",
+    "multiDirections": "Itinéraires multiples",
+    "reset": "Filtres réinitialisés",
+    "resetSuccess": "Tous les filtres ont été remis à zéro",
     "apply": "Appliquer les filtres",
-    "close": "Fermer",
+    "close": "Fermer les filtres",
     "showAdvanced": "Afficher les options avancées",
     "hideAdvanced": "Masquer les options avancées",
     "maxDistance": "Distance maximale",
     "maxDuration": "Durée maximale",
+    "active": "Filtres actifs",
+    "clear": "Effacer",
     "transportModes": {
       "car": "Voiture",
       "driving": "Voiture",
@@ -81,7 +84,12 @@
       "maxDuration": "Durée maximale (minutes)",
       "resultCount": "Nombre de résultats",
       "searchRadius": "Rayon de recherche",
-      "travelTime": "Temps de trajet"
+      "travelTime": "Temps de trajet",
+      "filterBy": "Filtrer par",
+      "sortBy": "Trier par",
+      "relevance": "Pertinence",
+      "distance": "Distance",
+      "duration": "Durée"
     }
   },
   "geosearch": {
@@ -96,7 +104,10 @@
     "tryModifyingSearch": "Essayez de modifier vos critères de recherche ou vos filtres.",
     "modifyFilters": "Modifier les filtres",
     "resultsFound": "{{count}} résultats trouvés",
-    "showingResults": "Affichage de {{count}} résultats"
+    "showingResults": "Affichage de {{count}} résultats",
+    "searchComplete": "Recherche terminée",
+    "searchInProgress": "Recherche en cours...",
+    "refineSearch": "Affiner la recherche"
   },
   "map": {
     "searchPlaceholder": "Rechercher un lieu...",
@@ -136,7 +147,10 @@
     "searchInCategory": "Rechercher dans cette catégorie",
     "noSubcategories": "Aucune sous-catégorie disponible",
     "loading": "Chargement des catégories...",
-    "error": "Erreur lors du chargement des catégories"
+    "error": "Erreur lors du chargement des catégories",
+    "allCategories": "Toutes les catégories",
+    "popular": "Populaires",
+    "nearby": "À proximité"
   },
   "footer": {
     "description": "L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.",
@@ -159,5 +173,15 @@
     "en": "Anglais",
     "es": "Espagnol",
     "de": "Allemand"
+  },
+  "ui": {
+    "openFilters": "Ouvrir les filtres",
+    "closeFilters": "Fermer les filtres",
+    "applyFilters": "Appliquer les filtres",
+    "clearFilters": "Effacer les filtres",
+    "showMore": "Afficher plus",
+    "showLess": "Afficher moins",
+    "expand": "Développer",
+    "collapse": "Réduire"
   }
 }
