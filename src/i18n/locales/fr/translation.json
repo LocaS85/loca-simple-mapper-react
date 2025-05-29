@@ -22,7 +22,59 @@
     "next": "Suivant",
     "previous": "Précédent",
     "home": "Accueil",
-    "back": "Retour"
+    "back": "Retour",
+    "menu": "Menu"
+  },
+  "header": {
+    "home": "Accueil",
+    "geosearch": "Recherche Géo",
+    "categories": "Catégories", 
+    "premium": "Premium",
+    "about": "À propos",
+    "login": "Connexion",
+    "register": "Inscription"
+  },
+  "home": {
+    "title": "LocaSimple",
+    "subtitle": "Un outil simple et puissant pour cartographier et explorer les lieux.",
+    "startExplore": "Commencer l'exploration",
+    "seeCategories": "Voir les catégories",
+    "features": "Fonctionnalités",
+    "featureDesc": "Notre application offre diverses capacités de cartographie et de recherche de lieux.",
+    "featureList": {
+      "maps": "Cartes interactives avec marqueurs personnalisés",
+      "categorySearch": "Rechercher des lieux par catégorie",
+      "filter": "Filtrer les résultats de recherche",
+      "favorites": "Sauvegarder les lieux favoris"
+    },
+    "mapViews": "Vues cartographiques disponibles",
+    "basicSearch": "Recherche géographique de base",
+    "modernSearch": "Recherche géographique moderne",
+    "fullApp": "Application complète de recherche",
+    "myFavorites": "Mes favoris",
+    "exploreToast": "Commençons l'exploration !"
+  },
+  "footer": {
+    "description": "L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.",
+    "navigation": "Navigation",
+    "account": "Compte",
+    "information": "Information",
+    "login": "Connexion",
+    "register": "Inscription",
+    "myAccount": "Mon compte",
+    "favorites": "Mes favoris",
+    "savedSearches": "Recherches sauvegardées",
+    "faq": "F.A.Q.",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "premium": "Abonnement Premium",
+    "copyright": "© 2025 LocaSimple. Tous droits réservés."
+  },
+  "language": {
+    "fr": "Français",
+    "en": "Anglais",
+    "es": "Espagnol",
+    "de": "Allemand"
   },
   "navigation": {
     "home": "Accueil",
@@ -84,7 +136,14 @@
     "health": "Santé",
     "services": "Services",
     "entertainment": "Divertissement",
-    "transport": "Transport"
+    "transport": "Transport",
+    "viewList": "Voir en liste",
+    "viewMap": "Voir sur la carte",
+    "myAddresses": "Mes adresses",
+    "addAddress": "Ajouter une adresse",
+    "editAddress": "Modifier l'adresse",
+    "deleteAddress": "Supprimer l'adresse",
+    "noAddresses": "Aucune adresse sauvegardée pour le moment"
   },
   "geosearch": {
     "title": "Recherche géolocalisée",
@@ -95,14 +154,33 @@
     "locationErrorDesc": "Impossible d'accéder à votre position",
     "noResults": "Aucun résultat trouvé",
     "tryModifyingSearch": "Essayez de modifier votre recherche ou vos filtres",
-    "modifyFilters": "Modifier les filtres"
+    "modifyFilters": "Modifier les filtres",
+    "searchPlaceholder": "Rechercher un lieu ou une adresse...",
+    "resultsFound": "Résultats trouvés",
+    "placesFoundForSearch": "{{count}} lieux trouvés pour votre recherche",
+    "errorLoadingResults": "Erreur lors du chargement des résultats",
+    "place": "Lieu",
+    "popular": "Populaire",
+    "streetName": "Nom de rue",
+    "near": "Près de",
+    "country": "Pays",
+    "yourPosition": "Votre position",
+    "miniMapTitle": "Mini Carte"
   },
   "map": {
     "error": "Erreur de carte",
     "errorLoading": "Impossible de charger la carte",
     "initError": "Erreur d'initialisation",
     "initErrorDesc": "Impossible d'initialiser la carte",
-    "yourLocation": "Votre position"
+    "yourLocation": "Votre position",
+    "searchRadius": "Rayon de recherche",
+    "distance": "Distance",
+    "duration": "Durée",
+    "kilometers": "Kilomètres",
+    "miles": "Miles",
+    "miniMap": "Mini Carte",
+    "expandMap": "Agrandir",
+    "collapseMap": "Réduire"
   },
   "errors": {
     "generic": "Une erreur est survenue",

@@ -3,23 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { useTranslation } from "react-i18next";
+import { useTranslations } from "@/hooks/useTranslations";
 
 export default function Index() {
-  const { t } = useTranslation();
+  const { t } = useTranslations();
   
   const handleExplore = () => {
-    toast.success("Commençons l'exploration !");
+    toast.success(t('home.exploreToast', 'Commençons l\'exploration !'));
   };
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted">
           <Container>
@@ -32,7 +26,7 @@ export default function Index() {
               </p>
               <div className="flex flex-col gap-4 sm:flex-row justify-center">
                 <Button asChild size="lg" onClick={handleExplore}>
-                  <Link to="/geosearchapp">{t('home.startExplore')}</Link>
+                  <Link to="/geosearch">{t('home.startExplore')}</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
                   <Link to="/categories">{t('home.seeCategories')}</Link>
@@ -77,10 +71,10 @@ export default function Index() {
                       <Link to="/geosearch">{t('home.basicSearch')}</Link>
                     </Button>
                     <Button asChild variant="secondary">
-                      <Link to="/moderngeo">{t('home.modernSearch')}</Link>
+                      <Link to="/modern-search">{t('home.modernSearch')}</Link>
                     </Button>
                     <Button asChild variant="secondary">
-                      <Link to="/geosearchapp">{t('home.fullApp')}</Link>
+                      <Link to="/categories">{t('home.fullApp')}</Link>
                     </Button>
                     <Button asChild variant="secondary">
                       <Link to="/favorites">{t('home.myFavorites')}</Link>
@@ -92,7 +86,6 @@ export default function Index() {
           </Container>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

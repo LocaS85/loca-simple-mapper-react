@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin, Mic, Search, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslations } from "@/hooks/useTranslations";
 
 interface SearchBarProps {
   searchTerm: string;
@@ -17,10 +18,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
   searchTerm,
   onSearchChange,
   onSearch,
-  placeholder = "Rechercher un lieu ou une catégorie...",
+  placeholder,
   onClear
 }) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslations();
+
+  const defaultPlaceholder = placeholder || t('search.placeholder');
 
   const handleClear = () => {
     onSearchChange("");
@@ -34,7 +38,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <MapPin className="absolute left-3 text-gray-400 z-10" size={isMobile ? 18 : 20} />
           <Input 
             className="w-full pl-10 pr-20 h-11 lg:h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all" 
-            placeholder={placeholder}
+            placeholder={defaultPlaceholder}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyPress={(e) => {
@@ -58,7 +62,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:bg-blue-50 rounded-full"
-              title="Recherche vocale"
+              title={t('search.voiceSearch', 'Recherche vocale')}
             >
               <Mic size={16} className="text-blue-500" />
             </Button>
@@ -71,7 +75,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onClick={onSearch}
       >
         <Search size={isMobile ? 16 : 18} />
-        {!isMobile && "Rechercher"}
+        {!isMobile && t('common.search')}
       </Button>
     </div>
   );

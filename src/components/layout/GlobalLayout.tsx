@@ -1,8 +1,8 @@
 
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useLocation } from 'react-router-dom';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ const GlobalLayout: React.FC<GlobalLayoutProps> = ({ children }) => {
   const shouldHideHeaderFooter = hideHeaderFooterPaths.includes(location.pathname);
 
   if (shouldHideHeaderFooter) {
-    return <>{children}</>;
+    return <div className="min-h-screen">{children}</div>;
   }
 
   return (
