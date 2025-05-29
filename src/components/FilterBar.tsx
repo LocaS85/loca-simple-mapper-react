@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -151,7 +150,7 @@ export function FilterBar({
         {/* Mode de transport */}
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {t("filters.transport")}
+            {t("filters.transportMode")}
           </label>
           <ToggleGroup 
             type="single" 
@@ -165,12 +164,12 @@ export function FilterBar({
                 <ToggleGroupItem 
                   key={mode.value} 
                   value={mode.value} 
-                  aria-label={mode.label}
+                  aria-label={t(`filters.transportModes.${mode.value}`)}
                   className="flex-1 max-w-[80px] data-[state=on]:bg-blue-600 data-[state=on]:text-white"
                 >
                   <div className="flex flex-col items-center text-center">
                     <Icon className="w-5 h-5" />
-                    <span className="text-xs mt-1">{mode.label}</span>
+                    <span className="text-xs mt-1">{t(`filters.transportModes.${mode.value}`)}</span>
                   </div>
                 </ToggleGroupItem>
               );
@@ -184,7 +183,7 @@ export function FilterBar({
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t("filters.maxDistance")}
+              {t("filters.labels.maxDistance")}
             </label>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{maxDistance} {distanceUnit}</span>
@@ -217,7 +216,7 @@ export function FilterBar({
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t("filters.maxDuration")}
+              {t("filters.labels.maxDuration")}
             </label>
             <span className="text-sm font-medium">{maxDuration} min</span>
           </div>

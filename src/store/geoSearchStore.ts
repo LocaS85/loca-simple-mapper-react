@@ -41,7 +41,7 @@ interface GeoSearchState {
 const defaultFilters: GeoSearchFilters = {
   category: null,
   subcategory: null,
-  transport: 'car' as TransportMode,
+  transport: 'walking' as TransportMode,
   distance: 10,
   unit: 'km' as 'km' | 'mi',
   query: '',
@@ -147,8 +147,8 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           const resultCount = filters.aroundMeCount || 3;
           const mockResults: SearchResult[] = Array.from({ length: resultCount }, (_, i) => ({
             id: `result-${i}`, 
-            name: `${filters.category || 'Place'} ${filters.subcategory || 'Popular'} ${i + 1}`, 
-            address: `${123 + i} Street Name, ${filters.query || 'Paris'}`,
+            name: `${filters.category || 'Lieu'} ${filters.subcategory || 'Populaire'} ${i + 1}`, 
+            address: `${123 + i} Nom de rue, ${filters.query || 'Paris'}`,
             coordinates: [
               userLocation[0] + (Math.random() * 0.02 - 0.01), 
               userLocation[1] + (Math.random() * 0.02 - 0.01)

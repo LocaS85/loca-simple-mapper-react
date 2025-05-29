@@ -2,7 +2,7 @@
 {
   "header": {
     "home": "Accueil",
-    "geosearch": "GeoSearch",
+    "geosearch": "GéoRecherche",
     "categories": "Catégories",
     "premium": "Premium",
     "about": "À propos",
@@ -43,16 +43,18 @@
     "loading": "Chargement...",
     "error": "Erreur",
     "noResults": "Aucun résultat",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "transport": "Transport"
   },
   "filters": {
     "category": "Catégorie",
     "subcategory": "Sous-catégorie",
     "transportMode": "Mode de transport",
+    "transport": "Transport",
     "distance": "Distance",
     "duration": "Durée maximale",
     "aroundMe": "Autour de moi",
-    "places": "Nombre de lieux",
+    "places": "Lieux",
     "multiDirections": "Multi-directions",
     "reset": "Réinitialiser les filtres",
     "resetSuccess": "Tous les filtres ont été réinitialisés",
@@ -60,8 +62,11 @@
     "close": "Fermer",
     "showAdvanced": "Afficher les options avancées",
     "hideAdvanced": "Masquer les options avancées",
+    "maxDistance": "Distance maximale",
+    "maxDuration": "Durée maximale",
     "transportModes": {
       "car": "Voiture",
+      "driving": "Voiture",
       "walking": "À pied",
       "cycling": "Vélo",
       "bus": "Transport public",
