@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TransportMode } from '@/lib/data/transportModes';
-import { MapPin, Filter as FilterIcon, Bike, Car, User, Bus } from 'lucide-react';
+import { MapPin, Filter as FilterIcon, Bike, Car, User, Bus, Train } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BadgesFiltresProps {
@@ -14,6 +14,7 @@ interface BadgesFiltresProps {
   query?: string | null;
   aroundMeCount?: number;
   showMultiDirections?: boolean;
+  maxDuration?: number;
 }
 
 const BadgesFiltres: React.FC<BadgesFiltresProps> = ({
@@ -24,7 +25,8 @@ const BadgesFiltres: React.FC<BadgesFiltresProps> = ({
   subcategory,
   query,
   aroundMeCount,
-  showMultiDirections
+  showMultiDirections,
+  maxDuration
 }) => {
   const { t } = useTranslation();
   
@@ -34,6 +36,7 @@ const BadgesFiltres: React.FC<BadgesFiltresProps> = ({
       case 'walking': return <User size={12} />;
       case 'cycling': return <Bike size={12} />;
       case 'bus': return <Bus size={12} />;
+      case 'train': return <Train size={12} />;
       default: return <Car size={12} />;
     }
   };
@@ -49,13 +52,13 @@ const BadgesFiltres: React.FC<BadgesFiltresProps> = ({
       
       {category && (
         <Badge variant="secondary" className="text-xs">
-          {t('common.category')}: {category}
+          {t('filters.category')}: {category}
         </Badge>
       )}
       
       {subcategory && (
         <Badge variant="secondary" className="text-xs">
-          {subcategory}
+          {t('filters.subcategory')}: {subcategory}
         </Badge>
       )}
       
@@ -65,12 +68,18 @@ const BadgesFiltres: React.FC<BadgesFiltresProps> = ({
       </Badge>
       
       <Badge variant="secondary" className="text-xs">
-        {distance} {distanceUnit}
+        {distance} {t(`filters.units.${distanceUnit}`)}
       </Badge>
+      
+      {maxDuration && (
+        <Badge variant="secondary" className="text-xs">
+          {t('filters.duration')}: {maxDuration} min
+        </Badge>
+      )}
       
       {aroundMeCount && aroundMeCount > 3 && (
         <Badge variant="secondary" className="text-xs">
-          {t('filters.aroundMe')}: {aroundMeCount}
+          {t('filters.aroundMe')}: {aroundMeCount} {t('filters.places').toLowerCase()}
         </Badge>
       )}
       

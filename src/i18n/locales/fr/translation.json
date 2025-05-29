@@ -39,25 +39,99 @@
     "filters": "Filtres",
     "category": "Catégorie",
     "subcategory": "Sous-catégorie",
-    "distance": "Distance"
+    "distance": "Distance",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "noResults": "Aucun résultat",
+    "retry": "Réessayer"
   },
   "filters": {
     "category": "Catégorie",
     "subcategory": "Sous-catégorie",
     "transportMode": "Mode de transport",
     "distance": "Distance",
-    "duration": "Durée",
+    "duration": "Durée maximale",
     "aroundMe": "Autour de moi",
     "places": "Nombre de lieux",
     "multiDirections": "Multi-directions",
-    "reset": "Filtres réinitialisés",
+    "reset": "Réinitialiser les filtres",
     "resetSuccess": "Tous les filtres ont été réinitialisés",
+    "apply": "Appliquer les filtres",
+    "close": "Fermer",
+    "showAdvanced": "Afficher les options avancées",
+    "hideAdvanced": "Masquer les options avancées",
     "transportModes": {
       "car": "Voiture",
       "walking": "À pied",
       "cycling": "Vélo",
-      "bus": "Transport"
+      "bus": "Transport public",
+      "train": "Train"
+    },
+    "units": {
+      "km": "kilomètres",
+      "mi": "miles"
+    },
+    "labels": {
+      "maxDistance": "Distance maximale",
+      "maxDuration": "Durée maximale (minutes)",
+      "resultCount": "Nombre de résultats",
+      "searchRadius": "Rayon de recherche",
+      "travelTime": "Temps de trajet"
     }
+  },
+  "geosearch": {
+    "title": "Recherche géographique",
+    "searchPlaceholder": "Rechercher un lieu ou une adresse...",
+    "locationSelected": "Lieu sélectionné",
+    "searchingAround": "Recherche autour de {{place}}",
+    "usingCurrentLocation": "Utilisation de votre position actuelle",
+    "locationError": "Erreur de géolocalisation",
+    "locationErrorDesc": "Impossible d'obtenir votre position. Veuillez autoriser la géolocalisation.",
+    "noResults": "Aucun résultat trouvé",
+    "tryModifyingSearch": "Essayez de modifier vos critères de recherche ou vos filtres.",
+    "modifyFilters": "Modifier les filtres",
+    "resultsFound": "{{count}} résultats trouvés",
+    "showingResults": "Affichage de {{count}} résultats"
+  },
+  "map": {
+    "searchPlaceholder": "Rechercher un lieu...",
+    "startPoint": "Point de départ",
+    "destination": "Destination",
+    "searchAddress": "Rechercher une adresse",
+    "yourPosition": "Votre position",
+    "yourLocation": "Votre localisation",
+    "origin": "Départ",
+    "noResults": "Aucun résultat trouvé",
+    "error": "Erreur de carte",
+    "errorLoading": "Erreur lors du chargement de la carte",
+    "initError": "Erreur d'initialisation",
+    "initErrorDesc": "Impossible d'initialiser la carte Mapbox",
+    "directionsProfile": {
+      "driving": "En voiture",
+      "walking": "À pied",
+      "cycling": "À vélo"
+    },
+    "distance": "Distance",
+    "duration": "Durée",
+    "radius": "Rayon",
+    "showDirections": "Afficher l'itinéraire",
+    "hideDirections": "Masquer l'itinéraire",
+    "routeCalculationError": "Erreur de calcul d'itinéraire",
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer",
+    "fullscreen": "Plein écran",
+    "exitFullscreen": "Quitter le plein écran",
+    "recenter": "Recentrer la carte",
+    "showMyLocation": "Ma position"
+  },
+  "categories": {
+    "title": "Catégories",
+    "selectCategory": "Sélectionner une catégorie",
+    "viewOnMap": "Voir sur la carte",
+    "searchInCategory": "Rechercher dans cette catégorie",
+    "noSubcategories": "Aucune sous-catégorie disponible",
+    "loading": "Chargement des catégories...",
+    "error": "Erreur lors du chargement des catégories"
   },
   "footer": {
     "description": "L'application de géolocalisation simple et efficace pour tous vos besoins de recherche locale.",
