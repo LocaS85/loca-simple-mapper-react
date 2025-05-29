@@ -4,21 +4,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LocaSimple</title>
-    <meta name="description" content="Application de cartographie simple et efficace" />
-    <meta name="author" content="Lovable" />
-
-    <meta property="og:title" content="LocaSimple" />
-    <meta property="og:description" content="Application de cartographie simple et efficace" />
+    <title>LocaSimple - Trouvez facilement les lieux autour de vous</title>
+    <meta name="description" content="Application de cartographie française pour découvrir restaurants, services et points d'intérêt près de chez vous. Recherche avancée, filtres intelligents, cartes interactives." />
+    <meta name="keywords" content="cartographie, france, restaurants, services, lieux, carte interactive, géolocalisation, recherche locale" />
+    <meta name="author" content="LocaSimple" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="LocaSimple - Trouvez facilement les lieux autour de vous" />
+    <meta property="og:description" content="Application de cartographie française pour découvrir restaurants, services et points d'intérêt près de chez vous." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:url" content="https://locasimple.fr" />
+    <meta property="og:image" content="https://locasimple.fr/og-image.jpg" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="LocaSimple" />
 
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:title" content="LocaSimple - Trouvez facilement les lieux autour de vous" />
+    <meta name="twitter:description" content="Application de cartographie française pour découvrir restaurants, services et points d'intérêt près de chez vous." />
+    <meta name="twitter:image" content="https://locasimple.fr/og-image.jpg" />
+
+    <!-- Favicon optimisé -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://locasimple.fr" />
+    
+    <!-- Préchargement des ressources critiques -->
+    <link rel="preconnect" href="https://api.mapbox.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Mapbox CSS from CDN -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "LocaSimple",
+      "description": "Application de cartographie française pour découvrir restaurants, services et points d'intérêt près de chez vous.",
+      "url": "https://locasimple.fr",
+      "applicationCategory": "MapApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "LocaSimple",
+        "url": "https://locasimple.fr"
+      }
+    }
+    </script>
   </head>
 
   <body>

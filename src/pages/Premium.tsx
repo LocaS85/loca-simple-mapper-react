@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Star, Zap, Crown } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -14,53 +14,61 @@ const Premium = () => {
   
   const plans = [
     {
-      name: "Mensuel",
-      price: "9,99€",
+      name: "Essentiel",
+      price: "4,99€",
+      originalPrice: "7,99€",
       period: "par mois",
       planType: "monthly",
       features: [
         "Recherche illimitée",
         "Accès aux cartes détaillées",
-        "Recherche avancée par filtres",
-        "Exportation PDF des résultats",
-        "Sans publicité"
+        "Recherche par filtres basiques",
+        "Sans publicité",
+        "Support par email"
       ],
-      popular: false
+      popular: false,
+      icon: <Zap className="w-5 h-5" />,
+      color: "border-blue-200"
     },
     {
-      name: "Annuel",
-      price: "89,99€",
+      name: "Pro",
+      price: "39,99€",
+      originalPrice: "59,99€",
       period: "par an",
       planType: "annual",
       features: [
-        "Recherche illimitée",
-        "Accès aux cartes détaillées",
+        "Tout de l'offre Essentiel",
         "Recherche avancée par filtres",
         "Exportation PDF des résultats",
-        "Sans publicité",
-        "Historique des recherches illimité",
-        "Accès prioritaire aux nouvelles fonctionnalités"
-      ],
-      popular: true,
-      saving: "25% d'économie"
-    },
-    {
-      name: "Famille",
-      price: "149,99€",
-      period: "par an",
-      planType: "family",
-      features: [
-        "Jusqu'à 5 utilisateurs",
-        "Recherche illimitée",
-        "Accès aux cartes détaillées",
-        "Recherche avancée par filtres",
-        "Exportation PDF des résultats",
-        "Sans publicité",
         "Historique des recherches illimité",
         "Accès prioritaire aux nouvelles fonctionnalités",
-        "Support client prioritaire"
+        "Support prioritaire",
+        "API d'accès (100 requêtes/jour)"
       ],
-      popular: false
+      popular: true,
+      icon: <Star className="w-5 h-5" />,
+      color: "border-purple-400 shadow-lg ring-2 ring-purple-200",
+      saving: "33% d'économie"
+    },
+    {
+      name: "Business",
+      price: "99,99€",
+      originalPrice: "149,99€",
+      period: "par an",
+      planType: "business",
+      features: [
+        "Tout de l'offre Pro",
+        "Jusqu'à 10 utilisateurs",
+        "API d'accès étendue (1000 requêtes/jour)",
+        "Intégration personnalisée",
+        "Tableau de bord analytique",
+        "Support dédié 24/7",
+        "Formation équipe incluse",
+        "Données exportables (CSV, JSON)"
+      ],
+      popular: false,
+      icon: <Crown className="w-5 h-5" />,
+      color: "border-amber-300"
     }
   ];
 
@@ -69,87 +77,117 @@ const Premium = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50">
       <Header />
       
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">Passez à LocaSimple Premium</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Découvrez toute la puissance de LocaSimple avec notre abonnement premium et accédez à des fonctionnalités exclusives pour une expérience optimale.
+      <main className="flex-grow container mx-auto px-4 py-8 lg:py-12">
+        <div className="max-w-7xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mb-6">
+              🚀 Offre de lancement - Jusqu'à 33% de réduction
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Passez à LocaSimple Premium
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Découvrez toute la puissance de LocaSimple avec nos plans premium et accédez à des fonctionnalités exclusives pour une expérience optimale.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {/* Pricing Cards */}
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
             {plans.map((plan) => (
-              <Card key={plan.name} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg' : ''}`}>
+              <Card key={plan.name} className={`relative ${plan.color} transition-all hover:scale-105 ${plan.popular ? 'lg:scale-110' : ''}`}>
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Plus populaire
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                    ⭐ Plus populaire
                   </div>
                 )}
-                <CardHeader>
-                  <CardTitle>{plan.name}</CardTitle>
-                  <div className="mt-3">
-                    <span className="text-3xl font-bold">{plan.price}</span>
-                    <span className="text-gray-500 ml-1">{plan.period}</span>
+                <CardHeader className="text-center pb-2">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className={`p-3 rounded-full ${plan.popular ? 'bg-purple-100' : 'bg-blue-100'}`}>
+                      {plan.icon}
+                    </div>
                   </div>
-                  {plan.saving && (
-                    <CardDescription className="text-green-600 font-medium mt-1">
-                      {plan.saving}
-                    </CardDescription>
-                  )}
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <div className="mt-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-4xl md:text-5xl font-bold text-gray-900">{plan.price}</span>
+                      <div className="text-left">
+                        <div className="text-sm text-gray-500 line-through">{plan.originalPrice}</div>
+                        <div className="text-sm text-gray-600">{plan.period}</div>
+                      </div>
+                    </div>
+                    {plan.saving && (
+                      <CardDescription className="text-green-600 font-semibold mt-2 text-lg">
+                        {plan.saving}
+                      </CardDescription>
+                    )}
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
+                <CardContent className="px-6">
+                  <ul className="space-y-4">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
-                        <span>{feature}</span>
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 shrink-0 mt-1" />
+                        <span className="text-gray-700">{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="pt-6">
                   <Button 
-                    className="w-full" 
+                    className={`w-full py-3 text-lg font-semibold ${plan.popular ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600' : ''}`}
                     variant={plan.popular ? "default" : "outline"}
                     onClick={() => handleSubscribe(plan.planType)}
                   >
-                    S'abonner
+                    {plan.popular ? 'Commencer maintenant' : 'Choisir ce plan'}
                   </Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
           
-          <div className="bg-gray-50 rounded-lg p-6 mb-12">
-            <h2 className="text-xl font-semibold mb-4">Questions fréquentes</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium">Comment fonctionne la période d'essai ?</h3>
-                <p className="text-gray-600">Nous offrons une période d'essai de 14 jours pour tous nos nouveaux utilisateurs. Vous pouvez annuler à tout moment pendant cette période sans être facturé.</p>
+          {/* FAQ Section */}
+          <div className="bg-white rounded-2xl p-8 lg:p-12 shadow-sm mb-12">
+            <h2 className="text-3xl font-bold text-center mb-12">Questions fréquentes</h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">🎯 Comment fonctionne la période d'essai ?</h3>
+                  <p className="text-gray-600">Nous offrons 14 jours d'essai gratuit pour tous nos nouveaux utilisateurs. Aucune carte requise, annulation possible à tout moment.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">🔄 Puis-je changer de forfait ?</h3>
+                  <p className="text-gray-600">Oui, changement possible à tout moment. Passage immédiat vers un plan supérieur, différé vers un plan inférieur.</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-medium">Puis-je changer de forfait ?</h3>
-                <p className="text-gray-600">Oui, vous pouvez changer de forfait à tout moment. Si vous passez à un forfait supérieur, la différence sera calculée au prorata. Si vous passez à un forfait inférieur, le changement prendra effet à la fin de votre période de facturation actuelle.</p>
-              </div>
-              <div>
-                <h3 className="font-medium">Comment puis-je annuler mon abonnement ?</h3>
-                <p className="text-gray-600">Vous pouvez annuler votre abonnement à tout moment depuis votre compte utilisateur. L'annulation prendra effet à la fin de votre période de facturation en cours.</p>
-              </div>
-              <div>
-                <h3 className="font-medium">Y a-t-il des remises pour les entreprises ?</h3>
-                <p className="text-gray-600">Oui, nous proposons des forfaits spéciaux pour les entreprises. Contactez notre équipe commerciale pour plus d'informations.</p>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">❌ Comment annuler mon abonnement ?</h3>
+                  <p className="text-gray-600">Annulation simple depuis votre compte utilisateur. Accès maintenu jusqu'à la fin de votre période payée.</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">🏢 Remises pour les entreprises ?</h3>
+                  <p className="text-gray-600">Forfaits spéciaux entreprises disponibles. Contactez notre équipe commerciale pour un devis personnalisé.</p>
+                </div>
               </div>
             </div>
           </div>
           
-          <div className="text-center p-6 bg-blue-50 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Toujours pas convaincu ?</h2>
-            <p className="mb-6">Essayez LocaSimple Premium gratuitement pendant 14 jours</p>
-            <Button size="lg">Commencer l'essai gratuit</Button>
+          {/* CTA Section */}
+          <div className="text-center p-8 lg:p-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl text-white">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Prêt à commencer ?</h2>
+            <p className="text-xl mb-8 opacity-90">Rejoignez plus de 10,000 utilisateurs qui font confiance à LocaSimple</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-4">
+                Essai gratuit 14 jours
+              </Button>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-blue-600">
+                Voir une démo
+              </Button>
+            </div>
           </div>
         </div>
       </main>
