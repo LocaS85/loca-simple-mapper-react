@@ -7,10 +7,10 @@ export interface GeoSearchFilters {
   transport: TransportMode;
   distance: number;
   unit: 'km' | 'mi';
-  query?: string;
+  query: string;
   aroundMeCount: number;
   showMultiDirections: boolean;
-  maxDuration?: number;
+  maxDuration: number;
 }
 
 export interface SearchResult {

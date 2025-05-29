@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { TransportMode } from '@/lib/data/transportModes';
@@ -122,8 +123,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           // Utiliser le service unifié avec paramètres corrigés
           const searchParams = {
             ...filters,
-            center: userLocation,
-            query: filters.query || '' // S'assurer que query est défini
+            center: userLocation
           };
 
           const places = await unifiedSearchService.searchPlaces(searchParams);
