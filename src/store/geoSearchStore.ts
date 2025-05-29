@@ -5,6 +5,7 @@ import { TransportMode } from '@/lib/data/transportModes';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 import { unifiedSearchService, SearchPlace } from '@/services/unifiedApiService';
 import { filterSyncService } from './filterSync';
+import { performanceService } from '@/services/performanceService';
 
 interface GeoSearchState {
   // Position et localisation
@@ -14,21 +15,22 @@ interface GeoSearchState {
   // Filtres de recherche avec synchronisation
   filters: GeoSearchFilters;
   
-  // Résultats et état
+  // Résultats et état avec cache optimisé
   results: SearchResult[];
   isLoading: boolean;
   showFilters: boolean;
-  lastSearchParams: string | null; // Pour éviter les recherches dupliquées
+  lastSearchParams: string | null;
+  searchCache: Map<string, { results: SearchResult[]; timestamp: number }>;
   
   // Actions pour la position
   setUserLocation: (location: [number, number] | null) => void;
   setStartingPosition: (position: [number, number] | null) => void;
   
-  // Actions pour les filtres avec validation
+  // Actions pour les filtres avec validation améliorée
   updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
   resetFilters: () => void;
   
-  // Actions pour les résultats
+  // Actions pour les résultats avec performance
   setResults: (results: SearchResult[]) => void;
   setIsLoading: (loading: boolean) => void;
   
@@ -36,8 +38,9 @@ interface GeoSearchState {
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
   
-  // Actions de recherche avec cache et debouncing
+  // Actions de recherche optimisées
   loadResults: () => Promise<void>;
+  clearCache: () => void;
 }
 
 const defaultFilters: GeoSearchFilters = {
@@ -52,7 +55,7 @@ const defaultFilters: GeoSearchFilters = {
   maxDuration: 20
 };
 
-// Fonction de conversion améliorée
+// Fonction de conversion optimisée
 const convertToSearchResult = (place: SearchPlace): SearchResult => ({
   id: place.id,
   name: place.name,
@@ -75,15 +78,21 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       isLoading: false,
       showFilters: false,
       lastSearchParams: null,
+      searchCache: new Map(),
       
       // Actions pour la position
-      setUserLocation: (location) => 
-        set({ userLocation: location }, false, 'setUserLocation'),
+      setUserLocation: (location) => {
+        set({ userLocation: location }, false, 'setUserLocation');
+        // Nettoyer le cache lors du changement de position
+        if (location) {
+          get().clearCache();
+        }
+      },
         
       setStartingPosition: (position) => 
         set({ startingPosition: position }, false, 'setStartingPosition'),
       
-      // Actions pour les filtres avec validation
+      // Actions pour les filtres avec validation et debouncing
       updateFilters: (newFilters) => {
         const currentFilters = get().filters;
         const updatedFilters = { ...currentFilters, ...newFilters };
@@ -92,14 +101,17 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         if (filterSyncService.validateFilters(updatedFilters)) {
           set({ filters: updatedFilters }, false, 'updateFilters');
           
-          // Déclencher une nouvelle recherche si les filtres affectent les résultats
-          const shouldRefresh = ['category', 'subcategory', 'transport', 'distance', 'maxDuration', 'aroundMeCount']
-            .some(key => key in newFilters);
+          // Recherche automatique intelligente
+          const criticalFilters = ['category', 'subcategory', 'transport', 'distance', 'maxDuration', 'aroundMeCount'];
+          const shouldRefresh = Object.keys(newFilters).some(key => criticalFilters.includes(key));
             
           if (shouldRefresh && get().userLocation) {
-            // Debouncer la recherche
+            // Debounce optimisé
             setTimeout(() => {
-              get().loadResults();
+              const state = get();
+              if (state.userLocation) {
+                state.loadResults();
+              }
             }, 300);
           }
         } else {
@@ -107,8 +119,13 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         }
       },
         
-      resetFilters: () =>
-        set({ filters: { ...defaultFilters }, lastSearchParams: null }, false, 'resetFilters'),
+      resetFilters: () => {
+        set({ 
+          filters: { ...defaultFilters }, 
+          lastSearchParams: null 
+        }, false, 'resetFilters');
+        get().clearCache();
+      },
       
       // Actions pour les résultats
       setResults: (results) => 
@@ -124,24 +141,40 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
       
-      // Action de recherche optimisée avec cache
+      // Action de recherche optimisée avec cache intelligent
       loadResults: async () => {
-        const { userLocation, filters, setIsLoading, setResults, lastSearchParams } = get();
+        const { userLocation, filters, setIsLoading, setResults, lastSearchParams, searchCache } = get();
         
         if (!userLocation) {
           console.log('Aucune localisation utilisateur disponible pour la recherche');
           return;
         }
         
+        // Mesurer les performances
+        const endSearchTimer = performanceService.startSearchTimer();
+        
         // Créer une clé unique pour cette recherche
         const searchKey = JSON.stringify({ userLocation, filters });
         
-        // Éviter les recherches dupliquées
-        if (searchKey === lastSearchParams) {
-          console.log('Recherche identique ignorée (cache)');
+        // Vérifier le cache (valide pendant 5 minutes)
+        const cached = searchCache.get(searchKey);
+        const now = Date.now();
+        
+        if (cached && (now - cached.timestamp) < 300000) { // 5 minutes
+          console.log('Utilisation du cache pour les résultats');
+          setResults(cached.results);
+          performanceService.incrementCacheHits();
+          endSearchTimer();
           return;
         }
         
+        // Éviter les recherches dupliquées
+        if (searchKey === lastSearchParams && !cached) {
+          console.log('Recherche identique en cours, ignorée');
+          return;
+        }
+        
+        performanceService.incrementCacheMisses();
         setIsLoading(true);
         console.log('Chargement des résultats avec filtres validés:', filters);
         
@@ -153,6 +186,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
             center: userLocation
           };
 
+          performanceService.incrementApiCalls();
           const places = await unifiedSearchService.searchPlaces(searchParams);
           
           // Convertir vers le format SearchResult
@@ -162,7 +196,19 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           setResults(searchResults);
           
           // Mettre à jour le cache
-          set({ lastSearchParams: searchKey }, false, 'updateSearchCache');
+          const newCache = new Map(searchCache);
+          newCache.set(searchKey, { results: searchResults, timestamp: now });
+          
+          // Limiter la taille du cache (max 50 entrées)
+          if (newCache.size > 50) {
+            const firstKey = newCache.keys().next().value;
+            newCache.delete(firstKey);
+          }
+          
+          set({ 
+            lastSearchParams: searchKey,
+            searchCache: newCache
+          }, false, 'updateSearchCache');
           
         } catch (error) {
           console.error('Erreur lors du chargement des résultats:', error);
@@ -189,7 +235,19 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           }
         } finally {
           setIsLoading(false);
+          endSearchTimer();
+          
+          // Log des performances en développement
+          if (process.env.NODE_ENV === 'development') {
+            console.log(performanceService.analyzePerformance());
+          }
         }
+      },
+
+      // Gestion du cache
+      clearCache: () => {
+        set({ searchCache: new Map() }, false, 'clearCache');
+        console.log('Cache de recherche vidé');
       }
     }),
     {
