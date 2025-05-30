@@ -1,5 +1,5 @@
 
-import React from 'react';
+import { validateMapboxToken } from './mapboxValidation';
 
 // Configuration Mapbox optimisée avec validation et nouvelle clé API
 export const getMapboxToken = (): string => {
@@ -65,7 +65,7 @@ export const SEARCH_CONFIG = {
 };
 
 // Validation du token au démarrage
-export const validateMapboxToken = async (token: string): Promise<boolean> => {
+export const validateMapboxTokenAsync = async (token: string): Promise<boolean> => {
   try {
     // Utiliser une URL d'API différente selon le type de token
     let testUrl: string;
@@ -93,70 +93,13 @@ export const validateMapboxToken = async (token: string): Promise<boolean> => {
   }
 };
 
-// Composant d'avertissement pour token invalide
-export const MapboxTokenWarning: React.FC<{ onTokenUpdate?: (token: string) => void }> = ({ onTokenUpdate }) => {
-  const [token, setToken] = React.useState('');
-  const [isValidating, setIsValidating] = React.useState(false);
-
-  const handleValidateToken = async () => {
-    if (!token.trim()) return;
-    
-    setIsValidating(true);
-    const isValid = await validateMapboxToken(token);
-    
-    if (isValid) {
-      localStorage.setItem('MAPBOX_ACCESS_TOKEN', token);
-      onTokenUpdate?.(token);
-      window.location.reload();
-    } else {
-      alert('Token Mapbox invalide. Veuillez vérifier votre token.');
-    }
-    setIsValidating(false);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">Configuration Mapbox requise</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Le token Mapbox actuel n'est pas valide. Veuillez entrer votre token Mapbox pour continuer.
-        </p>
-        <input
-          type="text"
-          placeholder="sk.eyJ1... ou pk.eyJ1..."
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          className="w-full p-2 border rounded mb-4"
-        />
-        <div className="flex gap-2">
-          <button
-            onClick={handleValidateToken}
-            disabled={!token.trim() || isValidating}
-            className="flex-1 bg-blue-500 text-white p-2 rounded disabled:opacity-50"
-          >
-            {isValidating ? 'Validation...' : 'Valider'}
-          </button>
-          <a
-            href="https://account.mapbox.com/access-tokens/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-gray-500 text-white p-2 rounded text-center"
-          >
-            Obtenir un token
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Fonction pour initialiser et tester la connexion Mapbox
 export const initializeMapboxConnection = async (): Promise<boolean> => {
   try {
     const token = getMapboxToken();
     console.log('🚀 Initialisation de la connexion Mapbox...');
     
-    const isValid = await validateMapboxToken(token);
+    const isValid = await validateMapboxTokenAsync(token);
     
     if (isValid) {
       console.log('✅ Connexion Mapbox établie avec succès');
