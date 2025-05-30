@@ -1,4 +1,5 @@
 
+
 // Configuration Mapbox optimisée avec validation
 
 export const getMapboxToken = (): string => {
@@ -20,6 +21,17 @@ export const getMapboxToken = (): string => {
   return token;
 };
 
+// Fonction de validation du token Mapbox
+export const isMapboxTokenValid = (): boolean => {
+  try {
+    const token = getMapboxToken();
+    return token && token.startsWith('pk.') && token.length > 50;
+  } catch (error) {
+    console.error('Token Mapbox invalide:', error);
+    return false;
+  }
+};
+
 // Configuration des styles de carte disponibles
 export const MAPBOX_STYLES = {
   streets: 'mapbox://styles/mapbox/streets-v12',
@@ -38,6 +50,10 @@ export const FRANCE_BOUNDS = {
   center: [2.3522, 48.8566] as [number, number], // Paris
   zoom: 6
 };
+
+// Valeurs par défaut pour la carte
+export const DEFAULT_MAP_CENTER: [number, number] = [2.3522, 48.8566]; // Paris
+export const DEFAULT_MAP_ZOOM = 12;
 
 // Configuration des limites de recherche
 export const SEARCH_CONFIG = {
@@ -58,3 +74,4 @@ export const validateMapboxToken = async (token: string): Promise<boolean> => {
     return false;
   }
 };
+
