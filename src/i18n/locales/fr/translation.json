@@ -23,7 +23,10 @@
     "previous": "Précédent",
     "home": "Accueil",
     "back": "Retour",
-    "menu": "Menu"
+    "menu": "Menu",
+    "yes": "Oui",
+    "no": "Non",
+    "minutes": "minutes"
   },
   "header": {
     "home": "Accueil",
@@ -95,9 +98,12 @@
     "distance": "Distance maximale",
     "duration": "Durée maximale",
     "aroundMe": "Autour de moi",
+    "aroundMeCount": "Nombre de lieux",
     "places": "Nombre de lieux",
     "multiDirections": "Itinéraires multiples",
+    "showMultiDirections": "Itinéraires multiples",
     "adjust": "Ajuster",
+    "maxDuration": "Durée maximale",
     "labels": {
       "maxDistance": "Distance max",
       "maxDuration": "Durée max"
@@ -122,7 +128,8 @@
     "found_one": "{{count}} trouvé",
     "found_other": "{{count}} trouvés",
     "searching": "Recherche en cours...",
-    "searchError": "Erreur lors de la recherche"
+    "searchError": "Erreur lors de la recherche",
+    "voiceSearch": "Recherche vocale"
   },
   "display": {
     "grid": "Grille",
@@ -165,7 +172,9 @@
     "near": "Près de",
     "country": "Pays",
     "yourPosition": "Votre position",
-    "miniMapTitle": "Mini Carte"
+    "miniMapTitle": "Mini Carte",
+    "seoDesc": "Découvrez facilement les lieux autour de vous avec LocaSimple. Application de cartographie française avec recherche avancée et filtres intelligents.",
+    "seoDescWithCategory": "Trouvez les meilleurs {{category}} près de chez vous avec LocaSimple. Recherche avancée, filtres intelligents et cartes interactives."
   },
   "map": {
     "error": "Erreur de carte",

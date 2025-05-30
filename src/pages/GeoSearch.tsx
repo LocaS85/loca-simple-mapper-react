@@ -26,17 +26,22 @@ const GeoSearch = () => {
     updateFilters,
     performSearch,
     toggleFilters,
-    setUserLocation
+    setUserLocation,
+    setShowFilters
   } = useAppStore();
 
-  // Gérer la sélection de localisation
+  // Gérer la sélection de localisation depuis l'auto-suggestion
   const handleLocationSelect = (location: { 
     name: string; 
     coordinates: [number, number]; 
     placeName: string 
   }) => {
-    console.log('Location selected:', location);
+    console.log('Location selected in GeoSearch:', location);
+    
+    // Mettre à jour la localisation utilisateur
     setUserLocation(location.coordinates);
+    
+    // Mettre à jour la requête dans les filtres
     updateFilters({ query: location.name });
     
     toast({
@@ -49,30 +54,8 @@ const GeoSearch = () => {
 
   // Demander la localisation utilisateur
   const handleUserLocationRequest = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coordinates: [number, number] = [
-            position.coords.longitude, 
-            position.coords.latitude
-          ];
-          setUserLocation(coordinates);
-          
-          toast({
-            title: t("map.yourLocation"),
-            description: t("geosearch.usingCurrentLocation"),
-          });
-        },
-        (error) => {
-          console.error('Erreur géolocalisation:', error);
-          toast({
-            title: t("geosearch.locationError"),
-            description: t("geosearch.locationErrorDesc"),
-            variant: "destructive",
-          });
-        }
-      );
-    }
+    console.log('User location request initiated from GeoSearch');
+    // La logique est maintenant dans SearchHeader
   };
 
   // Réinitialiser les filtres
@@ -88,22 +71,30 @@ const GeoSearch = () => {
       showMultiDirections: false,
       maxDuration: 20
     });
+    
+    toast({
+      title: t("filters.reset"),
+      description: t("filters.resetSuccess"),
+    });
   };
 
   // Déterminer l'état vide
   const showEmptyState = !isLoading && 
     searchResults.length === 0 && 
     isInitialized &&
-    (filters.category || filters.subcategory || filters.query);
+    (filters.category || filters.subcategory || filters.query) &&
+    userLocation;
 
   // Métadonnées SEO dynamiques
   const seoTitle = filters.category 
-    ? `${filters.category} - Recherche géolocalisée | LocaSimple`
-    : "Recherche géolocalisée | LocaSimple";
+    ? `${filters.category} - ${t('geosearch.title')} | LocaSimple`
+    : `${t('geosearch.title')} | LocaSimple`;
     
   const seoDescription = filters.category
-    ? `Trouvez les meilleurs ${filters.category} près de chez vous avec LocaSimple. Recherche avancée, filtres intelligents et cartes interactives.`
-    : "Découvrez facilement les lieux autour de vous avec LocaSimple. Application de cartographie française avec recherche avancée et filtres intelligents.";
+    ? t('geosearch.seoDescWithCategory', { category: filters.category })
+    : t('geosearch.seoDesc');
+
+  console.log('GeoSearch render - userLocation:', userLocation, 'searchResults:', searchResults.length);
 
   return (
     <>
@@ -126,7 +117,7 @@ const GeoSearch = () => {
         <FiltersPopup
           filters={filters}
           onChange={updateFilters}
-          onClose={toggleFilters}
+          onClose={() => setShowFilters(false)}
           open={showFilters}
           onReset={handleResetFilters}
         />

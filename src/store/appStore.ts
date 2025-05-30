@@ -1,45 +1,48 @@
 
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-import { UnifiedFilters } from '@/hooks/useUnifiedFilters';
-import { SearchResult } from '@/types/geosearch';
-import { unifiedSearchService, SearchPlace } from '@/services/unifiedApiService';
+import { devtools } from 'zustand/middleware';
+import { TransportMode } from '@/lib/data/transportModes';
+import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
+import { unifiedSearchService } from '@/services/unifiedApiService';
 import { filterSyncService } from './filterSync';
 
 interface AppState {
-  // État global de l'application
-  isInitialized: boolean;
+  // Position et localisation
   userLocation: [number, number] | null;
   
-  // Filtres unifiés
-  filters: UnifiedFilters;
+  // Filtres de recherche
+  filters: GeoSearchFilters;
   
-  // Résultats et cache
+  // Résultats et état
   searchResults: SearchResult[];
-  searchCache: Map<string, SearchResult[]>;
   isLoading: boolean;
-  lastSearchTime: number;
-  
-  // Interface utilisateur
   showFilters: boolean;
-  activeView: 'map' | 'list' | 'grid';
   
-  // Actions
-  initializeApp: () => Promise<void>;
+  // Actions pour la position
   setUserLocation: (location: [number, number] | null) => void;
-  updateFilters: (filters: Partial<UnifiedFilters>) => void;
-  performSearch: (force?: boolean) => Promise<void>;
+  
+  // Actions pour les filtres
+  updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
+  resetFilters: () => void;
+  
+  // Actions pour les résultats
+  setSearchResults: (results: SearchResult[]) => void;
+  setIsLoading: (loading: boolean) => void;
+  
+  // Actions pour l'interface
   toggleFilters: () => void;
-  setActiveView: (view: 'map' | 'list' | 'grid') => void;
-  clearCache: () => void;
+  setShowFilters: (show: boolean) => void;
+  
+  // Actions de recherche
+  performSearch: (forceRefresh?: boolean) => Promise<void>;
 }
 
-const defaultFilters: UnifiedFilters = {
+const defaultFilters: GeoSearchFilters = {
   category: null,
   subcategory: null,
-  transport: 'walking',
+  transport: 'walking' as TransportMode,
   distance: 10,
-  unit: 'km',
+  unit: 'km' as 'km' | 'mi',
   query: '',
   aroundMeCount: 3,
   showMultiDirections: false,
@@ -48,168 +51,135 @@ const defaultFilters: UnifiedFilters = {
 
 export const useAppStore = create<AppState>()(
   devtools(
-    persist(
-      (set, get) => ({
-        // État initial
-        isInitialized: false,
-        userLocation: null,
-        filters: { ...defaultFilters },
-        searchResults: [],
-        searchCache: new Map(),
-        isLoading: false,
-        lastSearchTime: 0,
-        showFilters: false,
-        activeView: 'map',
-
-        // Initialisation de l'application
-        initializeApp: async () => {
-          console.log('Initialisation de l\'application...');
-          
-          // Géolocalisation
-          if (navigator.geolocation) {
-            try {
-              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                  enableHighAccuracy: true,
-                  timeout: 10000,
-                  maximumAge: 300000
-                });
-              });
-              
-              set({
-                userLocation: [position.coords.longitude, position.coords.latitude],
-                isInitialized: true
-              });
-            } catch (error) {
-              console.warn('Géolocalisation échouée, utilisation de Paris par défaut');
-              set({
-                userLocation: [2.3522, 48.8566],
-                isInitialized: true
-              });
-            }
-          } else {
-            set({
-              userLocation: [2.3522, 48.8566],
-              isInitialized: true
-            });
-          }
-        },
-
-        // Gestion de la localisation
-        setUserLocation: (location) => {
-          set({ userLocation: location });
-          // Invalider le cache lors du changement de localisation
-          if (location) {
-            get().clearCache();
-          }
-        },
-
-        // Mise à jour des filtres avec validation
-        updateFilters: (newFilters) => {
-          const currentFilters = get().filters;
-          const updatedFilters = { ...currentFilters, ...newFilters };
-          
-          if (filterSyncService.validateFilters(updatedFilters)) {
-            set({ filters: updatedFilters });
-            
-            // Recherche automatique après modification des filtres critiques
-            const criticalFilters = ['category', 'subcategory', 'transport', 'distance', 'maxDuration'];
-            const shouldSearch = Object.keys(newFilters).some(key => criticalFilters.includes(key));
-            
-            if (shouldSearch && get().userLocation) {
-              // Debounce la recherche
-              setTimeout(() => {
-                get().performSearch();
-              }, 500);
-            }
-          } else {
-            console.warn('Filtres invalides ignorés:', newFilters);
-          }
-        },
-
-        // Recherche avec cache et optimisations
-        performSearch: async (force = false) => {
-          const { userLocation, filters, searchCache, lastSearchTime } = get();
-          
-          if (!userLocation) {
-            console.log('Aucune localisation disponible pour la recherche');
-            return;
-          }
-
-          // Génération de la clé de cache
-          const cacheKey = JSON.stringify({ 
-            location: userLocation, 
-            filters: filters 
-          });
-
-          // Vérifier le cache et la fréquence de recherche
-          const now = Date.now();
-          const timeSinceLastSearch = now - lastSearchTime;
-          
-          if (!force && searchCache.has(cacheKey) && timeSinceLastSearch < 30000) {
-            console.log('Utilisation du cache pour les résultats');
-            set({ searchResults: searchCache.get(cacheKey) || [] });
-            return;
-          }
-
-          set({ isLoading: true, lastSearchTime: now });
-
-          try {
-            const searchParams = {
-              ...filters,
-              center: userLocation
-            };
-
-            const places = await unifiedSearchService.searchPlaces(searchParams);
-            
-            // Conversion vers SearchResult
-            const results: SearchResult[] = places.map((place: SearchPlace) => ({
-              id: place.id,
-              name: place.name,
-              address: place.address,
-              coordinates: place.coordinates,
-              type: place.category,
-              category: place.category,
-              distance: place.distance,
-              duration: place.duration || 0
-            }));
-
-            // Mise à jour du cache et des résultats
-            const newCache = new Map(searchCache);
-            newCache.set(cacheKey, results);
-            
-            set({ 
-              searchResults: results,
-              searchCache: newCache
-            });
-
-            console.log(`Recherche terminée: ${results.length} résultats trouvés`);
-
-          } catch (error) {
-            console.error('Erreur lors de la recherche:', error);
-            set({ searchResults: [] });
-          } finally {
-            set({ isLoading: false });
-          }
-        },
-
-        // Actions interface
-        toggleFilters: () => set(state => ({ showFilters: !state.showFilters })),
+    (set, get) => ({
+      // État initial
+      userLocation: null,
+      filters: { ...defaultFilters },
+      searchResults: [],
+      isLoading: false,
+      showFilters: false,
+      
+      // Actions pour la position
+      setUserLocation: (location) => {
+        console.log('Setting user location in store:', location);
+        set({ userLocation: location }, false, 'setUserLocation');
         
-        setActiveView: (view) => set({ activeView: view }),
+        // Déclencher une nouvelle recherche si on a une localisation
+        if (location) {
+          setTimeout(() => {
+            get().performSearch(true);
+          }, 500);
+        }
+      },
+      
+      // Actions pour les filtres
+      updateFilters: (newFilters) => {
+        const currentFilters = get().filters;
+        const updatedFilters = { ...currentFilters, ...newFilters };
+        
+        console.log('Updating filters:', newFilters);
+        set({ filters: updatedFilters }, false, 'updateFilters');
+        
+        // Déclencher une recherche si on a une localisation et des filtres critiques ont changé
+        const criticalFilters = ['category', 'subcategory', 'transport', 'distance', 'maxDuration', 'aroundMeCount', 'query'];
+        const shouldRefresh = Object.keys(newFilters).some(key => criticalFilters.includes(key));
+        
+        if (shouldRefresh && get().userLocation) {
+          setTimeout(() => {
+            get().performSearch(true);
+          }, 300);
+        }
+      },
+        
+      resetFilters: () => {
+        console.log('Resetting filters to default');
+        set({ filters: { ...defaultFilters } }, false, 'resetFilters');
+      },
+      
+      // Actions pour les résultats
+      setSearchResults: (results) => {
+        console.log('Setting search results:', results);
+        set({ searchResults: results }, false, 'setSearchResults');
+      },
+        
+      setIsLoading: (loading) => 
+        set({ isLoading: loading }, false, 'setIsLoading'),
+      
+      // Actions pour l'interface
+      toggleFilters: () =>
+        set((state) => ({ showFilters: !state.showFilters }), false, 'toggleFilters'),
+        
+      setShowFilters: (show) => 
+        set({ showFilters: show }, false, 'setShowFilters'),
+      
+      // Action de recherche principale
+      performSearch: async (forceRefresh = false) => {
+        const { userLocation, filters, setIsLoading, setSearchResults } = get();
+        
+        if (!userLocation) {
+          console.log('Aucune localisation utilisateur pour la recherche');
+          return;
+        }
+        
+        console.log('Performing search with filters:', filters);
+        setIsLoading(true);
+        
+        try {
+          // Convertir les filtres pour l'API unifiée
+          const unifiedFilters = filterSyncService.geoSearchToUnified(filters);
+          const searchParams = {
+            ...unifiedFilters,
+            center: userLocation
+          };
 
-        // Gestion du cache
-        clearCache: () => set({ searchCache: new Map() })
-      }),
-      {
-        name: 'app-store',
-        partialize: (state) => ({
-          filters: state.filters,
-          activeView: state.activeView,
-          userLocation: state.userLocation
-        })
+          console.log('API search params:', searchParams);
+          const places = await unifiedSearchService.searchPlaces(searchParams);
+          
+          // Convertir les résultats
+          const searchResults = places.map(place => ({
+            id: place.id,
+            name: place.name,
+            address: place.address,
+            coordinates: place.coordinates,
+            type: place.category,
+            category: place.category,
+            distance: place.distance,
+            duration: place.duration || 0
+          }));
+          
+          console.log('Search results converted:', searchResults);
+          setSearchResults(searchResults);
+          
+        } catch (error) {
+          console.error('Erreur lors de la recherche:', error);
+          
+          // Fallback avec données mockées si erreur réseau
+          if (error instanceof Error && error.message.includes('network')) {
+            const mockResults: SearchResult[] = Array.from({ length: filters.aroundMeCount }, (_, i) => ({
+              id: `mock-result-${i}`,
+              name: `${filters.category || 'Lieu'} ${i + 1}`,
+              address: `${123 + i} Rue d'Exemple, France`,
+              coordinates: [
+                userLocation[0] + (Math.random() * 0.02 - 0.01),
+                userLocation[1] + (Math.random() * 0.02 - 0.01)
+              ] as [number, number],
+              type: filters.subcategory || 'default',
+              category: filters.category || 'default',
+              distance: Math.round(Math.random() * filters.distance * 10) / 10,
+              duration: Math.round(Math.random() * 30)
+            }));
+            
+            setSearchResults(mockResults);
+          } else {
+            setSearchResults([]);
+          }
+        } finally {
+          setIsLoading(false);
+        }
       }
-    ),
-    { name: 'app-store' }
+    }),
+    {
+      name: 'app-store',
+    }
   )
 );

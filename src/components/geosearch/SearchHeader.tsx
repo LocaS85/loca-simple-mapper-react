@@ -7,7 +7,7 @@ import AutoSuggestSearch from './AutoSuggestSearch';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
 import { BoutonFiltre, BadgesFiltres } from '../filters';
-import { TransportMode } from '@/lib/data/transportModes';
+import { useToast } from '@/hooks/use-toast';
 
 interface SearchHeaderProps {
   filters: GeoSearchFilters;
@@ -26,11 +26,74 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
-    console.log('Location selected:', location);
+    console.log('Location selected in SearchHeader:', location);
+    
+    // Afficher un toast de confirmation
+    toast({
+      title: t("geosearch.locationSelected"),
+      description: t("geosearch.searchingAround", { 
+        place: location.placeName || location.name 
+      }),
+    });
+
     if (onLocationSelect) {
       onLocationSelect(location);
+    }
+  };
+
+  const handleUserLocationRequest = () => {
+    console.log('Requesting user location...');
+    
+    if (navigator.geolocation) {
+      toast({
+        title: t("map.yourLocation"),
+        description: "Recherche de votre position...",
+      });
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('User location found:', position.coords);
+          const coordinates: [number, number] = [
+            position.coords.longitude, 
+            position.coords.latitude
+          ];
+          
+          // Simuler un objet location pour onLocationSelect
+          const userLocationData = {
+            name: t("geosearch.yourPosition"),
+            coordinates,
+            placeName: t("geosearch.yourPosition")
+          };
+          
+          handleLocationSelect(userLocationData);
+          
+          if (onRequestUserLocation) {
+            onRequestUserLocation();
+          }
+        },
+        (error) => {
+          console.error('Erreur géolocalisation:', error);
+          toast({
+            title: t("geosearch.locationError"),
+            description: t("geosearch.locationErrorDesc"),
+            variant: "destructive",
+          });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
+        }
+      );
+    } else {
+      toast({
+        title: t("geosearch.locationError"),
+        description: "La géolocalisation n'est pas supportée par votre navigateur",
+        variant: "destructive",
+      });
     }
   };
 
@@ -52,6 +115,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
             onResultSelect={handleLocationSelect}
             placeholder={t('geosearch.searchPlaceholder')}
             initialValue={filters.query}
+            className="w-full"
           />
         </div>
 
@@ -59,7 +123,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           variant="outline" 
           size="icon" 
           className="shrink-0"
-          onClick={onRequestUserLocation}
+          onClick={handleUserLocationRequest}
           aria-label={t('map.yourLocation')}
           title={t('map.yourLocation')}
         >
