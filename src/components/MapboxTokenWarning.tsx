@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { validateMapboxTokenAsync } from '@/utils/mapboxConfig';
+import { validateMapboxToken } from '@/utils/mapboxValidation';
 
 interface MapboxTokenWarningProps {
   onTokenUpdate?: (token: string) => void;
@@ -14,7 +14,7 @@ export const MapboxTokenWarning: React.FC<MapboxTokenWarningProps> = ({ onTokenU
     if (!token.trim()) return;
     
     setIsValidating(true);
-    const isValid = await validateMapboxTokenAsync(token);
+    const isValid = await validateMapboxToken(token);
     
     if (isValid) {
       localStorage.setItem('MAPBOX_ACCESS_TOKEN', token);
