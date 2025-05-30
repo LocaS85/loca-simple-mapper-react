@@ -1,5 +1,5 @@
-
-import { getMapboxToken, isMapboxTokenValid, validateMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { validateMapboxToken } from '@/utils/mapboxValidation';
 import { TransportMode } from '@/lib/data/transportModes';
 import { trackSearchEvent } from './analytics';
 import { UnifiedFilters } from '@/hooks/useUnifiedFilters';
