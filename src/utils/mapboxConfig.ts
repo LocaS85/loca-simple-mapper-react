@@ -1,6 +1,4 @@
 
-import { validateMapboxToken } from './mapboxValidation';
-
 // Configuration Mapbox optimisée avec validation et nouvelle clé API
 export const getMapboxToken = (): string => {
   // Nouvelle clé API Mapbox mise à jour
@@ -62,30 +60,4 @@ export const SEARCH_CONFIG = {
   debounceMs: 300,
   timeoutMs: 10000,
   retryAttempts: 2
-};
-
-// Validation du token au démarrage
-export const validateMapboxTokenAsync = async (token: string): Promise<boolean> => {
-  return await validateMapboxToken(token);
-};
-
-// Fonction pour initialiser et tester la connexion Mapbox
-export const initializeMapboxConnection = async (): Promise<boolean> => {
-  try {
-    const token = getMapboxToken();
-    console.log('🚀 Initialisation de la connexion Mapbox...');
-    
-    const isValid = await validateMapboxTokenAsync(token);
-    
-    if (isValid) {
-      console.log('✅ Connexion Mapbox établie avec succès');
-      return true;
-    } else {
-      console.error('❌ Échec de la connexion Mapbox');
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ Erreur lors de l\'initialisation Mapbox:', error);
-    return false;
-  }
 };
