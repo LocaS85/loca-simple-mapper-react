@@ -7,6 +7,9 @@ import { unifiedSearchService } from '@/services/unifiedApiService';
 import { filterSyncService } from './filterSync';
 
 interface AppState {
+  // État d'initialisation
+  isInitialized: boolean;
+  
   // Position et localisation
   userLocation: [number, number] | null;
   
@@ -17,6 +20,9 @@ interface AppState {
   searchResults: SearchResult[];
   isLoading: boolean;
   showFilters: boolean;
+  
+  // Actions d'initialisation
+  initializeApp: () => void;
   
   // Actions pour la position
   setUserLocation: (location: [number, number] | null) => void;
@@ -53,11 +59,43 @@ export const useAppStore = create<AppState>()(
   devtools(
     (set, get) => ({
       // État initial
+      isInitialized: false,
       userLocation: null,
       filters: { ...defaultFilters },
       searchResults: [],
       isLoading: false,
       showFilters: false,
+      
+      // Action d'initialisation
+      initializeApp: () => {
+        console.log('Initialisation de l\'application GeoSearch');
+        
+        // Marquer comme initialisé
+        set({ isInitialized: true }, false, 'initializeApp');
+        
+        // Tenter d'obtenir la localisation utilisateur automatiquement
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const coordinates: [number, number] = [
+                position.coords.longitude, 
+                position.coords.latitude
+              ];
+              console.log('Localisation utilisateur obtenue automatiquement:', coordinates);
+              get().setUserLocation(coordinates);
+            },
+            (error) => {
+              console.log('Localisation automatique échouée:', error.message);
+              // Ne pas afficher d'erreur, juste continuer sans localisation
+            },
+            {
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 300000
+            }
+          );
+        }
+      },
       
       // Actions pour la position
       setUserLocation: (location) => {

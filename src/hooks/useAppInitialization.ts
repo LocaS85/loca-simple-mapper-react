@@ -16,7 +16,7 @@ export const useAppInitialization = () => {
   // Initialisation de l'application
   useEffect(() => {
     if (!isInitialized) {
-      console.log('Initialisation de l\'application...');
+      console.log('Initialisation de l\'application GeoSearch...');
       initializeApp();
     }
   }, [isInitialized, initializeApp]);
