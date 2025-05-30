@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2, MapPin, AlertCircle } from 'lucide-react';
 import { getMapboxToken, isMapboxTokenValid, validateMapboxToken } from '@/utils/mapboxConfig';
@@ -183,7 +182,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   };
 
-  // Gérer la saisie avec debounce
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
@@ -203,7 +201,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   };
 
-  // Gérer la sélection d'une suggestion
   const handleSuggestionSelect = (suggestion: SuggestionResult) => {
     console.log('📍 Suggestion sélectionnée:', suggestion);
     setQuery(suggestion.text);
@@ -217,7 +214,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     });
   };
 
-  // Effacer la saisie
   const handleClearInput = () => {
     setQuery('');
     setSuggestions([]);
@@ -227,7 +223,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   };
 
-  // Navigation clavier
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setIsFocused(false);
@@ -242,7 +237,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   };
 
-  // Icône pour le type de lieu
   const renderPlaceTypeIcon = (placeType: string[]) => {
     const type = placeType[0];
     const iconProps = { size: 16, className: "flex-shrink-0" };
@@ -260,7 +254,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   };
 
-  // Gérer les clics externes
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -279,7 +272,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     };
   }, []);
 
-  // Nettoyer le timer
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
