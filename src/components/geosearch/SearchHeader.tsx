@@ -50,7 +50,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
     if (navigator.geolocation) {
       toast({
         title: t("map.yourLocation"),
-        description: "Recherche de votre position...",
+        description: t("geosearch.requestingLocation"),
       });
 
       navigator.geolocation.getCurrentPosition(
@@ -76,9 +76,23 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         },
         (error) => {
           console.error('Erreur géolocalisation:', error);
+          let errorMessage = t("geosearch.locationErrorDesc");
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = t("geosearch.locationPermissionDenied");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = t("geosearch.locationUnavailable");
+              break;
+            case error.TIMEOUT:
+              errorMessage = t("geosearch.locationTimeout");
+              break;
+          }
+          
           toast({
             title: t("geosearch.locationError"),
-            description: t("geosearch.locationErrorDesc"),
+            description: errorMessage,
             variant: "destructive",
           });
         },
@@ -91,7 +105,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
     } else {
       toast({
         title: t("geosearch.locationError"),
-        description: "La géolocalisation n'est pas supportée par votre navigateur",
+        description: t("geosearch.locationNotSupported"),
         variant: "destructive",
       });
     }

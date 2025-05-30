@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "Chargement...",
@@ -153,28 +152,24 @@
     "noAddresses": "Aucune adresse sauvegardée pour le moment"
   },
   "geosearch": {
-    "title": "Recherche géolocalisée",
-    "locationSelected": "Lieu sélectionné",
-    "searchingAround": "Recherche autour de {{place}}",
-    "usingCurrentLocation": "Utilisation de votre position actuelle",
-    "locationError": "Erreur de géolocalisation",
-    "locationErrorDesc": "Impossible d'accéder à votre position",
+    "title": "Recherche Géographique",
+    "subtitle": "Trouvez des lieux autour de vous",
+    "searchPlaceholder": "Rechercher un lieu, une adresse...",
     "noResults": "Aucun résultat trouvé",
     "tryModifyingSearch": "Essayez de modifier votre recherche ou vos filtres",
     "modifyFilters": "Modifier les filtres",
-    "searchPlaceholder": "Rechercher un lieu ou une adresse...",
-    "resultsFound": "Résultats trouvés",
-    "placesFoundForSearch": "{{count}} lieux trouvés pour votre recherche",
-    "errorLoadingResults": "Erreur lors du chargement des résultats",
-    "place": "Lieu",
-    "popular": "Populaire",
-    "streetName": "Nom de rue",
-    "near": "Près de",
-    "country": "Pays",
+    "locationSelected": "Lieu sélectionné",
+    "searchingAround": "Recherche autour de {{place}}",
     "yourPosition": "Votre position",
-    "miniMapTitle": "Mini Carte",
-    "seoDesc": "Découvrez facilement les lieux autour de vous avec LocaSimple. Application de cartographie française avec recherche avancée et filtres intelligents.",
-    "seoDescWithCategory": "Trouvez les meilleurs {{category}} près de chez vous avec LocaSimple. Recherche avancée, filtres intelligents et cartes interactives."
+    "requestingLocation": "Recherche de votre position...",
+    "locationError": "Erreur de géolocalisation",
+    "locationErrorDesc": "Impossible d'obtenir votre position",
+    "locationPermissionDenied": "Autorisation de géolocalisation refusée",
+    "locationUnavailable": "Position non disponible",
+    "locationTimeout": "Délai d'attente dépassé pour la géolocalisation",
+    "locationNotSupported": "Géolocalisation non supportée par votre navigateur",
+    "seoDesc": "Recherchez des lieux et services autour de vous avec notre outil de géolocalisation",
+    "seoDescWithCategory": "Trouvez {{category}} près de chez vous avec notre recherche géographique"
   },
   "map": {
     "error": "Erreur de carte",
