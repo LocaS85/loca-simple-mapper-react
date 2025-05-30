@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Loader2, MapPin } from 'lucide-react';
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { Search, X, Loader2, MapPin, AlertCircle } from 'lucide-react';
+import { getMapboxToken, isMapboxTokenValid, validateMapboxToken } from '@/utils/mapboxConfig';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -36,13 +35,39 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [tokenError, setTokenError] = useState(false);
+  const [customToken, setCustomToken] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionListRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<number | null>(null);
   const { toast } = useToast();
 
-  // Récupérer le token Mapbox
-  const mapboxToken = getMapboxToken();
+  // Vérifier le token au montage
+  useEffect(() => {
+    const checkToken = async () => {
+      if (!isMapboxTokenValid()) {
+        setTokenError(true);
+        return;
+      }
+      
+      try {
+        const token = getMapboxToken();
+        const isValid = await validateMapboxToken(token);
+        if (!isValid) {
+          setTokenError(true);
+          toast({
+            title: 'Token Mapbox invalide',
+            description: 'Veuillez configurer un token Mapbox valide',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        setTokenError(true);
+      }
+    };
+    
+    checkToken();
+  }, [toast]);
 
   useEffect(() => {
     if (initialValue && initialValue !== query) {
@@ -52,19 +77,18 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
 
   // Fonction pour rechercher des suggestions avec gestion d'erreurs améliorée
   const fetchSuggestions = async (searchText: string) => {
-    if (!searchText.trim()) {
+    if (!searchText.trim() || tokenError) {
       setSuggestions([]);
       return;
     }
     
-    if (!mapboxToken) {
+    let mapboxToken: string;
+    try {
+      mapboxToken = customToken || getMapboxToken();
+    } catch (error) {
       console.error('Token Mapbox manquant');
       setHasError(true);
-      toast({
-        title: 'Configuration manquante',
-        description: 'Token Mapbox non configuré',
-        variant: 'destructive',
-      });
+      setTokenError(true);
       return;
     }
     
@@ -94,6 +118,16 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         }
       });
       
+      if (response.status === 401) {
+        setTokenError(true);
+        toast({
+          title: 'Token Mapbox invalide',
+          description: 'Le token Mapbox utilisé n\'est pas valide. Veuillez le vérifier.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -120,6 +154,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
           errorMessage = 'Problème de connexion réseau';
         } else if (error.message.includes('401')) {
           errorMessage = 'Token Mapbox invalide';
+          setTokenError(true);
         } else if (error.message.includes('403')) {
           errorMessage = 'Accès refusé à l\'API Mapbox';
         }
@@ -148,7 +183,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
     
     // Rechercher immédiatement si plus de 2 caractères
-    if (value.trim().length >= 2) {
+    if (value.trim().length >= 2 && !tokenError) {
       debounceTimerRef.current = window.setTimeout(() => {
         fetchSuggestions(value.trim());
       }, 300);
@@ -156,6 +191,30 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
       setSuggestions([]);
       setIsLoading(false);
     }
+  };
+
+  // Gérer la validation du token personnalisé
+  const handleTokenValidation = async () => {
+    if (!customToken.trim()) return;
+    
+    setIsLoading(true);
+    const isValid = await validateMapboxToken(customToken);
+    
+    if (isValid) {
+      setTokenError(false);
+      localStorage.setItem('MAPBOX_ACCESS_TOKEN', customToken);
+      toast({
+        title: 'Token validé',
+        description: 'Le token Mapbox a été configuré avec succès',
+      });
+    } else {
+      toast({
+        title: 'Token invalide',
+        description: 'Le token fourni n\'est pas valide',
+        variant: 'destructive',
+      });
+    }
+    setIsLoading(false);
   };
 
   // Gérer la sélection d'une suggestion
@@ -267,6 +326,47 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
       }
     };
   }, []);
+
+  // Afficher l'interface de configuration du token si nécessaire
+  if (tokenError) {
+    return (
+      <div className={cn("relative w-full", className)}>
+        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+          <div className="flex items-center gap-2 text-red-600 mb-2">
+            <AlertCircle size={16} />
+            <span className="font-medium">Configuration Mapbox requise</span>
+          </div>
+          <p className="text-sm text-red-700 mb-3">
+            Le token Mapbox n'est pas valide. Veuillez entrer votre token d'accès.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="pk.eyJ1..."
+              value={customToken}
+              onChange={(e) => setCustomToken(e.target.value)}
+              className="flex-1 px-3 py-2 border rounded text-sm"
+            />
+            <Button
+              onClick={handleTokenValidation}
+              disabled={!customToken.trim() || isLoading}
+              size="sm"
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Valider'}
+            </Button>
+          </div>
+          <a
+            href="https://account.mapbox.com/access-tokens/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-600 hover:underline mt-2 inline-block"
+          >
+            Obtenir un token Mapbox →
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("relative w-full", className)}>

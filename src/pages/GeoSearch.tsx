@@ -10,11 +10,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
+import { isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { AlertCircle } from 'lucide-react';
 
 const GeoSearch = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isInitialized } = useAppInitialization();
+  const [tokenValid, setTokenValid] = React.useState(true);
 
   // État de l'application centralisé
   const {
@@ -29,6 +32,25 @@ const GeoSearch = () => {
     setUserLocation,
     setShowFilters
   } = useAppStore();
+
+  // Vérifier le token Mapbox au montage
+  useEffect(() => {
+    const checkToken = () => {
+      const valid = isMapboxTokenValid();
+      setTokenValid(valid);
+      
+      if (!valid) {
+        toast({
+          title: "Configuration Mapbox requise",
+          description: "Veuillez configurer un token Mapbox valide pour utiliser la recherche",
+          variant: "destructive",
+          duration: 8000,
+        });
+      }
+    };
+    
+    checkToken();
+  }, [toast]);
 
   // Gérer la sélection de localisation depuis l'auto-suggestion
   const handleLocationSelect = (location: { 
@@ -83,7 +105,8 @@ const GeoSearch = () => {
     searchResults.length === 0 && 
     isInitialized &&
     (filters.category || filters.subcategory || filters.query) &&
-    userLocation;
+    userLocation &&
+    tokenValid;
 
   // Métadonnées SEO dynamiques
   const seoTitle = filters.category 
@@ -94,7 +117,51 @@ const GeoSearch = () => {
     ? t('geosearch.seoDescWithCategory', { category: filters.category })
     : t('geosearch.seoDesc');
 
-  console.log('GeoSearch render - userLocation:', userLocation, 'searchResults:', searchResults.length);
+  console.log('GeoSearch render - userLocation:', userLocation, 'searchResults:', searchResults.length, 'tokenValid:', tokenValid);
+
+  // Afficher un message d'erreur si le token n'est pas valide
+  if (!tokenValid) {
+    return (
+      <>
+        <SEOHead
+          title={seoTitle}
+          description={seoDescription}
+          keywords={`${filters.category || 'lieux'}, géolocalisation, france, carte interactive, recherche locale`}
+        />
+        
+        <div className="relative h-screen w-full overflow-hidden bg-gray-100">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-lg shadow-lg z-10 text-center max-w-md mx-4">
+            <div className="mb-6 text-red-500">
+              <AlertCircle size={48} className="mx-auto mb-4" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              Configuration Mapbox requise
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Pour utiliser la recherche géographique, vous devez configurer un token Mapbox valide. 
+              Utilisez la barre de recherche en haut de page pour entrer votre token.
+            </p>
+            <div className="space-y-3">
+              <a
+                href="https://account.mapbox.com/access-tokens/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 w-full justify-center"
+              >
+                Obtenir un token Mapbox
+              </a>
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 w-full justify-center"
+              >
+                Rafraîchir la page
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

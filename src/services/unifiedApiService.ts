@@ -1,4 +1,4 @@
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxToken, isMapboxTokenValid, validateMapboxToken } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/lib/data/transportModes';
 import { trackSearchEvent } from './analytics';
 import { UnifiedFilters } from '@/hooks/useUnifiedFilters';
@@ -22,8 +22,30 @@ export interface UnifiedSearchParams extends UnifiedFilters {
 
 // Service unifié pour toutes les recherches avec gestion d'erreurs améliorée
 export const unifiedSearchService = {
+  // Vérification préalable du token
+  async validateToken(): Promise<boolean> {
+    if (!isMapboxTokenValid()) {
+      return false;
+    }
+    
+    try {
+      const token = getMapboxToken();
+      return await validateMapboxToken(token);
+    } catch (error) {
+      console.error('Erreur de validation du token:', error);
+      return false;
+    }
+  },
+
   // Recherche principale avec gestion d'erreurs robuste
   async searchPlaces(params: UnifiedSearchParams): Promise<SearchPlace[]> {
+    // Vérifier le token avant toute requête
+    const tokenValid = await this.validateToken();
+    if (!tokenValid) {
+      console.warn('Token Mapbox invalide, retour de données mockées');
+      return this.generateMockResults(params);
+    }
+
     const token = getMapboxToken();
     
     // Valider les paramètres
@@ -67,6 +89,10 @@ export const unifiedSearchService = {
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
       
       const response = await fetch(url);
+      
+      if (response.status === 401) {
+        throw new ApiError('Token Mapbox invalide ou expiré', 401);
+      }
       
       if (!response.ok) {
         throw new Error(`Mapbox API error: ${response.status} ${response.statusText}`);
@@ -155,8 +181,12 @@ export const unifiedSearchService = {
       
       console.error('Erreur dans la recherche unifiée:', apiError);
       
-      // Fallback avec données mockées
-      return this.generateMockResults(params);
+      // Fallback avec données mockées pour erreurs de token ou réseau
+      if (apiError.statusCode === 401 || apiError.statusCode === 0) {
+        return this.generateMockResults(params);
+      }
+      
+      throw apiError;
     }
   },
 
@@ -179,6 +209,10 @@ export const unifiedSearchService = {
     });
     
     const response = await fetch(`${url}?${params}`);
+    
+    if (response.status === 401) {
+      throw new ApiError('Token Mapbox invalide pour les directions', 401);
+    }
     
     if (!response.ok) {
       throw new Error(`Directions API error: ${response.status}`);
