@@ -1,3 +1,4 @@
+
 import { getMapboxToken, isMapboxTokenValid, validateMapboxToken } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/lib/data/transportModes';
 import { trackSearchEvent } from './analytics';
@@ -20,43 +21,58 @@ export interface UnifiedSearchParams extends UnifiedFilters {
   center: [number, number];
 }
 
-// Service unifié pour toutes les recherches avec gestion d'erreurs améliorée
+// Service unifié pour toutes les recherches avec nouvelle clé API
 export const unifiedSearchService = {
-  // Vérification préalable du token
+  // Vérification préalable du token avec la nouvelle clé
   async validateToken(): Promise<boolean> {
+    console.log('🔍 Validation du token dans unifiedApiService...');
+    
     if (!isMapboxTokenValid()) {
+      console.error('❌ Token invalide lors de la vérification basique');
       return false;
     }
     
     try {
       const token = getMapboxToken();
-      return await validateMapboxToken(token);
+      console.log('🔑 Token récupéré:', token.substring(0, 15) + '...');
+      
+      const isValid = await validateMapboxToken(token);
+      if (isValid) {
+        console.log('✅ Token validé avec succès dans le service');
+      } else {
+        console.error('❌ Échec de la validation du token dans le service');
+      }
+      
+      return isValid;
     } catch (error) {
-      console.error('Erreur de validation du token:', error);
+      console.error('❌ Erreur de validation du token dans le service:', error);
       return false;
     }
   },
 
-  // Recherche principale avec gestion d'erreurs robuste
+  // Recherche principale avec la nouvelle clé API
   async searchPlaces(params: UnifiedSearchParams): Promise<SearchPlace[]> {
+    console.log('🚀 Démarrage de la recherche unifiée avec params:', params);
+    
     // Vérifier le token avant toute requête
     const tokenValid = await this.validateToken();
     if (!tokenValid) {
-      console.warn('Token Mapbox invalide, retour de données mockées');
+      console.warn('⚠️ Token Mapbox invalide, retour de données mockées');
       return this.generateMockResults(params);
     }
 
     const token = getMapboxToken();
+    console.log('🔑 Utilisation du token pour la recherche:', token.substring(0, 15) + '...');
     
     // Valider les paramètres
     const validatedParams = filterSyncService.prepareApiParams(params, params.center);
     if (!validatedParams) {
-      console.warn('Paramètres de recherche invalides:', params);
+      console.warn('⚠️ Paramètres de recherche invalides:', params);
       return this.generateMockResults(params);
     }
     
     const searchOperation = async (): Promise<SearchPlace[]> => {
-      console.log('Recherche unifiée avec paramètres validés:', validatedParams);
+      console.log('🔍 Recherche unifiée avec paramètres validés:', validatedParams);
       
       // Construire la requête avec fallback
       let query = validatedParams.query || '';
@@ -70,6 +86,8 @@ export const unifiedSearchService = {
       if (!query) {
         query = 'point of interest';
       }
+      
+      console.log('📝 Requête finale:', query);
       
       // Paramètres Mapbox optimisés
       const searchParams = new URLSearchParams({
@@ -87,21 +105,26 @@ export const unifiedSearchService = {
       }
       
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
+      console.log('📡 URL de requête:', url.split('?')[0]);
       
       const response = await fetch(url);
+      console.log('📨 Réponse API - Statut:', response.status);
       
       if (response.status === 401) {
+        console.error('❌ Erreur 401: Token invalide');
         throw new ApiError('Token Mapbox invalide ou expiré', 401);
       }
       
       if (!response.ok) {
+        console.error('❌ Erreur API:', response.status, response.statusText);
         throw new Error(`Mapbox API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('📋 Données reçues:', data.features?.length || 0, 'résultats');
       
       if (!data.features || data.features.length === 0) {
-        console.log('Aucun résultat trouvé pour:', query);
+        console.log('ℹ️ Aucun résultat trouvé pour:', query);
         return [];
       }
       
@@ -128,7 +151,7 @@ export const unifiedSearchService = {
                 return null;
               }
             } catch (error) {
-              console.warn('Impossible de calculer la durée pour:', feature.place_name);
+              console.warn('⚠️ Impossible de calculer la durée pour:', feature.place_name);
             }
           }
           
@@ -151,6 +174,8 @@ export const unifiedSearchService = {
           result.status === 'fulfilled' && result.value !== null
         )
         .map(result => result.value as SearchPlace);
+      
+      console.log('✅ Résultats traités:', validResults.length);
       
       // Analytics
       trackSearchEvent({
@@ -179,7 +204,7 @@ export const unifiedSearchService = {
         userLocation: params.center
       });
       
-      console.error('Erreur dans la recherche unifiée:', apiError);
+      console.error('❌ Erreur dans la recherche unifiée:', apiError);
       
       // Fallback avec données mockées pour erreurs de token ou réseau
       if (apiError.statusCode === 401 || apiError.statusCode === 0) {
@@ -231,7 +256,6 @@ export const unifiedSearchService = {
     };
   },
 
-  // Utilitaires
   calculateDistance(point1: [number, number], point2: [number, number], unit: 'km' | 'mi'): number {
     const R = unit === 'km' ? 6371 : 3959;
     const dLat = (point2[1] - point1[1]) * Math.PI / 180;
@@ -282,9 +306,10 @@ export const unifiedSearchService = {
     return categoryMap[placeType] || 'Inconnu';
   },
 
-  // Génération de données mockées améliorées
   generateMockResults(params: UnifiedSearchParams): SearchPlace[] {
     const resultCount = Math.min(params.aroundMeCount || 3, 5);
+    
+    console.log('🎭 Génération de résultats mockés:', resultCount);
     
     return Array.from({ length: resultCount }, (_, i) => ({
       id: `mock-result-${i}`,

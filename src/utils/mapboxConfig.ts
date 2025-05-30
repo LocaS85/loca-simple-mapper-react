@@ -1,20 +1,21 @@
 
+import React from 'react';
 
 // Configuration Mapbox optimisée avec validation
 
 export const getMapboxToken = (): string => {
-  // Essayer d'abord les variables d'environnement de production
+  // Nouvelle clé API Mapbox mise à jour
   const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 
                 import.meta.env.MAPBOX_ACCESS_TOKEN ||
-                'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbTBuZWZicXAwOXI4Mm1xZHUyam5xenBhIn0.KQ7iiEOLPEKVHPOQOYhWXw';
+                'sk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWJiMWVqN28xNHJ3MmtwOTdzdXByMmYxIn0.YI7eowiGblU8h37_UDGI8g';
 
   if (!token) {
     console.error('⚠️ MAPBOX TOKEN MANQUANT! Veuillez configurer VITE_MAPBOX_ACCESS_TOKEN');
     throw new Error('Token Mapbox non configuré');
   }
 
-  // Validation basique du format du token
-  if (!token.startsWith('pk.')) {
+  // Validation basique du format du token (accepter sk. et pk.)
+  if (!token.startsWith('pk.') && !token.startsWith('sk.')) {
     console.warn('⚠️ Format de token Mapbox suspect:', token.substring(0, 10) + '...');
   }
 
@@ -25,7 +26,7 @@ export const getMapboxToken = (): string => {
 export const isMapboxTokenValid = (): boolean => {
   try {
     const token = getMapboxToken();
-    return token && token.startsWith('pk.') && token.length > 50;
+    return token && (token.startsWith('pk.') || token.startsWith('sk.')) && token.length > 50;
   } catch (error) {
     console.error('Token Mapbox invalide:', error);
     return false;
@@ -64,19 +65,37 @@ export const SEARCH_CONFIG = {
   retryAttempts: 2
 };
 
-// Validation du token au démarrage (optionnel)
+// Validation du token au démarrage
 export const validateMapboxToken = async (token: string): Promise<boolean> => {
   try {
-    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/test.json?access_token=${token}&limit=1`);
-    return response.status !== 401 && response.status !== 403;
+    // Utiliser une URL d'API différente selon le type de token
+    let testUrl: string;
+    if (token.startsWith('sk.')) {
+      // Pour les tokens secrets, utiliser l'API Tokens
+      testUrl = `https://api.mapbox.com/tokens/v2?access_token=${token}`;
+    } else {
+      // Pour les tokens publics, utiliser l'API Geocoding
+      testUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/test.json?access_token=${token}&limit=1`;
+    }
+    
+    const response = await fetch(testUrl);
+    const isValid = response.status !== 401 && response.status !== 403;
+    
+    if (isValid) {
+      console.log('✅ Token Mapbox validé avec succès');
+    } else {
+      console.error('❌ Token Mapbox invalide - Statut:', response.status);
+    }
+    
+    return isValid;
   } catch (error) {
     console.error('Erreur de validation du token Mapbox:', error);
     return false;
   }
 };
 
-// Créer un composant d'avertissement pour token invalide
-export const MapboxTokenWarning = ({ onTokenUpdate }: { onTokenUpdate?: (token: string) => void }) => {
+// Composant d'avertissement pour token invalide
+export const MapboxTokenWarning: React.FC<{ onTokenUpdate?: (token: string) => void }> = ({ onTokenUpdate }) => {
   const [token, setToken] = React.useState('');
   const [isValidating, setIsValidating] = React.useState(false);
 
@@ -105,7 +124,7 @@ export const MapboxTokenWarning = ({ onTokenUpdate }: { onTokenUpdate?: (token: 
         </p>
         <input
           type="text"
-          placeholder="pk.eyJ1..."
+          placeholder="sk.eyJ1... ou pk.eyJ1..."
           value={token}
           onChange={(e) => setToken(e.target.value)}
           className="w-full p-2 border rounded mb-4"
@@ -132,3 +151,23 @@ export const MapboxTokenWarning = ({ onTokenUpdate }: { onTokenUpdate?: (token: 
   );
 };
 
+// Fonction pour initialiser et tester la connexion Mapbox
+export const initializeMapboxConnection = async (): Promise<boolean> => {
+  try {
+    const token = getMapboxToken();
+    console.log('🚀 Initialisation de la connexion Mapbox...');
+    
+    const isValid = await validateMapboxToken(token);
+    
+    if (isValid) {
+      console.log('✅ Connexion Mapbox établie avec succès');
+      return true;
+    } else {
+      console.error('❌ Échec de la connexion Mapbox');
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'initialisation Mapbox:', error);
+    return false;
+  }
+};
