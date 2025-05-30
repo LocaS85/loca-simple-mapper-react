@@ -1,8 +1,7 @@
 
 import React from 'react';
 
-// Configuration Mapbox optimisée avec validation
-
+// Configuration Mapbox optimisée avec validation et nouvelle clé API
 export const getMapboxToken = (): string => {
   // Nouvelle clé API Mapbox mise à jour
   const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 
