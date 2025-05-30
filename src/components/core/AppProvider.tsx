@@ -3,7 +3,7 @@ import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/hooks/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
-import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { ErrorBoundary } from 'react-error-boundary';
 import { errorService } from '@/services/errorService';
 import { performanceService } from '@/services/performanceService';
 
@@ -44,6 +44,25 @@ queryClient.getQueryCache().config.onError = (error: any) => {
   performanceService.incrementErrors();
 };
 
+function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg text-center">
+        <h2 className="text-xl font-semibold text-red-600 mb-4">Une erreur s'est produite</h2>
+        <p className="text-gray-600 mb-4">
+          {error.message || "Une erreur inattendue s'est produite"}
+        </p>
+        <button
+          onClick={resetErrorBoundary}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+        >
+          Réessayer
+        </button>
+      </div>
+    </div>
+  );
+}
+
 interface AppProviderProps {
   children: ReactNode;
 }
@@ -55,7 +74,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   return (
-    <ErrorBoundary onError={handleGlobalError}>
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onError={handleGlobalError}
+    >
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           {children}
