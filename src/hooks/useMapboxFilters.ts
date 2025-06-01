@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { TransportMode } from '@/lib/data/transportModes';
 import { SearchResult } from '@/types/geosearch';
+import { calculateDistance } from '@/store/geoSearchStore/searchLogic';
 
 // Interface pour les paramètres de recherche filtrée
 export interface FilterSearchParams {
@@ -34,16 +35,19 @@ export const useFilteredSearch = (params: FilterSearchParams, enabled: boolean =
       );
       
       return {
-        results: results.map(result => ({
-          id: result.id,
-          name: result.name,
-          address: result.address,
-          coordinates: result.coordinates,
-          type: result.category,
-          category: result.category,
-          distance: result.distance || 0,
-          duration: Math.round((result.distance || 0) * 12) // Estimation based on distance
-        })),
+        results: results.map(result => {
+          const distance = calculateDistance(params.center, result.coordinates);
+          return {
+            id: result.id,
+            name: result.name,
+            address: result.address,
+            coordinates: result.coordinates,
+            type: result.category,
+            category: result.category,
+            distance: Math.round(distance * 10) / 10,
+            duration: Math.round(distance * 12) // Estimation based on distance
+          };
+        }),
         total: results.length
       };
     },
@@ -106,16 +110,19 @@ export const useMultipleFilteredSearches = (
       );
       
       return {
-        results: results.map(result => ({
-          id: result.id,
-          name: result.name,
-          address: result.address,
-          coordinates: result.coordinates,
-          type: result.category,
-          category: result.category,
-          distance: result.distance || 0,
-          duration: Math.round((result.distance || 0) * 12)
-        })),
+        results: results.map(result => {
+          const distance = calculateDistance(params.center, result.coordinates);
+          return {
+            id: result.id,
+            name: result.name,
+            address: result.address,
+            coordinates: result.coordinates,
+            type: result.category,
+            category: result.category,
+            distance: Math.round(distance * 10) / 10,
+            duration: Math.round(distance * 12)
+          };
+        }),
         total: results.length
       };
     },
