@@ -1,19 +1,52 @@
 
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { 
-  searchPlacesWithFilters, 
-  getDirectionsWithFilters,
-  createIsochrone,
-  FilterSearchParams,
-  FilterSearchResult
-} from '@/services/mapboxFilterService';
+import { mapboxApiService } from '@/services/mapboxApiService';
 import { TransportMode } from '@/lib/data/transportModes';
+import { SearchResult } from '@/types/geosearch';
+
+// Interface pour les paramètres de recherche filtrée
+export interface FilterSearchParams {
+  center: [number, number];
+  query?: string;
+  category?: string;
+  radius?: number;
+  limit?: number;
+}
+
+export interface FilterSearchResult {
+  results: SearchResult[];
+  total: number;
+}
 
 // Hook pour la recherche avec filtres
 export const useFilteredSearch = (params: FilterSearchParams, enabled: boolean = true) => {
   return useQuery({
     queryKey: ['mapbox-filtered-search', params],
-    queryFn: () => searchPlacesWithFilters(params),
+    queryFn: async (): Promise<FilterSearchResult> => {
+      const results = await mapboxApiService.searchPlaces(
+        params.query || 'restaurant',
+        params.center,
+        {
+          limit: params.limit || 5,
+          radius: params.radius || 10,
+          categories: params.category ? [params.category] : undefined
+        }
+      );
+      
+      return {
+        results: results.map(result => ({
+          id: result.id,
+          name: result.name,
+          address: result.address,
+          coordinates: result.coordinates,
+          type: result.category,
+          category: result.category,
+          distance: result.distance || 0,
+          duration: Math.round((result.distance || 0) * 12) // Estimation based on distance
+        })),
+        total: results.length
+      };
+    },
     enabled: enabled && !!params.center,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes
@@ -33,7 +66,7 @@ export const useDirections = () => {
       origin: [number, number];
       destination: [number, number];
       transportMode: TransportMode;
-    }) => getDirectionsWithFilters(origin, destination, transportMode),
+    }) => mapboxApiService.getDirections(origin, destination, transportMode),
     retry: 1
   });
 };
@@ -49,7 +82,7 @@ export const useIsochrone = () => {
       center: [number, number];
       duration: number;
       transportMode: TransportMode;
-    }) => createIsochrone(center, duration, transportMode),
+    }) => mapboxApiService.createIsochrone(center, duration, transportMode),
     retry: 1
   });
 };
@@ -61,7 +94,31 @@ export const useMultipleFilteredSearches = (
 ) => {
   const queries = searchParams.map((params, index) => ({
     queryKey: ['mapbox-filtered-search', `multi-${index}`, params],
-    queryFn: () => searchPlacesWithFilters(params),
+    queryFn: async (): Promise<FilterSearchResult> => {
+      const results = await mapboxApiService.searchPlaces(
+        params.query || 'restaurant',
+        params.center,
+        {
+          limit: params.limit || 5,
+          radius: params.radius || 10,
+          categories: params.category ? [params.category] : undefined
+        }
+      );
+      
+      return {
+        results: results.map(result => ({
+          id: result.id,
+          name: result.name,
+          address: result.address,
+          coordinates: result.coordinates,
+          type: result.category,
+          category: result.category,
+          distance: result.distance || 0,
+          duration: Math.round((result.distance || 0) * 12)
+        })),
+        total: results.length
+      };
+    },
     enabled: enabled && !!params.center,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10
