@@ -11,14 +11,12 @@ import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
-import { isMapboxTokenValid } from '@/utils/mapboxConfig';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const GeoSearch = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isInitialized } = useAppInitialization();
-  const [tokenValid, setTokenValid] = React.useState(true);
 
   // Utiliser le hook de géolocalisation personnalisé
   const { 
@@ -33,51 +31,64 @@ const GeoSearch = () => {
     autoRequest: true
   });
 
-  // Utiliser le store GeoSearch pour la cohérence
+  // Utiliser le store GeoSearch avec API connectée
   const {
     results: searchResults,
     filters,
     isLoading,
     showFilters,
     userLocation,
+    isMapboxReady,
+    mapboxError,
     updateFilters,
     loadResults,
     toggleFilters,
     setUserLocation,
-    setShowFilters
+    setShowFilters,
+    initializeMapbox
   } = useGeoSearchStore();
 
-  // Vérifier le token Mapbox au montage
+  // Initialiser Mapbox au montage du composant
   useEffect(() => {
-    const checkToken = () => {
-      const valid = isMapboxTokenValid();
-      setTokenValid(valid);
-      
-      if (!valid) {
-        toast({
-          title: "Configuration Mapbox requise",
-          description: "Veuillez configurer un token Mapbox valide pour utiliser la recherche",
-          variant: "destructive",
-          duration: 8000,
-        });
-      }
+    const initMapbox = async () => {
+      console.log('🚀 Initialisation de l\'API Mapbox...');
+      await initializeMapbox();
     };
     
-    checkToken();
-  }, [toast]);
+    initMapbox();
+  }, [initializeMapbox]);
+
+  // Afficher le statut de l'API Mapbox
+  useEffect(() => {
+    if (isMapboxReady) {
+      toast({
+        title: "API Mapbox connectée",
+        description: "La recherche géolocalisée est maintenant disponible",
+        variant: "default",
+        duration: 3000,
+      });
+    } else if (mapboxError) {
+      toast({
+        title: "Erreur API Mapbox",
+        description: mapboxError,
+        variant: "destructive",
+        duration: 8000,
+      });
+    }
+  }, [isMapboxReady, mapboxError, toast]);
 
   // Synchroniser la géolocalisation avec le store
   useEffect(() => {
     if (geoCoordinates && !userLocation) {
       setUserLocation(geoCoordinates);
-      console.log('Géolocalisation synchronisée avec le store:', geoCoordinates);
+      console.log('📍 Géolocalisation synchronisée avec le store:', geoCoordinates);
     }
   }, [geoCoordinates, userLocation, setUserLocation]);
 
   // Gérer les erreurs de géolocalisation
   useEffect(() => {
     if (geoError && !userLocation) {
-      console.warn('Erreur de géolocalisation, utilisation de Paris par défaut:', geoError);
+      console.warn('⚠️ Erreur de géolocalisation, utilisation de Paris par défaut:', geoError);
       // Position par défaut (Paris)
       setUserLocation([2.3522, 48.8566]);
       
@@ -89,18 +100,23 @@ const GeoSearch = () => {
     }
   }, [geoError, userLocation, setUserLocation, toast, t]);
 
+  // Démarrer une recherche automatique quand tout est prêt
+  useEffect(() => {
+    if (isMapboxReady && userLocation && !searchResults.length && !isLoading) {
+      console.log('🔍 Démarrage de la recherche automatique...');
+      loadResults();
+    }
+  }, [isMapboxReady, userLocation, searchResults.length, isLoading, loadResults]);
+
   // Gérer la sélection de localisation depuis l'auto-suggestion
   const handleLocationSelect = (location: { 
     name: string; 
     coordinates: [number, number]; 
     placeName: string 
   }) => {
-    console.log('Location selected in GeoSearch:', location);
+    console.log('📍 Location selected in GeoSearch:', location);
     
-    // Mettre à jour la localisation utilisateur
     setUserLocation(location.coordinates);
-    
-    // Mettre à jour la requête dans les filtres
     updateFilters({ query: location.name });
     
     toast({
@@ -113,7 +129,7 @@ const GeoSearch = () => {
 
   // Demander la localisation utilisateur
   const handleUserLocationRequest = () => {
-    console.log('User location request initiated from GeoSearch');
+    console.log('🌍 User location request initiated from GeoSearch');
     requestLocation();
   };
 
@@ -137,19 +153,25 @@ const GeoSearch = () => {
     });
   };
 
-  // Méthode de recherche améliorée
+  // Méthode de recherche manuelle
   const handlePerformSearch = async () => {
-    if (userLocation) {
+    if (userLocation && isMapboxReady) {
       try {
         await loadResults();
       } catch (error) {
-        console.error('Erreur lors de la recherche:', error);
+        console.error('❌ Erreur lors de la recherche:', error);
         toast({
           title: t("geosearch.searchError"),
           description: t("geosearch.searchErrorDesc"),
           variant: "destructive",
         });
       }
+    } else if (!isMapboxReady) {
+      toast({
+        title: "API non prête",
+        description: "Veuillez attendre que l'API Mapbox soit initialisée",
+        variant: "destructive",
+      });
     }
   };
 
@@ -160,7 +182,7 @@ const GeoSearch = () => {
     isInitialized &&
     (filters.category || filters.subcategory || filters.query) &&
     userLocation &&
-    tokenValid;
+    isMapboxReady;
 
   // Métadonnées SEO dynamiques
   const seoTitle = filters.category 
@@ -171,10 +193,37 @@ const GeoSearch = () => {
     ? t('geosearch.seoDescWithCategory', { category: filters.category })
     : t('geosearch.seoDesc');
 
-  console.log('GeoSearch render - userLocation:', userLocation, 'searchResults:', searchResults.length, 'tokenValid:', tokenValid);
+  console.log('🎯 GeoSearch render - userLocation:', userLocation, 'searchResults:', searchResults.length, 'mapboxReady:', isMapboxReady);
 
-  // Afficher un message d'erreur si le token n'est pas valide
-  if (!tokenValid) {
+  // Afficher un message d'erreur si l'API n'est pas prête
+  if (!isMapboxReady && !mapboxError && isInitialized) {
+    return (
+      <>
+        <SEOHead
+          title={seoTitle}
+          description={seoDescription}
+          keywords={`${filters.category || 'lieux'}, géolocalisation, france, carte interactive, recherche locale`}
+        />
+        
+        <div className="relative h-screen w-full overflow-hidden bg-gray-100">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-lg shadow-lg z-10 text-center max-w-md mx-4">
+            <div className="mb-6 text-blue-500">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              Connexion à l'API Mapbox...
+            </h3>
+            <p className="text-gray-600">
+              Initialisation de la recherche géolocalisée en cours.
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Afficher un message d'erreur critique si l'API a échoué
+  if (mapboxError && !isMapboxReady) {
     return (
       <>
         <SEOHead
@@ -189,21 +238,18 @@ const GeoSearch = () => {
               <AlertCircle size={48} className="mx-auto mb-4" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Configuration Mapbox requise
+              Erreur de connexion API
             </h3>
             <p className="text-gray-600 mb-6">
-              Pour utiliser la recherche géographique, vous devez configurer un token Mapbox valide. 
-              Utilisez la barre de recherche en haut de page pour entrer votre token.
+              {mapboxError}
             </p>
             <div className="space-y-3">
-              <a
-                href="https://account.mapbox.com/access-tokens/"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => initializeMapbox()}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 w-full justify-center"
               >
-                Obtenir un token Mapbox
-              </a>
+                Réessayer la connexion
+              </button>
               <button
                 onClick={() => window.location.reload()}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 w-full justify-center"
@@ -242,6 +288,14 @@ const GeoSearch = () => {
           open={showFilters}
           onReset={handleResetFilters}
         />
+        
+        {/* Indicateur de statut API Mapbox */}
+        {isMapboxReady && (
+          <div className="absolute top-24 right-4 z-20 bg-green-100 border border-green-300 text-green-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
+            <CheckCircle size={16} />
+            <span>API connectée</span>
+          </div>
+        )}
         
         {/* Indicateur de chargement géolocalisation */}
         {geoLoading && (

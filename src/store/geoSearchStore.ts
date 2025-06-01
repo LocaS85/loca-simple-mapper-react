@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { TransportMode } from '@/lib/data/transportModes';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
-import { unifiedSearchService, SearchPlace } from '@/services/unifiedApiService';
+import { mapboxApiService } from '@/services/mapboxApiService';
 import { filterSyncService } from './filterSync';
 import { performanceService } from '@/services/performanceService';
 
@@ -22,6 +22,10 @@ interface GeoSearchState {
   lastSearchParams: string | null;
   searchCache: Map<string, { results: SearchResult[]; timestamp: number }>;
   
+  // État de l'API Mapbox
+  isMapboxReady: boolean;
+  mapboxError: string | null;
+  
   // Actions pour la position
   setUserLocation: (location: [number, number] | null) => void;
   setStartingPosition: (position: [number, number] | null) => void;
@@ -38,8 +42,9 @@ interface GeoSearchState {
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
   
-  // Actions de recherche optimisées
+  // Actions de recherche optimisées avec API connectée
   loadResults: () => Promise<void>;
+  initializeMapbox: () => Promise<void>;
   clearCache: () => void;
 }
 
@@ -55,17 +60,35 @@ const defaultFilters: GeoSearchFilters = {
   maxDuration: 20
 };
 
-// Fonction de conversion optimisée
-const convertToSearchResult = (place: SearchPlace): SearchResult => ({
-  id: place.id,
-  name: place.name,
-  address: place.address,
-  coordinates: place.coordinates,
-  type: place.category,
-  category: place.category,
-  distance: place.distance,
-  duration: place.duration || 0
-});
+// Fonction de conversion des résultats Mapbox vers SearchResult
+const convertMapboxToSearchResult = (mapboxResult: any, userLocation: [number, number]): SearchResult => {
+  // Calculer la distance
+  const distance = calculateDistance(userLocation, mapboxResult.coordinates);
+  
+  return {
+    id: mapboxResult.id,
+    name: mapboxResult.name,
+    address: mapboxResult.address,
+    coordinates: mapboxResult.coordinates,
+    type: mapboxResult.category,
+    category: mapboxResult.category,
+    distance: Math.round(distance * 10) / 10,
+    duration: Math.round(distance * 12) // Estimation : 12 min/km à pied
+  };
+};
+
+// Fonction utilitaire pour calculer la distance
+const calculateDistance = (point1: [number, number], point2: [number, number]): number => {
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = (point2[1] - point1[1]) * Math.PI / 180;
+  const dLon = (point2[0] - point1[0]) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(point1[1] * Math.PI / 180) * Math.cos(point2[1] * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
 
 export const useGeoSearchStore = create<GeoSearchState>()(
   devtools(
@@ -79,6 +102,8 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       showFilters: false,
       lastSearchParams: null,
       searchCache: new Map(),
+      isMapboxReady: false,
+      mapboxError: null,
       
       // Actions pour la position
       setUserLocation: (location) => {
@@ -91,7 +116,28 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setStartingPosition: (position) => 
         set({ startingPosition: position }, false, 'setStartingPosition'),
       
-      // Actions pour les filtres avec validation et debouncing
+      // Initialisation de Mapbox
+      initializeMapbox: async () => {
+        try {
+          const isReady = await mapboxApiService.initialize();
+          set({ 
+            isMapboxReady: isReady,
+            mapboxError: isReady ? null : 'Impossible d\'initialiser l\'API Mapbox'
+          }, false, 'initializeMapbox');
+          
+          if (isReady) {
+            console.log('✅ Mapbox initialisé dans le store');
+          }
+        } catch (error) {
+          console.error('❌ Erreur d\'initialisation Mapbox:', error);
+          set({ 
+            isMapboxReady: false,
+            mapboxError: error instanceof Error ? error.message : 'Erreur inconnue'
+          }, false, 'mapboxError');
+        }
+      },
+      
+      // Actions pour les filtres
       updateFilters: (newFilters) => {
         const currentFilters = get().filters;
         const updatedFilters = { ...currentFilters, ...newFilters };
@@ -102,10 +148,10 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           const criticalFilters = ['category', 'subcategory', 'transport', 'distance', 'maxDuration', 'aroundMeCount'];
           const shouldRefresh = Object.keys(newFilters).some(key => criticalFilters.includes(key));
             
-          if (shouldRefresh && get().userLocation) {
+          if (shouldRefresh && get().userLocation && get().isMapboxReady) {
             setTimeout(() => {
               const state = get();
-              if (state.userLocation) {
+              if (state.userLocation && state.isMapboxReady) {
                 state.loadResults();
               }
             }, 300);
@@ -137,21 +183,28 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
       
-      // Action de recherche optimisée avec cache intelligent
+      // Action de recherche avec API Mapbox connectée
       loadResults: async () => {
-        const { userLocation, filters, setIsLoading, setResults, lastSearchParams, searchCache } = get();
+        const { userLocation, filters, setIsLoading, setResults, lastSearchParams, searchCache, isMapboxReady } = get();
         
         if (!userLocation) {
           console.log('Aucune localisation utilisateur disponible pour la recherche');
           return;
         }
+
+        if (!isMapboxReady) {
+          console.log('API Mapbox non prête, tentative d\'initialisation...');
+          await get().initializeMapbox();
+          if (!get().isMapboxReady) {
+            console.error('Impossible d\'initialiser l\'API Mapbox');
+            return;
+          }
+        }
         
-        // Mesurer les performances - correction de l'appel
         const endSearchTimer = performanceService.startSearchTimer();
-        
         const searchKey = JSON.stringify({ userLocation, filters });
         
-        // Vérifier le cache (valide pendant 5 minutes)
+        // Vérifier le cache
         const cached = searchCache.get(searchKey);
         const now = Date.now();
         
@@ -170,26 +223,49 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         
         performanceService.incrementCacheMisses();
         setIsLoading(true);
-        console.log('Chargement des résultats avec filtres validés:', filters);
+        console.log('🔍 Recherche avec API Mapbox connectée:', filters);
         
         try {
-          const unifiedFilters = filterSyncService.geoSearchToUnified(filters);
-          const searchParams = {
-            ...unifiedFilters,
-            center: userLocation
-          };
+          // Construire la requête de recherche
+          let searchQuery = filters.query || '';
+          if (filters.category && !searchQuery) {
+            searchQuery = filters.category;
+          }
+          if (filters.subcategory) {
+            searchQuery = `${searchQuery} ${filters.subcategory}`.trim();
+          }
+          if (!searchQuery) {
+            searchQuery = 'point of interest';
+          }
 
           performanceService.incrementApiCalls();
-          const places = await unifiedSearchService.searchPlaces(searchParams);
           
-          const searchResults = places.map(convertToSearchResult);
+          // Appel à l'API Mapbox via le service
+          const mapboxResults = await mapboxApiService.searchPlaces(searchQuery, userLocation, {
+            limit: filters.aroundMeCount,
+            radius: filters.distance,
+            categories: filters.category ? [filters.category] : undefined
+          });
           
-          console.log('Résultats API convertis:', searchResults);
-          setResults(searchResults);
+          // Convertir les résultats
+          const searchResults = mapboxResults.map(result => 
+            convertMapboxToSearchResult(result, userLocation)
+          );
+          
+          // Filtrer par durée maximale si spécifiée
+          let filteredResults = searchResults;
+          if (filters.maxDuration && filters.maxDuration > 0) {
+            filteredResults = searchResults.filter(result => 
+              !result.duration || result.duration <= filters.maxDuration
+            );
+          }
+          
+          console.log('✅ Résultats API Mapbox convertis:', filteredResults.length);
+          setResults(filteredResults);
           
           // Mettre à jour le cache
           const newCache = new Map(searchCache);
-          newCache.set(searchKey, { results: searchResults, timestamp: now });
+          newCache.set(searchKey, { results: filteredResults, timestamp: now });
           
           if (newCache.size > 50) {
             const firstKey = newCache.keys().next().value;
@@ -202,27 +278,30 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           }, false, 'updateSearchCache');
           
         } catch (error) {
-          console.error('Erreur lors du chargement des résultats:', error);
+          console.error('❌ Erreur lors de la recherche avec API Mapbox:', error);
           
-          if (error instanceof Error && error.message.includes('network')) {
-            const mockResults: SearchResult[] = Array.from({ length: filters.aroundMeCount }, (_, i) => ({
-              id: `fallback-result-${i}`, 
-              name: `${filters.category || 'Lieu'} ${i + 1}`, 
-              address: `${123 + i} Rue d'Exemple, France`,
-              coordinates: [
-                userLocation[0] + (Math.random() * 0.02 - 0.01), 
-                userLocation[1] + (Math.random() * 0.02 - 0.01)
-              ] as [number, number], 
-              type: filters.subcategory || 'default',
-              category: filters.category || 'default', 
-              distance: Math.round(Math.random() * filters.distance * 10) / 10, 
-              duration: Math.round(Math.random() * 30) 
-            }));
-            
-            setResults(mockResults);
-          } else {
-            setResults([]);
-          }
+          // Fallback avec données mockées en cas d'erreur
+          const mockResults: SearchResult[] = Array.from({ length: filters.aroundMeCount }, (_, i) => ({
+            id: `fallback-result-${i}`, 
+            name: `${filters.category || 'Lieu'} ${i + 1}`, 
+            address: `${123 + i} Rue d'Exemple, France`,
+            coordinates: [
+              userLocation[0] + (Math.random() * 0.02 - 0.01), 
+              userLocation[1] + (Math.random() * 0.02 - 0.01)
+            ] as [number, number], 
+            type: filters.subcategory || 'default',
+            category: filters.category || 'default', 
+            distance: Math.round(Math.random() * filters.distance * 10) / 10, 
+            duration: Math.round(Math.random() * 30) 
+          }));
+          
+          setResults(mockResults);
+          
+          // Mettre à jour l'erreur Mapbox
+          set({ 
+            mapboxError: error instanceof Error ? error.message : 'Erreur de recherche'
+          }, false, 'searchError');
+          
         } finally {
           setIsLoading(false);
           endSearchTimer();
