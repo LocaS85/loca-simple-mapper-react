@@ -1,3 +1,4 @@
+
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { validateMapboxToken, getValidatedToken } from '@/utils/mapboxValidation';
 import { TransportMode } from '@/types';
@@ -31,19 +32,13 @@ class MapboxApiService {
       // Obtenir et valider le token public
       if (isMapboxTokenValid()) {
         this.token = getMapboxToken();
-        const isValid = await validateMapboxToken(this.token);
-        if (!isValid) {
-          this.token = null;
-          return false;
-        }
+        console.log('🎯 Service Mapbox initialisé avec token public:', this.token.substring(0, 20) + '...');
+        this.isInitialized = true;
+        return true;
       } else {
         console.error('❌ Token Mapbox public non configuré ou invalide');
         return false;
       }
-
-      this.isInitialized = true;
-      console.log('🎯 Service Mapbox initialisé avec token public');
-      return true;
     } catch (error) {
       console.error('❌ Erreur d\'initialisation du service Mapbox:', error);
       return false;

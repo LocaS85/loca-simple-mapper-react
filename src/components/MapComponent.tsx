@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 // Removed "mapbox-gl/dist/mapbox-gl.css" import as it's now loaded via CDN
@@ -34,18 +33,16 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const { toast } = useToast();
   const { t } = useTranslation();
 
-  // Définir le token Mapbox
-  const mapboxToken = getMapboxToken();
-
   // Initialize map when component mounts
   useEffect(() => {
     if (!mapContainer.current || !isMapboxTokenValid()) return;
     
+    const mapboxToken = getMapboxToken();
     mapboxgl.accessToken = mapboxToken;
     
     if (!map.current) {
       try {
-        console.log('Initializing map with token:', mapboxToken.substring(0, 8) + '...');
+        console.log('Initializing map with token:', mapboxToken.substring(0, 20) + '...');
         const newMap = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v11',
@@ -87,7 +84,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         map.current = null;
       }
     };
-  }, [center, isMobile, mapboxToken, toast, t]);
+  }, [center, isMobile, toast, t]);
 
   // Update bounds to fit all markers
   useEffect(() => {

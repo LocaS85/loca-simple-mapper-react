@@ -4,7 +4,7 @@ export const getMapboxToken = (): string => {
   // IMPORTANT: Utiliser un token PUBLIC (pk.) pour le frontend, pas secret (sk.)
   const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 
                 import.meta.env.MAPBOX_ACCESS_TOKEN ||
-                'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWJiMWVqN28xNHJ3MmtwOTdzdXByMmYxIn0.EXAMPLE_PUBLIC_TOKEN'; // Remplacer par votre token public
+                'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWF6Z3A1Ym4waXN6MmtzYzh4bWZ2YWIxIn0.tbWmkuCSJw4h_Ol1Q6ed0A'; // Token public valide
 
   if (!token) {
     console.error('⚠️ MAPBOX TOKEN MANQUANT! Veuillez configurer VITE_MAPBOX_ACCESS_TOKEN');

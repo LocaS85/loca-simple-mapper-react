@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { TransportMode } from '@/types';
@@ -19,6 +20,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [hasRouteLayer, setHasRouteLayer] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -92,6 +94,8 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
             'line-opacity': 0.8
           }
         });
+        
+        setHasRouteLayer(true);
       });
       
       newMap.on('error', (e) => {
@@ -110,6 +114,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
         map.current?.remove();
         map.current = null;
         setMapLoaded(false);
+        setHasRouteLayer(false);
       };
     } catch (error) {
       console.error('❌ Erreur d\'initialisation de la carte:', error);
@@ -311,7 +316,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <span>Résultats trouvés</span>
               </div>
-              {routeSource && (
+              {hasRouteLayer && (
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-1 bg-blue-500"></div>
                   <span>Itinéraire</span>

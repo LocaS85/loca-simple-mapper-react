@@ -105,7 +105,7 @@ export const searchPlacesWithFilters = async (params: FilterSearchParams): Promi
     
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
     
-    console.log('Mapbox Geocoding request:', url);
+    console.log('Mapbox Geocoding request with updated token:', url);
     
     const response = await fetch(url);
     
