@@ -12,6 +12,7 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { AlertCircle } from 'lucide-react';
+import { geolocated } from 'react-geolocated';
 
 const GeoSearch = () => {
   const { toast } = useToast();
@@ -27,7 +28,7 @@ const GeoSearch = () => {
     showFilters,
     userLocation,
     updateFilters,
-    performSearch,
+    loadResults, // Utiliser loadResults au lieu de performSearch
     toggleFilters,
     setUserLocation,
     setShowFilters
@@ -51,6 +52,42 @@ const GeoSearch = () => {
     
     checkToken();
   }, [toast]);
+
+  // Géolocalisation automatique au chargement
+  useEffect(() => {
+    if (!userLocation && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coordinates: [number, number] = [
+            position.coords.longitude,
+            position.coords.latitude
+          ];
+          setUserLocation(coordinates);
+          
+          toast({
+            title: t("geosearch.locationDetected"),
+            description: t("geosearch.positionUpdated"),
+          });
+        },
+        (error) => {
+          console.error('Erreur géolocalisation:', error);
+          // Position par défaut (Paris)
+          setUserLocation([2.3522, 48.8566]);
+          
+          toast({
+            title: t("geosearch.locationError"),
+            description: t("geosearch.usingDefaultLocation"),
+            variant: "default",
+          });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
+        }
+      );
+    }
+  }, [userLocation, setUserLocation, toast, t]);
 
   // Gérer la sélection de localisation depuis l'auto-suggestion
   const handleLocationSelect = (location: { 
@@ -98,6 +135,22 @@ const GeoSearch = () => {
       title: t("filters.reset"),
       description: t("filters.resetSuccess"),
     });
+  };
+
+  // Méthode de recherche corrigée
+  const handlePerformSearch = async () => {
+    if (userLocation) {
+      try {
+        await loadResults(); // Utiliser loadResults du store
+      } catch (error) {
+        console.error('Erreur lors de la recherche:', error);
+        toast({
+          title: t("geosearch.searchError"),
+          description: t("geosearch.searchErrorDesc"),
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   // Déterminer l'état vide
@@ -212,7 +265,7 @@ const GeoSearch = () => {
               </button>
               <button
                 className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 w-full"
-                onClick={() => performSearch(true)}
+                onClick={handlePerformSearch}
               >
                 {t("common.retry")}
               </button>
