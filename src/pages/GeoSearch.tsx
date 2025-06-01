@@ -9,10 +9,10 @@ import SEOHead from '@/components/SEOHead';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { AlertCircle } from 'lucide-react';
-import { geolocated } from 'react-geolocated';
 
 const GeoSearch = () => {
   const { toast } = useToast();
@@ -20,7 +20,20 @@ const GeoSearch = () => {
   const { isInitialized } = useAppInitialization();
   const [tokenValid, setTokenValid] = React.useState(true);
 
-  // Utiliser uniquement le store GeoSearch pour la cohérence
+  // Utiliser le hook de géolocalisation personnalisé
+  const { 
+    coordinates: geoCoordinates, 
+    isLoading: geoLoading, 
+    error: geoError,
+    requestLocation 
+  } = useGeolocation({
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 300000,
+    autoRequest: true
+  });
+
+  // Utiliser le store GeoSearch pour la cohérence
   const {
     results: searchResults,
     filters,
@@ -28,7 +41,7 @@ const GeoSearch = () => {
     showFilters,
     userLocation,
     updateFilters,
-    loadResults, // Utiliser loadResults au lieu de performSearch
+    loadResults,
     toggleFilters,
     setUserLocation,
     setShowFilters
@@ -53,41 +66,28 @@ const GeoSearch = () => {
     checkToken();
   }, [toast]);
 
-  // Géolocalisation automatique au chargement
+  // Synchroniser la géolocalisation avec le store
   useEffect(() => {
-    if (!userLocation && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coordinates: [number, number] = [
-            position.coords.longitude,
-            position.coords.latitude
-          ];
-          setUserLocation(coordinates);
-          
-          toast({
-            title: t("geosearch.locationDetected"),
-            description: t("geosearch.positionUpdated"),
-          });
-        },
-        (error) => {
-          console.error('Erreur géolocalisation:', error);
-          // Position par défaut (Paris)
-          setUserLocation([2.3522, 48.8566]);
-          
-          toast({
-            title: t("geosearch.locationError"),
-            description: t("geosearch.usingDefaultLocation"),
-            variant: "default",
-          });
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000
-        }
-      );
+    if (geoCoordinates && !userLocation) {
+      setUserLocation(geoCoordinates);
+      console.log('Géolocalisation synchronisée avec le store:', geoCoordinates);
     }
-  }, [userLocation, setUserLocation, toast, t]);
+  }, [geoCoordinates, userLocation, setUserLocation]);
+
+  // Gérer les erreurs de géolocalisation
+  useEffect(() => {
+    if (geoError && !userLocation) {
+      console.warn('Erreur de géolocalisation, utilisation de Paris par défaut:', geoError);
+      // Position par défaut (Paris)
+      setUserLocation([2.3522, 48.8566]);
+      
+      toast({
+        title: t("geosearch.locationError"),
+        description: t("geosearch.usingDefaultLocation"),
+        variant: "default",
+      });
+    }
+  }, [geoError, userLocation, setUserLocation, toast, t]);
 
   // Gérer la sélection de localisation depuis l'auto-suggestion
   const handleLocationSelect = (location: { 
@@ -114,7 +114,7 @@ const GeoSearch = () => {
   // Demander la localisation utilisateur
   const handleUserLocationRequest = () => {
     console.log('User location request initiated from GeoSearch');
-    // La logique est maintenant dans SearchHeader
+    requestLocation();
   };
 
   // Réinitialiser les filtres
@@ -137,11 +137,11 @@ const GeoSearch = () => {
     });
   };
 
-  // Méthode de recherche corrigée
+  // Méthode de recherche améliorée
   const handlePerformSearch = async () => {
     if (userLocation) {
       try {
-        await loadResults(); // Utiliser loadResults du store
+        await loadResults();
       } catch (error) {
         console.error('Erreur lors de la recherche:', error);
         toast({
@@ -155,6 +155,7 @@ const GeoSearch = () => {
 
   // Déterminer l'état vide
   const showEmptyState = !isLoading && 
+    !geoLoading &&
     searchResults.length === 0 && 
     isInitialized &&
     (filters.category || filters.subcategory || filters.query) &&
@@ -241,6 +242,16 @@ const GeoSearch = () => {
           open={showFilters}
           onReset={handleResetFilters}
         />
+        
+        {/* Indicateur de chargement géolocalisation */}
+        {geoLoading && (
+          <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg z-10">
+            <div className="flex items-center gap-2 text-blue-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm">{t("geosearch.detectingLocation")}</span>
+            </div>
+          </div>
+        )}
         
         {/* État vide amélioré */}
         {showEmptyState && (
