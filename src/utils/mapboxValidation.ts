@@ -1,16 +1,8 @@
-
-// Fonction de validation du token Mapbox avec gestion d'erreurs améliorée
+// Fonction de validation du token Mapbox optimisée pour les tokens publics
 export const validateMapboxToken = async (token: string): Promise<boolean> => {
   try {
-    // Utiliser une URL d'API différente selon le type de token
-    let testUrl: string;
-    if (token.startsWith('sk.')) {
-      // Pour les tokens secrets, utiliser l'API Tokens
-      testUrl = `https://api.mapbox.com/tokens/v2?access_token=${token}`;
-    } else {
-      // Pour les tokens publics, utiliser l'API Geocoding
-      testUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/test.json?access_token=${token}&limit=1`;
-    }
+    // Pour les tokens publics, utiliser l'API Geocoding comme test
+    const testUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/test.json?access_token=${token}&limit=1`;
     
     const response = await fetch(testUrl, {
       method: 'GET',
@@ -22,7 +14,7 @@ export const validateMapboxToken = async (token: string): Promise<boolean> => {
     const isValid = response.status !== 401 && response.status !== 403;
     
     if (isValid) {
-      console.log('✅ Token Mapbox validé avec succès');
+      console.log('✅ Token Mapbox public validé avec succès');
       // Stocker le token validé dans le localStorage pour usage ultérieur
       localStorage.setItem('MAPBOX_VALIDATED_TOKEN', token);
       localStorage.setItem('MAPBOX_TOKEN_VALIDATION_TIME', Date.now().toString());

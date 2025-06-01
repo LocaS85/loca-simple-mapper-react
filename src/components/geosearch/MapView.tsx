@@ -1,10 +1,9 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { TransportMode } from '@/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +18,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [routeSource, setRouteSource] = useState<string | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -29,22 +28,27 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
     userLocation,
     results,
     isLoading,
-    filters,
     isMapboxReady,
     mapboxError
   } = useGeoSearchStore();
 
   console.log('🗺️ MapView rendering - results:', results.length, 'userLocation:', userLocation, 'mapboxReady:', isMapboxReady);
 
-  // Initialiser la carte seulement si l'API est prête
+  // Initialiser la carte seulement si l'API est prête et le token valide
   useEffect(() => {
     if (!mapContainer.current || !isMapboxReady) return;
     
     try {
+      // Vérifier la validité du token avant d'initialiser
+      if (!isMapboxTokenValid()) {
+        setMapError('Token Mapbox invalide - utilisez un token public (pk.)');
+        return;
+      }
+
       const mapboxToken = getMapboxToken();
       mapboxgl.accessToken = mapboxToken;
       
-      console.log('🗺️ Initializing map with center:', userLocation || [2.35, 48.85]);
+      console.log('🗺️ Initialisation de la carte avec token public');
       
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
@@ -56,8 +60,9 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
       newMap.on('load', () => {
-        console.log('✅ Map loaded successfully');
+        console.log('✅ Carte chargée avec succès');
         setMapLoaded(true);
+        setMapError(null);
         
         // Ajouter une source pour les itinéraires
         newMap.addSource('route', {
@@ -90,7 +95,8 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
       });
       
       newMap.on('error', (e) => {
-        console.error('❌ Map error:', e);
+        console.error('❌ Erreur de carte:', e);
+        setMapError('Erreur de chargement de la carte');
         toast({
           title: t("map.error"),
           description: t("map.errorLoading"),
@@ -103,14 +109,11 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
       return () => {
         map.current?.remove();
         map.current = null;
+        setMapLoaded(false);
       };
     } catch (error) {
-      console.error('❌ Error initializing map:', error);
-      toast({
-        title: t("map.error"),
-        description: t("map.errorLoading"),
-        variant: "destructive",
-      });
+      console.error('❌ Erreur d\'initialisation de la carte:', error);
+      setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
     }
   }, [isMobile, toast, userLocation, t, isMapboxReady]);
 
@@ -243,11 +246,29 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
     
   }, [results, mapLoaded, userLocation, t, transport, toast, isMapboxReady]);
 
-  // Afficher un message d'erreur si l'API n'est pas prête
-  if (mapboxError || !isMapboxReady) {
+  // Afficher un message d'erreur si problème de token ou d'API
+  if (mapboxError || !isMapboxReady || mapError) {
     return (
       <div className="w-full h-full pt-24 pb-16 flex items-center justify-center bg-gray-50">
-        <MapboxError onRetry={() => window.location.reload()} />
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
+          <h3 className="text-lg font-semibold text-red-600 mb-4">
+            Problème de configuration Mapbox
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {mapError || mapboxError || 'Token Mapbox requis'}
+          </p>
+          <div className="space-y-2 text-sm text-gray-500">
+            <p>• Utilisez un token PUBLIC (pk.) pour le frontend</p>
+            <p>• Configurez VITE_MAPBOX_ACCESS_TOKEN</p>
+            <p>• Obtenez votre token sur mapbox.com</p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }

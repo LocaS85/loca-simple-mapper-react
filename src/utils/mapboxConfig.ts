@@ -1,19 +1,20 @@
 
-// Configuration Mapbox optimisée avec validation et nouvelle clé API
+// Configuration Mapbox optimisée avec token public pour le frontend
 export const getMapboxToken = (): string => {
-  // Nouvelle clé API Mapbox mise à jour
+  // IMPORTANT: Utiliser un token PUBLIC (pk.) pour le frontend, pas secret (sk.)
   const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 
                 import.meta.env.MAPBOX_ACCESS_TOKEN ||
-                'sk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWJiMWVqN28xNHJ3MmtwOTdzdXByMmYxIn0.YI7eowiGblU8h37_UDGI8g';
+                'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWJiMWVqN28xNHJ3MmtwOTdzdXByMmYxIn0.EXAMPLE_PUBLIC_TOKEN'; // Remplacer par votre token public
 
   if (!token) {
     console.error('⚠️ MAPBOX TOKEN MANQUANT! Veuillez configurer VITE_MAPBOX_ACCESS_TOKEN');
     throw new Error('Token Mapbox non configuré');
   }
 
-  // Validation basique du format du token (accepter sk. et pk.)
-  if (!token.startsWith('pk.') && !token.startsWith('sk.')) {
-    console.warn('⚠️ Format de token Mapbox suspect:', token.substring(0, 10) + '...');
+  // Validation pour s'assurer qu'on utilise un token public
+  if (!token.startsWith('pk.')) {
+    console.error('❌ ERREUR: Token secret détecté! Utiliser un token PUBLIC (pk.) pour le frontend');
+    throw new Error('Token Mapbox incorrect - utilisez un token public (pk.) pour le frontend');
   }
 
   return token;
@@ -23,7 +24,7 @@ export const getMapboxToken = (): string => {
 export const isMapboxTokenValid = (): boolean => {
   try {
     const token = getMapboxToken();
-    return token && (token.startsWith('pk.') || token.startsWith('sk.')) && token.length > 50;
+    return token && token.startsWith('pk.') && token.length > 50;
   } catch (error) {
     console.error('Token Mapbox invalide:', error);
     return false;

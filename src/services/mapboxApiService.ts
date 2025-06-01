@@ -28,25 +28,21 @@ class MapboxApiService {
         return true;
       }
 
-      // Essayer d'obtenir un token validé
-      this.token = await getValidatedToken();
-      
-      if (!this.token) {
-        // Fallback : essayer le token de config
-        if (isMapboxTokenValid()) {
-          this.token = getMapboxToken();
-          const isValid = await validateMapboxToken(this.token);
-          if (!isValid) {
-            this.token = null;
-            return false;
-          }
-        } else {
+      // Obtenir et valider le token public
+      if (isMapboxTokenValid()) {
+        this.token = getMapboxToken();
+        const isValid = await validateMapboxToken(this.token);
+        if (!isValid) {
+          this.token = null;
           return false;
         }
+      } else {
+        console.error('❌ Token Mapbox public non configuré ou invalide');
+        return false;
       }
 
       this.isInitialized = true;
-      console.log('🎯 Service Mapbox initialisé avec succès');
+      console.log('🎯 Service Mapbox initialisé avec token public');
       return true;
     } catch (error) {
       console.error('❌ Erreur d\'initialisation du service Mapbox:', error);
@@ -66,13 +62,21 @@ class MapboxApiService {
 
     const { limit = 10, radius = 10 } = options;
 
-    // Construire les paramètres de recherche
+    // Améliorer la requête de recherche pour de meilleurs résultats
+    let searchQuery = query;
+    if (!searchQuery || searchQuery === 'point of interest') {
+      // Recherche plus spécifique selon la localisation française
+      searchQuery = 'restaurant OR cafe OR commerce OR pharmacie OR boulangerie';
+    }
+
+    // Construire les paramètres de recherche optimisés
     const searchParams = new URLSearchParams({
       access_token: this.token!,
       proximity: center.join(','),
       limit: limit.toString(),
       country: 'fr',
-      language: 'fr'
+      language: 'fr',
+      types: 'poi,address' // Points d'intérêt et adresses
     });
 
     // Ajouter bbox si radius est spécifié
@@ -81,9 +85,10 @@ class MapboxApiService {
       searchParams.append('bbox', bbox.join(','));
     }
 
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?${searchParams}`;
     
     try {
+      console.log('🔍 Recherche Mapbox avec requête améliorée:', searchQuery);
       const response = await fetch(url);
       
       if (response.status === 401) {
@@ -95,6 +100,7 @@ class MapboxApiService {
       }
       
       const data = await response.json();
+      console.log('📍 Résultats Mapbox reçus:', data.features?.length || 0);
       
       return data.features?.map((feature: any, index: number) => ({
         id: feature.id || `result-${index}`,
@@ -236,7 +242,7 @@ class MapboxApiService {
       'country': 'Pays'
     };
     
-    return categoryMap[placeType] || 'Inconnu';
+    return categoryMap[placeType] || 'Lieu';
   }
 
   // Méthode utilitaire pour vérifier l'état du service
