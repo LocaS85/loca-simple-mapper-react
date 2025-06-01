@@ -1,4 +1,3 @@
-
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { validateMapboxToken, getValidatedToken } from '@/utils/mapboxValidation';
 import { TransportMode } from '@/types';
@@ -211,12 +210,14 @@ class MapboxApiService {
   }
 
   private getMapboxProfile(transportMode: TransportMode): string {
-    const profileMap: Record<TransportMode, string> = {
+    const profileMap: Record<string, string> = {
       'car': 'driving',
+      'driving': 'driving',
       'walking': 'walking',
       'cycling': 'cycling',
       'bus': 'driving',
-      'train': 'driving'
+      'train': 'driving',
+      'transit': 'driving'
     };
     return profileMap[transportMode] || 'driving';
   }
