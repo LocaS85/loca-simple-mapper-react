@@ -8,7 +8,7 @@ import MultiMapToggle from '@/components/geosearch/MultiMapToggle';
 import SEOHead from '@/components/SEOHead';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import { useAppStore } from '@/store/appStore';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { AlertCircle } from 'lucide-react';
@@ -19,9 +19,9 @@ const GeoSearch = () => {
   const { isInitialized } = useAppInitialization();
   const [tokenValid, setTokenValid] = React.useState(true);
 
-  // État de l'application centralisé
+  // Utiliser uniquement le store GeoSearch pour la cohérence
   const {
-    searchResults,
+    results: searchResults,
     filters,
     isLoading,
     showFilters,
@@ -31,7 +31,7 @@ const GeoSearch = () => {
     toggleFilters,
     setUserLocation,
     setShowFilters
-  } = useAppStore();
+  } = useGeoSearchStore();
 
   // Vérifier le token Mapbox au montage
   useEffect(() => {

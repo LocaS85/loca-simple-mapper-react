@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface MapViewProps {
-  transport?: TransportMode; // Optionnel maintenant car on utilise le store
+  transport?: TransportMode;
 }
 
 const MapView: React.FC<MapViewProps> = ({ transport }) => {
@@ -22,7 +22,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   
-  // Utiliser le store Zustand
+  // Utiliser le même store que GeoSearch
   const {
     userLocation,
     results,
@@ -46,7 +46,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: userLocation || [2.35, 48.85], // Utiliser la position depuis le store
+        center: userLocation || [2.35, 48.85],
         zoom: isMobile ? 10 : 12
       });
       
