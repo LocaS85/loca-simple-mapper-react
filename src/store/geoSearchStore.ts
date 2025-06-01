@@ -1,47 +1,31 @@
+
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { TransportMode } from '@/lib/data/transportModes';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { filterSyncService } from './filterSync';
-import { performanceService } from '@/services/performanceService';
 
 interface GeoSearchState {
-  // Position et localisation
   userLocation: [number, number] | null;
   startingPosition: [number, number] | null;
-  
-  // Filtres de recherche avec synchronisation
   filters: GeoSearchFilters;
-  
-  // Résultats et état avec cache optimisé
   results: SearchResult[];
   isLoading: boolean;
   showFilters: boolean;
   lastSearchParams: string | null;
   searchCache: Map<string, { results: SearchResult[]; timestamp: number }>;
-  
-  // État de l'API Mapbox
   isMapboxReady: boolean;
   mapboxError: string | null;
   
-  // Actions pour la position
   setUserLocation: (location: [number, number] | null) => void;
   setStartingPosition: (position: [number, number] | null) => void;
-  
-  // Actions pour les filtres avec validation améliorée
   updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
   resetFilters: () => void;
-  
-  // Actions pour les résultats avec performance
   setResults: (results: SearchResult[]) => void;
   setIsLoading: (loading: boolean) => void;
-  
-  // Actions pour l'interface
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
-  
-  // Actions de recherche optimisées avec API connectée
   loadResults: () => Promise<void>;
   initializeMapbox: () => Promise<void>;
   clearCache: () => void;
@@ -59,9 +43,7 @@ const defaultFilters: GeoSearchFilters = {
   maxDuration: 20
 };
 
-// Fonction de conversion des résultats Mapbox vers SearchResult
 const convertMapboxToSearchResult = (mapboxResult: any, userLocation: [number, number]): SearchResult => {
-  // Calculer la distance
   const distance = calculateDistance(userLocation, mapboxResult.coordinates);
   
   return {
@@ -76,9 +58,8 @@ const convertMapboxToSearchResult = (mapboxResult: any, userLocation: [number, n
   };
 };
 
-// Fonction utilitaire pour calculer la distance
 const calculateDistance = (point1: [number, number], point2: [number, number]): number => {
-  const R = 6371; // Rayon de la Terre en km
+  const R = 6371;
   const dLat = (point2[1] - point1[1]) * Math.PI / 180;
   const dLon = (point2[0] - point1[0]) * Math.PI / 180;
   const a = 
@@ -92,7 +73,6 @@ const calculateDistance = (point1: [number, number], point2: [number, number]): 
 export const useGeoSearchStore = create<GeoSearchState>()(
   devtools(
     (set, get) => ({
-      // État initial
       userLocation: null,
       startingPosition: null,
       filters: { ...defaultFilters },
@@ -104,7 +84,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       isMapboxReady: false,
       mapboxError: null,
       
-      // Actions pour la position
       setUserLocation: (location) => {
         set({ userLocation: location }, false, 'setUserLocation');
         if (location) {
@@ -115,7 +94,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       setStartingPosition: (position) => 
         set({ startingPosition: position }, false, 'setStartingPosition'),
       
-      // Initialisation de Mapbox améliorée
       initializeMapbox: async () => {
         try {
           console.log('🚀 Initialisation de l\'API Mapbox...');
@@ -142,7 +120,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         }
       },
       
-      // Actions pour les filtres
       updateFilters: (newFilters) => {
         const currentFilters = get().filters;
         const updatedFilters = { ...currentFilters, ...newFilters };
@@ -161,8 +138,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
               }
             }, 300);
           }
-        } else {
-          console.warn('Filtres invalides ignorés:', newFilters);
         }
       },
         
@@ -174,21 +149,18 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         get().clearCache();
       },
       
-      // Actions pour les résultats
       setResults: (results) => 
         set({ results }, false, 'setResults'),
         
       setIsLoading: (loading) => 
         set({ isLoading: loading }, false, 'setIsLoading'),
       
-      // Actions pour l'interface
       toggleFilters: () =>
         set((state) => ({ showFilters: !state.showFilters }), false, 'toggleFilters'),
         
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
       
-      // Action de recherche optimisée
       loadResults: async () => {
         const { userLocation, filters, setIsLoading, setResults, isMapboxReady } = get();
         
@@ -210,7 +182,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         console.log('🔍 Recherche avec localisation:', userLocation);
         
         try {
-          // Construire une requête de recherche plus efficace
           let searchQuery = filters.query || '';
           if (filters.category && !searchQuery) {
             searchQuery = filters.category;
@@ -219,14 +190,12 @@ export const useGeoSearchStore = create<GeoSearchState>()(
             searchQuery = `${searchQuery} ${filters.subcategory}`.trim();
           }
           
-          // Si aucune requête spécifique, chercher des lieux intéressants
           if (!searchQuery) {
             searchQuery = 'restaurant';
           }
 
           console.log('🔍 Requête de recherche:', searchQuery);
           
-          // Appel à l'API Mapbox
           const mapboxResults = await mapboxApiService.searchPlaces(searchQuery, userLocation, {
             limit: filters.aroundMeCount || 5,
             radius: filters.distance,
@@ -235,7 +204,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           
           console.log('📍 Résultats Mapbox reçus:', mapboxResults.length);
           
-          // Convertir les résultats
           const searchResults = mapboxResults.map(result => 
             convertMapboxToSearchResult(result, userLocation)
           );
@@ -257,16 +225,6 @@ export const useGeoSearchStore = create<GeoSearchState>()(
               category: 'restaurant',
               distance: 0.2,
               duration: 3
-            },
-            {
-              id: 'test-2',
-              name: 'Café Central',
-              address: '456 Avenue des Champs, France',
-              coordinates: [userLocation[0] - 0.001, userLocation[1] + 0.002] as [number, number],
-              type: 'cafe',
-              category: 'cafe',
-              distance: 0.3,
-              duration: 4
             }
           ];
           
@@ -278,10 +236,8 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         }
       },
 
-      // Gestion du cache
       clearCache: () => {
         set({ searchCache: new Map() }, false, 'clearCache');
-        console.log('Cache de recherche vidé');
       }
     }),
     {

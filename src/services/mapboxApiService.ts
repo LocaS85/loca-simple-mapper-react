@@ -1,38 +1,31 @@
 
-import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
-import { validateMapboxToken, getValidatedToken } from '@/utils/mapboxValidation';
+import { isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { MapboxGeocodingService } from './mapbox/geocoding';
+import { MapboxDirectionsService } from './mapbox/directions';
+import { MapboxIsochroneService } from './mapbox/isochrone';
+import { MapboxSearchResult, MapboxDirectionsResult, MapboxSearchOptions } from './mapbox/types';
 import { TransportMode } from '@/types';
 
-export interface MapboxSearchResult {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: [number, number];
-  category: string;
-  relevance?: number;
-}
-
-export interface MapboxDirectionsResult {
-  geometry: any;
-  distance: number;
-  duration: number;
-  steps?: any[];
-}
-
 class MapboxApiService {
-  private token: string | null = null;
+  private geocodingService: MapboxGeocodingService;
+  private directionsService: MapboxDirectionsService;
+  private isochroneService: MapboxIsochroneService;
   private isInitialized = false;
+
+  constructor() {
+    this.geocodingService = new MapboxGeocodingService();
+    this.directionsService = new MapboxDirectionsService();
+    this.isochroneService = new MapboxIsochroneService();
+  }
 
   async initialize(): Promise<boolean> {
     try {
-      if (this.isInitialized && this.token) {
+      if (this.isInitialized) {
         return true;
       }
 
-      // Obtenir et valider le token public
       if (isMapboxTokenValid()) {
-        this.token = getMapboxToken();
-        console.log('🎯 Service Mapbox initialisé avec token public:', this.token.substring(0, 20) + '...');
+        console.log('🎯 Service Mapbox initialisé avec succès');
         this.isInitialized = true;
         return true;
       } else {
@@ -45,217 +38,38 @@ class MapboxApiService {
     }
   }
 
-  async searchPlaces(query: string, center: [number, number], options: {
-    limit?: number;
-    radius?: number;
-    categories?: string[];
-  } = {}): Promise<MapboxSearchResult[]> {
-    
+  async searchPlaces(query: string, center: [number, number], options: MapboxSearchOptions = {}): Promise<MapboxSearchResult[]> {
     if (!await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
-
-    const { limit = 10, radius = 10 } = options;
-
-    // Améliorer la requête de recherche pour de meilleurs résultats
-    let searchQuery = query;
-    if (!searchQuery || searchQuery === 'point of interest') {
-      // Recherche plus spécifique selon la localisation française
-      searchQuery = 'restaurant OR cafe OR commerce OR pharmacie OR boulangerie';
-    }
-
-    // Construire les paramètres de recherche optimisés
-    const searchParams = new URLSearchParams({
-      access_token: this.token!,
-      proximity: center.join(','),
-      limit: limit.toString(),
-      country: 'fr',
-      language: 'fr',
-      types: 'poi,address' // Points d'intérêt et adresses
-    });
-
-    // Ajouter bbox si radius est spécifié
-    if (radius > 0) {
-      const bbox = this.calculateBbox(center, radius);
-      searchParams.append('bbox', bbox.join(','));
-    }
-
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?${searchParams}`;
-    
-    try {
-      console.log('🔍 Recherche Mapbox avec requête améliorée:', searchQuery);
-      const response = await fetch(url);
-      
-      if (response.status === 401) {
-        throw new Error('Token Mapbox invalide ou expiré');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Erreur API Mapbox: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('📍 Résultats Mapbox reçus:', data.features?.length || 0);
-      
-      return data.features?.map((feature: any, index: number) => ({
-        id: feature.id || `result-${index}`,
-        name: feature.text || feature.place_name,
-        address: feature.place_name,
-        coordinates: feature.center as [number, number],
-        category: this.determineCategory(feature),
-        relevance: feature.relevance
-      })) || [];
-      
-    } catch (error) {
-      console.error('Erreur lors de la recherche Mapbox:', error);
-      throw error;
-    }
+    return this.geocodingService.searchPlaces(query, center, options);
   }
 
-  async getDirections(
-    origin: [number, number],
-    destination: [number, number],
-    transportMode: TransportMode = 'walking'
-  ): Promise<MapboxDirectionsResult> {
-    
+  async getDirections(origin: [number, number], destination: [number, number], transportMode: TransportMode = 'walking'): Promise<MapboxDirectionsResult> {
     if (!await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
-
-    const profile = this.getMapboxProfile(transportMode);
-    const coordinates = `${origin.join(',')};${destination.join(',')}`;
-    
-    const params = new URLSearchParams({
-      access_token: this.token!,
-      geometries: 'geojson',
-      overview: 'full',
-      steps: 'true'
-    });
-
-    const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinates}?${params}`;
-    
-    try {
-      const response = await fetch(url);
-      
-      if (response.status === 401) {
-        throw new Error('Token Mapbox invalide pour les directions');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Erreur Directions API: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.routes || data.routes.length === 0) {
-        throw new Error('Aucun itinéraire trouvé');
-      }
-      
-      return {
-        geometry: data.routes[0].geometry,
-        distance: data.routes[0].distance,
-        duration: data.routes[0].duration,
-        steps: data.routes[0].legs?.[0]?.steps || []
-      };
-      
-    } catch (error) {
-      console.error('Erreur lors du calcul d\'itinéraire:', error);
-      throw error;
-    }
+    return this.directionsService.getDirections(origin, destination, transportMode);
   }
 
-  async createIsochrone(
-    center: [number, number],
-    duration: number,
-    transportMode: TransportMode = 'walking'
-  ): Promise<any> {
-    
+  async createIsochrone(center: [number, number], duration: number, transportMode: TransportMode = 'walking'): Promise<any> {
     if (!await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
-
-    const profile = this.getMapboxProfile(transportMode);
-    
-    const params = new URLSearchParams({
-      access_token: this.token!,
-      contours_minutes: duration.toString(),
-      polygons: 'true',
-      denoise: '1'
-    });
-
-    const url = `https://api.mapbox.com/isochrone/v1/mapbox/${profile}/${center.join(',')}?${params}`;
-    
-    try {
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`Erreur Isochrone API: ${response.status}`);
-      }
-      
-      return await response.json();
-      
-    } catch (error) {
-      console.error('Erreur lors de la création d\'isochrone:', error);
-      throw error;
-    }
+    return this.isochroneService.createIsochrone(center, duration, transportMode);
   }
 
-  private calculateBbox(center: [number, number], radiusKm: number): [number, number, number, number] {
-    const radiusInDegrees = radiusKm / 111.32; // Approximation : 1 degré ≈ 111.32 km
-    return [
-      center[0] - radiusInDegrees, // ouest
-      center[1] - radiusInDegrees, // sud
-      center[0] + radiusInDegrees, // est
-      center[1] + radiusInDegrees  // nord
-    ];
-  }
-
-  private getMapboxProfile(transportMode: TransportMode): string {
-    const profileMap: Record<string, string> = {
-      'car': 'driving',
-      'driving': 'driving',
-      'walking': 'walking',
-      'cycling': 'cycling',
-      'bus': 'driving',
-      'train': 'driving',
-      'transit': 'driving'
-    };
-    return profileMap[transportMode] || 'driving';
-  }
-
-  private determineCategory(feature: any): string {
-    if (feature.properties?.category) {
-      return feature.properties.category;
-    }
-    
-    const placeType = feature.place_type?.[0];
-    const categoryMap: Record<string, string> = {
-      'poi': 'Point d\'intérêt',
-      'address': 'Adresse',
-      'place': 'Lieu',
-      'region': 'Région',
-      'country': 'Pays'
-    };
-    
-    return categoryMap[placeType] || 'Lieu';
-  }
-
-  // Méthode utilitaire pour vérifier l'état du service
   isReady(): boolean {
-    return this.isInitialized && !!this.token;
+    return this.isInitialized;
   }
 
-  // Méthode pour réinitialiser le service (utile pour les tests ou changements de token)
   reset(): void {
-    this.token = null;
     this.isInitialized = false;
   }
 }
 
-// Instance singleton du service
 export const mapboxApiService = new MapboxApiService();
 
-// Hook pour utiliser le service dans les composants React
 export const useMapboxApi = () => {
   return {
     searchPlaces: mapboxApiService.searchPlaces.bind(mapboxApiService),
