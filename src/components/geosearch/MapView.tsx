@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { TransportMode } from '@/types';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,6 +9,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { mapboxApiService } from '@/services/mapboxApiService';
+import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
 import MapMarkers from './map/MapMarkers';
 import MapLegend from './map/MapLegend';
 import MapStatusIndicator from './map/MapStatusIndicator';
@@ -17,7 +18,7 @@ interface MapViewProps {
   transport?: TransportMode;
 }
 
-const MapView: React.FC<MapViewProps> = ({ transport }) => {
+const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -26,16 +27,23 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { trackRender, debounce, throttle } = usePerformanceOptimization();
   
   const {
     userLocation,
     results,
     isLoading,
     isMapboxReady,
-    mapboxError
+    mapboxError,
+    networkStatus
   } = useGeoSearchStore();
 
-  // Initialiser la carte
+  // Track render performance
+  useEffect(() => {
+    trackRender('MapView');
+  });
+
+  // Initialize map with error handling
   useEffect(() => {
     if (!mapContainer.current || !isMapboxReady) return;
     
@@ -52,7 +60,8 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: userLocation || [2.35, 48.85],
-        zoom: isMobile ? 10 : 12
+        zoom: isMobile ? 10 : 12,
+        attributionControl: false // Reduce UI clutter
       });
       
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -61,7 +70,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
         setMapLoaded(true);
         setMapError(null);
         
-        // Ajouter source et layer pour les itinéraires
+        // Add optimized route layer
         newMap.addSource('route', {
           type: 'geojson',
           data: {
@@ -84,7 +93,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
           },
           paint: {
             'line-color': '#3b82f6',
-            'line-width': 4,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2, 15, 8],
             'line-opacity': 0.8
           }
         });
@@ -111,8 +120,8 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
     }
   }, [isMobile, userLocation, isMapboxReady]);
 
-  // Ajuster la carte aux résultats
-  useEffect(() => {
+  // Optimized bounds fitting with throttling
+  const fitBounds = throttle(() => {
     if (!map.current || !mapLoaded || !userLocation) return;
     
     try {
@@ -126,18 +135,27 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
         
         map.current.fitBounds(bounds, {
           padding: isMobile ? { top: 80, bottom: 50, left: 20, right: 20 } : 100,
-          maxZoom: isMobile ? 13 : 15
+          maxZoom: isMobile ? 13 : 15,
+          duration: 1000 // Smooth animation
         });
       } else {
-        map.current.setCenter(userLocation);
-        map.current.setZoom(isMobile ? 10 : 12);
+        map.current.easeTo({
+          center: userLocation,
+          zoom: isMobile ? 10 : 12,
+          duration: 1000
+        });
       }
     } catch (error) {
       console.error('❌ Error fitting bounds:', error);
     }
+  }, 500);
+
+  useEffect(() => {
+    fitBounds();
   }, [results, mapLoaded, userLocation, isMobile]);
 
-  const handleRouteRequest = async (placeId: string) => {
+  // Optimized route calculation with debouncing
+  const handleRouteRequest = debounce(async (placeId: string) => {
     const targetPlace = results.find(p => p.id === placeId);
     if (!targetPlace || !userLocation || !map.current) return;
     
@@ -174,7 +192,7 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
         variant: "destructive",
       });
     }
-  };
+  }, 300);
 
   if (mapboxError || !isMapboxReady || mapError) {
     return (
@@ -186,9 +204,14 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
           <p className="text-gray-600 mb-4">
             {mapError || mapboxError || 'Token Mapbox requis'}
           </p>
+          {networkStatus === 'offline' && (
+            <p className="text-sm text-orange-600 mb-4">
+              📶 Connexion réseau indisponible
+            </p>
+          )}
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
             Réessayer
           </button>
@@ -207,6 +230,11 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
               <p className="mt-2 text-sm text-gray-600">
                 {!mapLoaded ? 'Chargement de la carte...' : 'Recherche en cours...'}
               </p>
+              {networkStatus === 'slow' && (
+                <p className="text-xs text-orange-600 mt-1">
+                  Connexion lente détectée...
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -233,6 +261,8 @@ const MapView: React.FC<MapViewProps> = ({ transport }) => {
       </div>
     </div>
   );
-};
+});
+
+MapView.displayName = 'MapView';
 
 export default MapView;

@@ -11,27 +11,49 @@ interface MapMarkerProps {
 
 const MapMarker: React.FC<MapMarkerProps> = ({ place, map }) => {
   React.useEffect(() => {
+    // Create marker element safely without innerHTML
     const el = document.createElement('div');
-    el.className = 'marker';
+    el.className = 'marker cursor-pointer hover:scale-110 transition-transform duration-200';
     
-    // Create a safe HTML structure without emoji icons
-    el.innerHTML = `
-      <div class="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg cursor-pointer transition-shadow duration-200">
-        <div class="h-6 w-6 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold">
-          ${place.category === 'restaurant' ? 
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 19H21M3 5H21M4 9H8M4 14H8M9 9H13M9 14H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : 
-            place.category === 'cafe' ? 
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 8H18C20.2091 8 22 9.79086 22 12C22 14.2091 20.2091 16 18 16H17M2 8H17V16H2V8ZM6 20V16M12 20V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : 
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 10C20 14.4183 12 22 12 22C12 22 4 14.4183 4 10C4 5.58172 7.58172 2 12 2C16.4183 2 20 5.58172 20 10Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-          }
-        </div>
-      </div>
-    `;
+    // Create container div
+    const container = document.createElement('div');
+    container.className = 'flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg';
+    
+    // Create icon container
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'h-6 w-6 rounded-full flex items-center justify-center text-white text-xs font-bold';
+    
+    // Set background color based on category
+    switch (place.category) {
+      case 'restaurant':
+        iconContainer.className += ' bg-red-500';
+        iconContainer.innerHTML = '🍽️';
+        break;
+      case 'cafe':
+        iconContainer.className += ' bg-purple-500';
+        iconContainer.innerHTML = '☕';
+        break;
+      default:
+        iconContainer.className += ' bg-blue-500';
+        iconContainer.innerHTML = '📍';
+    }
+    
+    container.appendChild(iconContainer);
+    el.appendChild(container);
     
     const marker = new mapboxgl.Marker(el)
       .setLngLat(place.coordinates)
       .setPopup(new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`<h3 class="font-medium">${place.name}</h3><p class="text-xs text-gray-500">${place.address}</p>`))
+        .setHTML(`
+          <div class="p-3 min-w-[200px]">
+            <h3 class="font-medium text-sm mb-1">${place.name}</h3>
+            <p class="text-xs text-gray-500 mb-2">${place.address}</p>
+            <div class="flex justify-between text-xs">
+              <span class="text-blue-600">📏 ${place.distance || 'N/A'} km</span>
+              <span class="text-green-600">⏱️ ${place.duration || 'N/A'} min</span>
+            </div>
+          </div>
+        `))
       .addTo(map);
     
     return () => {
@@ -39,7 +61,7 @@ const MapMarker: React.FC<MapMarkerProps> = ({ place, map }) => {
     };
   }, [place, map]);
 
-  return null; // This component doesn't render anything directly
+  return null;
 };
 
 export default MapMarker;

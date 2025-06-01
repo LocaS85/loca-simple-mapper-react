@@ -1,93 +1,23 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { TransportMode } from '@/lib/data/transportModes';
-import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { filterSyncService } from './filterSync';
+import { GeoSearchState, GeoSearchActions, initialState, defaultFilters } from './geoSearchStore/state';
+import { convertMapboxToSearchResult, createCacheKey, createMockResults } from './geoSearchStore/searchLogic';
+import { CacheService } from './geoSearchStore/cacheService';
 
-interface GeoSearchState {
-  userLocation: [number, number] | null;
-  startingPosition: [number, number] | null;
-  filters: GeoSearchFilters;
-  results: SearchResult[];
-  isLoading: boolean;
-  showFilters: boolean;
-  lastSearchParams: string | null;
-  searchCache: Map<string, { results: SearchResult[]; timestamp: number }>;
-  isMapboxReady: boolean;
-  mapboxError: string | null;
-  
-  setUserLocation: (location: [number, number] | null) => void;
-  setStartingPosition: (position: [number, number] | null) => void;
-  updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
-  resetFilters: () => void;
-  setResults: (results: SearchResult[]) => void;
-  setIsLoading: (loading: boolean) => void;
-  toggleFilters: () => void;
-  setShowFilters: (show: boolean) => void;
-  loadResults: () => Promise<void>;
-  initializeMapbox: () => Promise<void>;
-  clearCache: () => void;
-}
+const cacheService = new CacheService();
 
-const defaultFilters: GeoSearchFilters = {
-  category: null,
-  subcategory: null,
-  transport: 'walking' as TransportMode,
-  distance: 10,
-  unit: 'km' as 'km' | 'mi',
-  query: '',
-  aroundMeCount: 3,
-  showMultiDirections: false,
-  maxDuration: 20
-};
-
-const convertMapboxToSearchResult = (mapboxResult: any, userLocation: [number, number]): SearchResult => {
-  const distance = calculateDistance(userLocation, mapboxResult.coordinates);
-  
-  return {
-    id: mapboxResult.id,
-    name: mapboxResult.name,
-    address: mapboxResult.address,
-    coordinates: mapboxResult.coordinates,
-    type: mapboxResult.category,
-    category: mapboxResult.category,
-    distance: Math.round(distance * 10) / 10,
-    duration: Math.round(distance * 12) // Estimation : 12 min/km à pied
-  };
-};
-
-const calculateDistance = (point1: [number, number], point2: [number, number]): number => {
-  const R = 6371;
-  const dLat = (point2[1] - point1[1]) * Math.PI / 180;
-  const dLon = (point2[0] - point1[0]) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(point1[1] * Math.PI / 180) * Math.cos(point2[1] * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-};
-
-export const useGeoSearchStore = create<GeoSearchState>()(
+export const useGeoSearchStore = create<GeoSearchState & GeoSearchActions>()(
   devtools(
     (set, get) => ({
-      userLocation: null,
-      startingPosition: null,
-      filters: { ...defaultFilters },
-      results: [],
-      isLoading: false,
-      showFilters: false,
-      lastSearchParams: null,
-      searchCache: new Map(),
-      isMapboxReady: false,
-      mapboxError: null,
+      ...initialState,
       
       setUserLocation: (location) => {
         set({ userLocation: location }, false, 'setUserLocation');
         if (location) {
-          get().clearCache();
+          cacheService.clear();
         }
       },
         
@@ -102,20 +32,23 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           if (isReady) {
             set({ 
               isMapboxReady: true,
-              mapboxError: null
+              mapboxError: null,
+              networkStatus: 'online'
             }, false, 'initializeMapbox');
             console.log('✅ Mapbox initialisé avec succès');
           } else {
             set({ 
               isMapboxReady: false,
-              mapboxError: 'Token Mapbox invalide - utilisez un token public (pk.) pour le frontend'
+              mapboxError: 'Token Mapbox invalide - utilisez un token public (pk.) pour le frontend',
+              networkStatus: 'offline'
             }, false, 'mapboxError');
           }
         } catch (error) {
           console.error('❌ Erreur d\'initialisation Mapbox:', error);
           set({ 
             isMapboxReady: false,
-            mapboxError: error instanceof Error ? error.message : 'Erreur de connexion Mapbox'
+            mapboxError: error instanceof Error ? error.message : 'Erreur de connexion Mapbox',
+            networkStatus: 'offline'
           }, false, 'mapboxError');
         }
       },
@@ -146,7 +79,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
           filters: { ...defaultFilters }, 
           lastSearchParams: null 
         }, false, 'resetFilters');
-        get().clearCache();
+        cacheService.clear();
       },
       
       setResults: (results) => 
@@ -160,9 +93,18 @@ export const useGeoSearchStore = create<GeoSearchState>()(
         
       setShowFilters: (show) => 
         set({ showFilters: show }, false, 'setShowFilters'),
+
+      setNetworkStatus: (status) =>
+        set({ networkStatus: status }, false, 'setNetworkStatus'),
+
+      incrementRetryCount: () =>
+        set((state) => ({ retryCount: state.retryCount + 1 }), false, 'incrementRetryCount'),
+
+      resetRetryCount: () =>
+        set({ retryCount: 0 }, false, 'resetRetryCount'),
       
       loadResults: async () => {
-        const { userLocation, filters, setIsLoading, setResults, isMapboxReady } = get();
+        const { userLocation, filters, setIsLoading, setResults, isMapboxReady, retryCount } = get();
         
         if (!userLocation) {
           console.log('❌ Aucune localisation utilisateur disponible');
@@ -176,6 +118,15 @@ export const useGeoSearchStore = create<GeoSearchState>()(
             console.error('❌ Impossible d\'initialiser Mapbox');
             return;
           }
+        }
+
+        // Check cache first
+        const cacheKey = createCacheKey(filters, userLocation);
+        const cachedResults = cacheService.get(cacheKey);
+        if (cachedResults) {
+          console.log('📦 Résultats trouvés en cache');
+          setResults(cachedResults);
+          return;
         }
         
         setIsLoading(true);
@@ -208,28 +159,32 @@ export const useGeoSearchStore = create<GeoSearchState>()(
             convertMapboxToSearchResult(result, userLocation)
           );
           
+          // Cache the results
+          cacheService.set(cacheKey, searchResults);
+          
           setResults(searchResults);
+          get().resetRetryCount();
+          get().setNetworkStatus('online');
           console.log('✅ Résultats traités et stockés:', searchResults.length);
           
         } catch (error) {
           console.error('❌ Erreur de recherche:', error);
           
-          // Données de test en cas d'erreur
-          const mockResults: SearchResult[] = [
-            {
-              id: 'test-1',
-              name: 'Restaurant Le Bon Goût',
-              address: '123 Rue de la Paix, France',
-              coordinates: [userLocation[0] + 0.001, userLocation[1] + 0.001] as [number, number],
-              type: 'restaurant',
-              category: 'restaurant',
-              distance: 0.2,
-              duration: 3
-            }
-          ];
+          if (retryCount < 2) {
+            console.log(`🔄 Tentative ${retryCount + 1}/3`);
+            get().incrementRetryCount();
+            get().setNetworkStatus('slow');
+            
+            setTimeout(() => {
+              get().loadResults();
+            }, 1000 * (retryCount + 1));
+            return;
+          }
           
+          get().setNetworkStatus('offline');
+          const mockResults = createMockResults(userLocation);
           setResults(mockResults);
-          console.log('🔧 Utilisation de données de test');
+          console.log('🔧 Utilisation de données de test après échec');
           
         } finally {
           setIsLoading(false);
@@ -237,6 +192,7 @@ export const useGeoSearchStore = create<GeoSearchState>()(
       },
 
       clearCache: () => {
+        cacheService.clear();
         set({ searchCache: new Map() }, false, 'clearCache');
       }
     }),

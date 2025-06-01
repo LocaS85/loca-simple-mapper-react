@@ -5,6 +5,7 @@ import { MapboxDirectionsService } from './mapbox/directions';
 import { MapboxIsochroneService } from './mapbox/isochrone';
 import { MapboxSearchResult, MapboxDirectionsResult, MapboxSearchOptions } from './mapbox/types';
 import { TransportMode } from '@/types';
+import { networkErrorHandler } from './networkErrorHandler';
 
 class MapboxApiService {
   private geocodingService: MapboxGeocodingService;
@@ -42,21 +43,33 @@ class MapboxApiService {
     if (!await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
-    return this.geocodingService.searchPlaces(query, center, options);
+    
+    return networkErrorHandler.handleApiCall(
+      () => this.geocodingService.searchPlaces(query, center, options),
+      (attempt) => console.log(`🔄 Recherche - Tentative ${attempt}`)
+    );
   }
 
   async getDirections(origin: [number, number], destination: [number, number], transportMode: TransportMode = 'walking'): Promise<MapboxDirectionsResult> {
     if (!await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
-    return this.directionsService.getDirections(origin, destination, transportMode);
+    
+    return networkErrorHandler.handleApiCall(
+      () => this.directionsService.getDirections(origin, destination, transportMode),
+      (attempt) => console.log(`🔄 Directions - Tentative ${attempt}`)
+    );
   }
 
   async createIsochrone(center: [number, number], duration: number, transportMode: TransportMode = 'walking'): Promise<any> {
     if (!await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
-    return this.isochroneService.createIsochrone(center, duration, transportMode);
+    
+    return networkErrorHandler.handleApiCall(
+      () => this.isochroneService.createIsochrone(center, duration, transportMode),
+      (attempt) => console.log(`🔄 Isochrone - Tentative ${attempt}`)
+    );
   }
 
   isReady(): boolean {
@@ -65,6 +78,7 @@ class MapboxApiService {
 
   reset(): void {
     this.isInitialized = false;
+    networkErrorHandler.reset();
   }
 }
 
