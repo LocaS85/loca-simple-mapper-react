@@ -52,7 +52,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
 
     setIsLoading(true);
     try {
-      const results = await mapboxApiService.geocode(searchQuery, {
+      const results = await mapboxApiService.searchPlaces(searchQuery, [2.3522, 48.8566], {
         limit: 5,
         country: 'fr'
       });

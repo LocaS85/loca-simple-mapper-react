@@ -41,7 +41,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
     <>
       {/* Header collapsé */}
       {!isExpanded && (
-        <div className="absolute top-4 left-4 right-4 z-30">
+        <div className="absolute top-4 left-4 right-20 z-30">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-2">
             <div className="flex items-center gap-2">
               <Button
@@ -70,7 +70,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
 
       {/* Header étendu */}
       {isExpanded && (
-        <div className="absolute top-4 left-4 right-4 z-30">
+        <div className="absolute top-4 left-4 right-20 z-30">
           <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 p-3">
             <div className="flex items-center gap-2">
               <div className="flex-1">

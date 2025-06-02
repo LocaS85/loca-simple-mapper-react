@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { TransportMode } from '@/lib/data/transportModes';
@@ -11,6 +12,7 @@ import { mapboxApiService } from '@/services/mapboxApiService';
 import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
 import MapMarkers from './map/MapMarkers';
 import MapStatusIndicator from './map/MapStatusIndicator';
+import { MapPin } from 'lucide-react';
 
 interface MapViewProps {
   transport?: TransportMode;
@@ -200,9 +202,15 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     userMarker.current = new mapboxgl.Marker(userMarkerElement)
       .setLngLat(userLocation)
       .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
-        <div class="p-3">
-          <h3 class="font-bold text-sm text-blue-600">${t('geosearch.yourPosition')}</h3>
-          <p class="text-xs text-gray-500 mt-1">Votre localisation actuelle</p>
+        <div class="p-2 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <div>
+            <h3 class="font-medium text-sm text-blue-600">Ma position</h3>
+            <p class="text-xs text-gray-500">Votre localisation actuelle</p>
+          </div>
         </div>
       `))
       .addTo(map.current);
