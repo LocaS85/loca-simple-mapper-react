@@ -12,6 +12,7 @@ export interface GeoSearchActions {
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
   loadResults: () => Promise<void>;
+  performSearch: (query?: string) => Promise<void>;
   initializeMapbox: () => Promise<void>;
   clearCache: () => void;
   setNetworkStatus: (status: 'online' | 'offline' | 'slow') => void;

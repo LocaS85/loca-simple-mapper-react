@@ -1,172 +1,107 @@
 
 import React from 'react';
+import { Filter, MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Navigation } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
 import AutoSuggestSearch from './AutoSuggestSearch';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
-import { BoutonFiltre, BadgesFiltres } from '../filters';
-import { useToast } from '@/hooks/use-toast';
 
 interface SearchHeaderProps {
   filters: GeoSearchFilters;
   onToggleFilters: () => void;
-  onSearch?: (query: string) => void;
-  onLocationSelect?: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
-  onRequestUserLocation?: () => void;
+  onLocationSelect: (location: { 
+    name: string; 
+    coordinates: [number, number]; 
+    placeName: string 
+  }) => void;
+  onRequestUserLocation: () => void;
+  onSearch?: (query?: string) => void;
 }
 
 const SearchHeader: React.FC<SearchHeaderProps> = ({
   filters,
   onToggleFilters,
-  onSearch,
   onLocationSelect,
-  onRequestUserLocation
+  onRequestUserLocation,
+  onSearch
 }) => {
-  const navigate = useNavigate();
   const { t } = useTranslation();
-  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = React.useState(filters.query || '');
 
-  const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
-    console.log('Location selected in SearchHeader:', location);
-    
-    // Afficher un toast de confirmation
-    toast({
-      title: t("geosearch.locationSelected"),
-      description: t("geosearch.searchingAround", { 
-        place: location.placeName || location.name 
-      }),
-    });
-
-    if (onLocationSelect) {
-      onLocationSelect(location);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSearch) {
+      onSearch(searchQuery);
     }
   };
 
-  const handleUserLocationRequest = () => {
-    console.log('Requesting user location...');
-    
-    if (navigator.geolocation) {
-      toast({
-        title: t("map.yourLocation"),
-        description: t("geosearch.requestingLocation"),
-      });
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log('User location found:', position.coords);
-          const coordinates: [number, number] = [
-            position.coords.longitude, 
-            position.coords.latitude
-          ];
-          
-          // Simuler un objet location pour onLocationSelect
-          const userLocationData = {
-            name: t("geosearch.yourPosition"),
-            coordinates,
-            placeName: t("geosearch.yourPosition")
-          };
-          
-          handleLocationSelect(userLocationData);
-          
-          if (onRequestUserLocation) {
-            onRequestUserLocation();
-          }
-        },
-        (error) => {
-          console.error('Erreur géolocalisation:', error);
-          let errorMessage = t("geosearch.locationErrorDesc");
-          
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = t("geosearch.locationPermissionDenied");
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = t("geosearch.locationUnavailable");
-              break;
-            case error.TIMEOUT:
-              errorMessage = t("geosearch.locationTimeout");
-              break;
-          }
-          
-          toast({
-            title: t("geosearch.locationError"),
-            description: errorMessage,
-            variant: "destructive",
-          });
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000
-        }
-      );
-    } else {
-      toast({
-        title: t("geosearch.locationError"),
-        description: t("geosearch.locationNotSupported"),
-        variant: "destructive",
-      });
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
+
+  React.useEffect(() => {
+    setSearchQuery(filters.query || '');
+  }, [filters.query]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-10 bg-white shadow-md p-3">
-      <div className="flex items-center gap-2 mb-2">
-        <Button 
-          variant="outline" 
-          size="icon" 
+    <div className="absolute top-0 left-0 right-0 z-30 bg-white shadow-md border-b">
+      <div className="flex items-center gap-2 p-4">
+        {/* Bouton de géolocalisation */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRequestUserLocation}
           className="shrink-0"
-          onClick={() => navigate('/categories')}
-          aria-label={t('common.back')}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <MapPin className="h-4 w-4" />
+          <span className="hidden sm:inline ml-1">
+            {t('geosearch.myLocation')}
+          </span>
         </Button>
-        
-        <div className="flex-1">
-          <AutoSuggestSearch 
-            onResultSelect={handleLocationSelect}
-            placeholder={t('geosearch.searchPlaceholder')}
-            initialValue={filters.query}
-            className="w-full"
+
+        {/* Barre de recherche principale */}
+        <div className="flex-1 max-w-md">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Input
+              type="text"
+              placeholder={t('geosearch.searchPlaceholder')}
+              value={searchQuery}
+              onChange={handleInputChange}
+              className="pr-10"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              variant="ghost"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+
+        {/* Composant de suggestion auto */}
+        <div className="flex-1 max-w-sm">
+          <AutoSuggestSearch
+            onLocationSelect={onLocationSelect}
+            placeholder={t('geosearch.searchLocationPlaceholder')}
           />
         </div>
 
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="shrink-0"
-          onClick={handleUserLocationRequest}
-          aria-label={t('map.yourLocation')}
-          title={t('map.yourLocation')}
-        >
-          <Navigation className="h-4 w-4 text-blue-600" />
-        </Button>
-        
-        <BoutonFiltre 
+        {/* Bouton filtres */}
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onToggleFilters}
-          transportMode={filters.transport}
-          distanceChanged={filters.distance !== 10}
-          aroundMeChanged={filters.aroundMeCount > 3}
-          showMultiDirections={filters.showMultiDirections}
-        />
+          className="shrink-0"
+        >
+          <Filter className="h-4 w-4" />
+          <span className="hidden sm:inline ml-1">
+            {t('geosearch.filters')}
+          </span>
+        </Button>
       </div>
-      
-      {(filters.query || filters.category || filters.subcategory || filters.aroundMeCount > 3) && (
-        <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 max-w-full">
-          <BadgesFiltres
-            query={filters.query}
-            category={filters.category}
-            subcategory={filters.subcategory}
-            transportMode={filters.transport}
-            distance={filters.distance}
-            distanceUnit={filters.unit}
-            aroundMeCount={filters.aroundMeCount}
-            showMultiDirections={filters.showMultiDirections}
-          />
-        </div>
-      )}
     </div>
   );
 };

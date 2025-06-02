@@ -102,6 +102,16 @@ export const useGeoSearchStore = create<GeoSearchState & GeoSearchActions>()(
 
       resetRetryCount: () =>
         set({ retryCount: 0 }, false, 'resetRetryCount'),
+
+      performSearch: async (query?: string) => {
+        const { filters, updateFilters, loadResults } = get();
+        
+        if (query) {
+          updateFilters({ query });
+        }
+        
+        await loadResults();
+      },
       
       loadResults: async () => {
         const { userLocation, filters, setIsLoading, setResults, isMapboxReady, retryCount } = get();

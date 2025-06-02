@@ -13,7 +13,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
-const GeoSearch = () => {
+const GeoSearch: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isInitialized } = useAppInitialization();
@@ -40,6 +40,7 @@ const GeoSearch = () => {
     mapboxError,
     updateFilters,
     loadResults,
+    performSearch,
     toggleFilters,
     setUserLocation,
     setShowFilters,
@@ -48,8 +49,10 @@ const GeoSearch = () => {
 
   // Initialiser Mapbox
   useEffect(() => {
-    initializeMapbox();
-  }, [initializeMapbox]);
+    if (!isMapboxReady) {
+      initializeMapbox();
+    }
+  }, [initializeMapbox, isMapboxReady]);
 
   // Synchroniser la géolocalisation
   useEffect(() => {
@@ -111,6 +114,19 @@ const GeoSearch = () => {
     });
   };
 
+  const handleSearch = async (query?: string) => {
+    try {
+      await performSearch(query);
+    } catch (error) {
+      console.error('Erreur lors de la recherche:', error);
+      toast({
+        title: "Erreur de recherche",
+        description: "Impossible d'effectuer la recherche",
+        variant: "destructive",
+      });
+    }
+  };
+
   const seoTitle = filters.category 
     ? `${filters.category} - ${t('geosearch.title')} | LocaSimple`
     : `${t('geosearch.title')} | LocaSimple`;
@@ -133,7 +149,7 @@ const GeoSearch = () => {
             <p className="text-gray-600 mb-6">{mapboxError}</p>
             <button
               onClick={() => initializeMapbox()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
             >
               Réessayer
             </button>
@@ -153,6 +169,7 @@ const GeoSearch = () => {
           onToggleFilters={toggleFilters}
           onLocationSelect={handleLocationSelect}
           onRequestUserLocation={handleUserLocationRequest}
+          onSearch={handleSearch}
         />
         
         <MapView transport={filters.transport} />
