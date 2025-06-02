@@ -95,7 +95,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         {/* Composant de suggestion auto */}
         <div className="flex-1 max-w-sm">
           <AutoSuggestSearch
-            onSelect={handleAutoSuggestLocationSelect}
+            onResultSelect={handleAutoSuggestLocationSelect}
             placeholder={t('geosearch.searchLocationPlaceholder')}
           />
         </div>

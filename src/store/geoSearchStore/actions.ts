@@ -1,5 +1,4 @@
 
-import { GeoSearchState } from './state';
 import { GeoSearchFilters } from '@/types/geosearch';
 
 export interface GeoSearchActions {
