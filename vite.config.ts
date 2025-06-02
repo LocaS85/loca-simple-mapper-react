@@ -47,5 +47,8 @@ export default defineConfig(({ mode }) => ({
         defaultHandler(warning);
       }
     }
+  },
+  define: {
+    global: 'globalThis',
   }
 }));

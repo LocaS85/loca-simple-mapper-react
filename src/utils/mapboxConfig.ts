@@ -62,3 +62,10 @@ export const SEARCH_CONFIG = {
   timeoutMs: 10000,
   retryAttempts: 2
 };
+
+// Configuration optimisée pour éviter les erreurs de build
+export const MAPBOX_CONFIG = {
+  // Worker settings pour éviter les erreurs CSP
+  workerClass: null,
+  workerCount: 0
+};
