@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { TransportMode } from '@/types';
+import { TransportMode } from '@/lib/data/transportModes';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -249,7 +249,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       );
       
       const source = map.current.getSource('route') as mapboxgl.GeoJSONSource;
-      if (source) {
+      if (source && directions.geometry) {
         source.setData({
           type: 'Feature',
           properties: {
@@ -257,7 +257,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             distance: directions.distance,
             duration: directions.duration
           },
-          geometry: directions.geometry
+          geometry: directions.geometry as GeoJSON.Geometry
         });
         
         toast({

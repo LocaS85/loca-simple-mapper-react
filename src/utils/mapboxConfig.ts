@@ -6,6 +6,13 @@ export const DEFAULT_MAP_ZOOM = 12;
 // Default radius in kilometers
 export const DEFAULT_SEARCH_RADIUS = 10;
 
+// Extend Window interface for Mapbox token
+declare global {
+  interface Window {
+    __MAPBOX_TOKEN__?: string;
+  }
+}
+
 /**
  * Get the Mapbox token from environment, with fallback
  */
@@ -47,7 +54,7 @@ export function isMapboxTokenValid(): boolean {
 export function saveMapboxToken(token: string): void {
   localStorage.setItem('mapbox_token', token);
   // Add global for runtime access
-  (window as any).__MAPBOX_TOKEN__ = token;
+  window.__MAPBOX_TOKEN__ = token;
 }
 
 /**
