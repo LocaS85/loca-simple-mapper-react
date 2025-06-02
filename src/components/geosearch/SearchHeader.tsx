@@ -44,6 +44,17 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
     setSearchQuery(filters.query || '');
   }, [filters.query]);
 
+  // Handle location selection from AutoSuggestSearch
+  const handleAutoSuggestLocationSelect = (result: any) => {
+    if (result && result.coordinates) {
+      onLocationSelect({
+        name: result.name || result.place_name || '',
+        coordinates: result.coordinates,
+        placeName: result.place_name || result.name || ''
+      });
+    }
+  };
+
   return (
     <div className="absolute top-0 left-0 right-0 z-30 bg-white shadow-md border-b">
       <div className="flex items-center gap-2 p-4">
@@ -84,7 +95,7 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         {/* Composant de suggestion auto */}
         <div className="flex-1 max-w-sm">
           <AutoSuggestSearch
-            onLocationSelect={onLocationSelect}
+            onSelect={handleAutoSuggestLocationSelect}
             placeholder={t('geosearch.searchLocationPlaceholder')}
           />
         </div>

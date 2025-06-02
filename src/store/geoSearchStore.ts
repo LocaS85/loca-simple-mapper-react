@@ -1,9 +1,9 @@
-
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { filterSyncService } from './filterSync';
-import { GeoSearchState, GeoSearchActions, initialState, defaultFilters } from './geoSearchStore/state';
+import { GeoSearchState, initialState, defaultFilters } from './geoSearchStore/state';
+import { GeoSearchActions } from './geoSearchStore/actions';
 import { convertMapboxToSearchResult, createCacheKey, createMockResults } from './geoSearchStore/searchLogic';
 import { CacheService } from './geoSearchStore/cacheService';
 
