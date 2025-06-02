@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Loader2, MapPin, AlertCircle } from 'lucide-react';
+import { Search, X, Loader2, MapPin, AlertCircle, Info } from 'lucide-react';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { validateMapboxToken } from '@/utils/mapboxValidation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 
@@ -365,29 +367,54 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={cn(
-            "w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base",
+            "w-full h-10 pl-10 pr-16 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base",
             hasError && "border-red-300 focus:border-red-500 focus:ring-red-500"
           )}
           aria-label="Recherche de lieu"
           autoComplete="off"
         />
         
-        {isLoading ? (
-          <div className="absolute right-3 text-gray-400 z-10">
-            <Loader2 size={18} className="animate-spin" />
-          </div>
-        ) : query ? (
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="icon"
-            className="absolute right-2 h-7 w-7 z-10" 
-            onClick={handleClearInput}
-            aria-label="Effacer la recherche"
-          >
-            <X size={16} />
-          </Button>
-        ) : null}
+        <div className="absolute right-2 flex items-center gap-1">
+          {/* Popover d'aide */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon"
+                className="h-6 w-6 z-10" 
+                aria-label="Aide à la recherche"
+              >
+                <Info size={14} className="text-gray-400" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3 text-sm">
+              <div className="space-y-2">
+                <p className="font-medium">💡 Conseils de recherche</p>
+                <p>• Tapez au moins 2 caractères pour commencer</p>
+                <p>• Recherchez par nom d'établissement, adresse ou lieu</p>
+                <p>• Utilisez des mots-clés précis</p>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          {isLoading ? (
+            <div className="text-gray-400 z-10">
+              <Loader2 size={16} className="animate-spin" />
+            </div>
+          ) : query ? (
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="icon"
+              className="h-6 w-6 z-10" 
+              onClick={handleClearInput}
+              aria-label="Effacer la recherche"
+            >
+              <X size={14} />
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {/* Liste des suggestions */}
@@ -439,12 +466,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
           </div>
           <p className="text-sm text-red-600">Erreur de connexion</p>
           <p className="text-xs text-gray-500 mt-1">Vérifiez votre connexion internet</p>
-        </div>
-      )}
-
-      {isFocused && query.length < 2 && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-4 text-center">
-          <p className="text-sm text-gray-500">Tapez au moins 2 caractères pour rechercher</p>
         </div>
       )}
     </div>

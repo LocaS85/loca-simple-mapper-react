@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { TransportMode } from '@/lib/data/transportModes';
@@ -21,6 +20,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const userMarker = useRef<mapboxgl.Marker | null>(null);
+  const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [hasRouteLayer, setHasRouteLayer] = useState(false);
@@ -69,7 +69,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
       // Add geolocation control with enhanced options
-      const geolocateControl = new mapboxgl.GeolocateControl({
+      const geolocateControlInstance = new mapboxgl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true,
           timeout: 10000,
@@ -80,10 +80,11 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         showAccuracyCircle: true
       });
       
-      newMap.addControl(geolocateControl, 'top-right');
+      geolocateControl.current = geolocateControlInstance;
+      newMap.addControl(geolocateControlInstance, 'top-right');
       
       // Listen for geolocation events
-      geolocateControl.on('geolocate', (e) => {
+      geolocateControlInstance.on('geolocate', (e) => {
         const coords: [number, number] = [e.coords.longitude, e.coords.latitude];
         console.log('📍 Géolocalisation mise à jour:', coords);
         
@@ -97,7 +98,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         });
       });
       
-      geolocateControl.on('error', (e) => {
+      geolocateControlInstance.on('error', (e) => {
         console.error('❌ Erreur de géolocalisation:', e);
         toast({
           title: "Erreur de localisation",
@@ -143,7 +144,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         // Auto-trigger geolocation if no user location
         if (!userLocation) {
           setTimeout(() => {
-            geolocateControl.trigger();
+            geolocateControlInstance.trigger();
           }, 1000);
         }
       });
@@ -161,6 +162,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         }
         map.current?.remove();
         map.current = null;
+        geolocateControl.current = null;
         setMapLoaded(false);
         setHasRouteLayer(false);
       };
@@ -169,6 +171,20 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
     }
   }, [isMobile, userLocation, isMapboxReady, toast, t, setUserLocation]);
+
+  // Expose method to trigger geolocation from header
+  useEffect(() => {
+    // Store the trigger function globally so SearchHeader can access it
+    (window as any).triggerMapGeolocation = () => {
+      if (geolocateControl.current) {
+        geolocateControl.current.trigger();
+      }
+    };
+    
+    return () => {
+      delete (window as any).triggerMapGeolocation;
+    };
+  }, []);
 
   // Update user location marker
   useEffect(() => {
@@ -277,7 +293,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
 
   if (mapboxError || !isMapboxReady || mapError) {
     return (
-      <div className="w-full h-full pt-24 pb-16 flex items-center justify-center bg-gray-50">
+      <div className="w-full h-full pt-16 pb-16 flex items-center justify-center bg-gray-50">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
           <h3 className="text-lg font-semibold text-red-600 mb-4">
             Problème de configuration Mapbox
@@ -302,7 +318,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   }
 
   return (
-    <div className="w-full h-full pt-24 pb-16">
+    <div className="w-full h-full pt-16 pb-16">
       <div ref={mapContainer} className="relative w-full h-full">
         {(isLoading || !mapLoaded) && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">

@@ -104,7 +104,13 @@ const GeoSearch: React.FC = () => {
   };
 
   const handleUserLocationRequest = () => {
-    requestLocation();
+    // Use the map's geolocation control instead of the header button
+    if ((window as any).triggerMapGeolocation) {
+      (window as any).triggerMapGeolocation();
+    } else {
+      // Fallback to the hook method
+      requestLocation();
+    }
   };
 
   const handleResetFilters = () => {
@@ -200,21 +206,21 @@ const GeoSearch: React.FC = () => {
         />
         
         {networkStatus === 'slow' && (
-          <div className="absolute top-24 left-4 z-20 bg-yellow-100 border border-yellow-300 text-yellow-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
+          <div className="absolute top-16 left-4 z-20 bg-yellow-100 border border-yellow-300 text-yellow-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
             <AlertCircle size={16} />
             <span>Connexion lente</span>
           </div>
         )}
         
         {networkStatus === 'offline' && (
-          <div className="absolute top-24 left-4 z-20 bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
+          <div className="absolute top-16 left-4 z-20 bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
             <AlertCircle size={16} />
             <span>Mode hors-ligne</span>
           </div>
         )}
         
         {geoLoading && (
-          <div className="absolute top-24 left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg z-10">
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg z-10">
             <div className="flex items-center gap-2 text-blue-600">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
               <span className="text-sm">{t("geosearch.detectingLocation")}</span>
@@ -222,11 +228,10 @@ const GeoSearch: React.FC = () => {
           </div>
         )}
         
-        <div className="fixed bottom-4 right-4 z-10 flex flex-col gap-2 sm:flex-row">
+        <div className="fixed bottom-4 right-4 z-10 flex flex-col gap-2">
           <PrintButton results={searchResults} />
+          <MultiMapToggle />
         </div>
-        
-        <MultiMapToggle />
       </div>
     </>
   );

@@ -107,7 +107,7 @@ const PrintButton: React.FC<PrintButtonProps> = ({ results }) => {
     <Button
       variant="secondary"
       size="icon"
-      className="absolute bottom-4 right-4 bg-white shadow-md hover:bg-gray-100"
+      className="bg-white shadow-md hover:bg-gray-100"
       onClick={handlePrint}
       title="Imprimer les résultats"
     >
