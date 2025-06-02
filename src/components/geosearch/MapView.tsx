@@ -67,13 +67,45 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       
       // Add controls
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      newMap.addControl(new mapboxgl.GeolocateControl({
+      
+      // Add geolocation control with enhanced options
+      const geolocateControl = new mapboxgl.GeolocateControl({
         positionOptions: {
-          enableHighAccuracy: true
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
         },
         trackUserLocation: true,
-        showUserHeading: true
-      }), 'top-right');
+        showUserHeading: true,
+        showAccuracyCircle: true
+      });
+      
+      newMap.addControl(geolocateControl, 'top-right');
+      
+      // Listen for geolocation events
+      geolocateControl.on('geolocate', (e) => {
+        const coords: [number, number] = [e.coords.longitude, e.coords.latitude];
+        console.log('📍 Géolocalisation mise à jour:', coords);
+        
+        // Update store with new location
+        const { setUserLocation } = useGeoSearchStore.getState();
+        setUserLocation(coords);
+        
+        toast({
+          title: "Position mise à jour",
+          description: "Votre localisation a été détectée avec succès",
+          variant: "default",
+        });
+      });
+      
+      geolocateControl.on('error', (e) => {
+        console.error('❌ Erreur de géolocalisation:', e);
+        toast({
+          title: "Erreur de localisation",
+          description: "Impossible d'obtenir votre position",
+          variant: "destructive",
+        });
+      });
       
       newMap.on('load', () => {
         setMapLoaded(true);
@@ -108,6 +140,13 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         });
         
         setHasRouteLayer(true);
+        
+        // Auto-trigger geolocation if no user location
+        if (!userLocation) {
+          setTimeout(() => {
+            geolocateControl.trigger();
+          }, 1000);
+        }
       });
       
       newMap.on('error', (e) => {
@@ -130,7 +169,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       console.error('❌ Erreur d\'initialisation de la carte:', error);
       setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
     }
-  }, [isMobile, userLocation, isMapboxReady]);
+  }, [isMobile, userLocation, isMapboxReady, toast, t]);
 
   // Update user location marker
   useEffect(() => {
@@ -299,7 +338,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             {userLocation && (
               <MapLegend hasRouteLayer={hasRouteLayer} />
             )}
-          <//>
+          </>
         )}
       </div>
     </div>
