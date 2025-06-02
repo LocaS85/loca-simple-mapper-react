@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2, MapPin, AlertCircle } from 'lucide-react';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -85,7 +86,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   }, [initialValue]);
 
-  // Fonction pour rechercher des suggestions avec la nouvelle clé API
+  // Fonction pour rechercher des suggestions avec l'API Mapbox
   const fetchSuggestions = async (searchText: string) => {
     if (!searchText.trim() || tokenError) {
       setSuggestions([]);
@@ -321,7 +322,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={cn(
-            "w-full pl-10 pr-10 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors",
+            "w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base",
             hasError && "border-red-300 focus:border-red-500 focus:ring-red-500"
           )}
           aria-label="Recherche de lieu"

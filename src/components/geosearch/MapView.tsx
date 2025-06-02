@@ -21,6 +21,7 @@ interface MapViewProps {
 const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const userMarker = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [hasRouteLayer, setHasRouteLayer] = useState(false);
@@ -61,10 +62,18 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         style: 'mapbox://styles/mapbox/streets-v12',
         center: userLocation || [2.35, 48.85],
         zoom: isMobile ? 10 : 12,
-        attributionControl: false // Reduce UI clutter
+        attributionControl: false
       });
       
+      // Add controls
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      newMap.addControl(new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+      }), 'top-right');
       
       newMap.on('load', () => {
         setMapLoaded(true);
@@ -109,6 +118,9 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       map.current = newMap;
       
       return () => {
+        if (userMarker.current) {
+          userMarker.current.remove();
+        }
         map.current?.remove();
         map.current = null;
         setMapLoaded(false);
@@ -119,6 +131,37 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
     }
   }, [isMobile, userLocation, isMapboxReady]);
+
+  // Update user location marker
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !userLocation) return;
+
+    // Remove existing user marker
+    if (userMarker.current) {
+      userMarker.current.remove();
+    }
+
+    // Create user location marker
+    const userMarkerElement = document.createElement('div');
+    userMarkerElement.className = 'user-location-marker';
+    userMarkerElement.innerHTML = `
+      <div class="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-pulse">
+        <div class="w-3 h-3 bg-white rounded-full"></div>
+      </div>
+    `;
+
+    userMarker.current = new mapboxgl.Marker(userMarkerElement)
+      .setLngLat(userLocation)
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
+        <div class="p-3">
+          <h3 class="font-bold text-sm text-blue-600">${t('geosearch.yourPosition')}</h3>
+          <p class="text-xs text-gray-500 mt-1">Votre localisation actuelle</p>
+        </div>
+      `))
+      .addTo(map.current);
+
+    console.log('📍 Marqueur utilisateur mis à jour:', userLocation);
+  }, [userLocation, mapLoaded, t]);
 
   // Optimized bounds fitting with throttling
   const fitBounds = throttle(() => {
@@ -136,12 +179,12 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         map.current.fitBounds(bounds, {
           padding: isMobile ? { top: 80, bottom: 50, left: 20, right: 20 } : 100,
           maxZoom: isMobile ? 13 : 15,
-          duration: 1000 // Smooth animation
+          duration: 1000
         });
       } else {
         map.current.easeTo({
           center: userLocation,
-          zoom: isMobile ? 10 : 12,
+          zoom: isMobile ? 12 : 14,
           duration: 1000
         });
       }
@@ -256,7 +299,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             {userLocation && (
               <MapLegend hasRouteLayer={hasRouteLayer} />
             )}
-          </>
+          <//>
         )}
       </div>
     </div>
