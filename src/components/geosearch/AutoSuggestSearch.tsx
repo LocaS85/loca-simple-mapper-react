@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2, MapPin, AlertCircle } from 'lucide-react';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -6,6 +5,7 @@ import { validateMapboxToken } from '@/utils/mapboxValidation';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface AutoSuggestSearchProps {
   onResultSelect: (result: { name: string; coordinates: [number, number]; placeName: string }) => void;
@@ -42,6 +42,9 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   const suggestionListRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<number | null>(null);
   const { toast } = useToast();
+  
+  // Get user location from store
+  const { userLocation } = useGeoSearchStore();
 
   // Vérifier le token au montage
   useEffect(() => {
@@ -108,19 +111,29 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     setHasError(false);
     
     try {
-      // Configuration optimisée pour la France
+      // Configuration améliorée pour une recherche plus large
       const searchParams = new URLSearchParams({
         access_token: mapboxToken,
-        country: 'fr',
         language: 'fr',
         limit: '8',
-        types: 'place,address,poi,postcode,locality,neighborhood',
-        bbox: '-5.559,41.26,9.662,51.312' // France métropolitaine
+        // Types étendus pour inclure les commerces et POI
+        types: 'poi,address,place,postcode,locality,neighborhood'
       });
+      
+      // Ajouter la proximité si on a la localisation utilisateur
+      if (userLocation) {
+        searchParams.append('proximity', `${userLocation[0]},${userLocation[1]}`);
+        console.log('📍 Recherche avec proximité:', userLocation);
+      } else {
+        // Fallback sur la France
+        searchParams.append('country', 'fr');
+        console.log('🇫🇷 Recherche limitée à la France');
+      }
       
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchText)}.json?${searchParams.toString()}`;
       
       console.log('📡 Requête API:', url.split('?')[0]);
+      console.log('🔍 Paramètres de recherche:', Object.fromEntries(searchParams));
       
       const response = await fetch(url, {
         method: 'GET',
@@ -152,6 +165,11 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
       if (data.features && Array.isArray(data.features)) {
         setSuggestions(data.features);
         console.log(`✅ ${data.features.length} suggestions trouvées pour "${searchText}"`);
+        
+        // Log des types de résultats pour debug
+        data.features.forEach((feature: any, index: number) => {
+          console.log(`  ${index + 1}. ${feature.text} (${feature.place_type.join(', ')}) - ${feature.place_name}`);
+        });
       } else {
         console.warn('⚠️ Format de réponse inattendu:', data);
         setSuggestions([]);
