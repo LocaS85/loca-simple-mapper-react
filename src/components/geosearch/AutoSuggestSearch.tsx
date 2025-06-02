@@ -26,6 +26,17 @@ interface SuggestionResult {
   };
 }
 
+// Utility function to calculate bounding box
+const calculateBbox = (center: [number, number], radiusKm: number): [number, number, number, number] => {
+  const radiusInDegrees = radiusKm / 111.32; // Approximation: 1 degré ≈ 111.32 km
+  return [
+    center[0] - radiusInDegrees, // ouest
+    center[1] - radiusInDegrees, // sud
+    center[0] + radiusInDegrees, // est
+    center[1] + radiusInDegrees  // nord
+  ];
+};
+
 const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   onResultSelect,
   placeholder = "Rechercher un lieu ou une adresse...",
@@ -125,7 +136,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         searchParams.append('proximity', `${userLocation[0]},${userLocation[1]}`);
         // Élargir la zone de recherche pour les établissements
         const radius = 25; // 25km autour de la position
-        const bbox = this.calculateBbox(userLocation, radius);
+        const bbox = calculateBbox(userLocation, radius);
         searchParams.append('bbox', bbox.join(','));
         console.log('📍 Recherche avec proximité et rayon élargi:', userLocation);
       } else {
@@ -214,17 +225,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Méthode pour calculer la bbox autour d'un point
-  const calculateBbox = (center: [number, number], radiusKm: number): [number, number, number, number] => {
-    const radiusInDegrees = radiusKm / 111.32; // Approximation: 1 degré ≈ 111.32 km
-    return [
-      center[0] - radiusInDegrees, // ouest
-      center[1] - radiusInDegrees, // sud
-      center[0] + radiusInDegrees, // est
-      center[1] + radiusInDegrees  // nord
-    ];
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
