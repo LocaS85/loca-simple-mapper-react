@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Filter, MapPin } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AutoSuggestSearch from './AutoSuggestSearch';
 import { GeoSearchFilters } from '@/types/geosearch';
@@ -14,7 +14,6 @@ interface SearchHeaderProps {
     coordinates: [number, number]; 
     placeName: string 
   }) => void;
-  onRequestUserLocation: () => void;
   onSearch?: (query?: string) => void;
 }
 
@@ -22,7 +21,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
   filters,
   onToggleFilters,
   onLocationSelect,
-  onRequestUserLocation,
   onSearch
 }) => {
   const { t } = useTranslation();
@@ -41,17 +39,6 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
   return (
     <div className="absolute top-0 left-0 right-0 z-30 bg-white shadow-md border-b">
       <div className="flex items-center gap-2 p-2">
-        {/* Bouton de géolocalisation - icône uniquement */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRequestUserLocation}
-          className="shrink-0 h-10 w-10 p-0"
-          title={t('geosearch.myLocation')}
-        >
-          <MapPin className="h-4 w-4" />
-        </Button>
-
         {/* Barre de recherche principale avec auto-suggestion */}
         <div className="flex-1 max-w-2xl">
           <AutoSuggestSearch

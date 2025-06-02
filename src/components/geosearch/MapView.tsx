@@ -65,10 +65,10 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         attributionControl: false
       });
       
-      // Add controls
+      // Add navigation controls only
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
-      // Add geolocation control with enhanced options
+      // Add geolocation control with enhanced options - this is the ONLY geolocation button
       const geolocateControlInstance = new mapboxgl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true,
@@ -83,17 +83,23 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       geolocateControl.current = geolocateControlInstance;
       newMap.addControl(geolocateControlInstance, 'top-right');
       
-      // Listen for geolocation events
+      // Listen for geolocation events and connect to API
       geolocateControlInstance.on('geolocate', (e) => {
         const coords: [number, number] = [e.coords.longitude, e.coords.latitude];
-        console.log('📍 Géolocalisation mise à jour:', coords);
+        console.log('📍 Géolocalisation API mise à jour:', coords);
         
-        // Update store with new location
+        // Update store with new location and trigger search
         setUserLocation(coords);
+        
+        // Trigger new search with updated location
+        setTimeout(() => {
+          const { loadResults } = useGeoSearchStore.getState();
+          loadResults();
+        }, 500);
         
         toast({
           title: "Position mise à jour",
-          description: "Votre localisation a été détectée avec succès",
+          description: "Votre localisation a été détectée et les résultats mis à jour",
           variant: "default",
         });
       });
@@ -293,7 +299,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
 
   if (mapboxError || !isMapboxReady || mapError) {
     return (
-      <div className="w-full h-full pt-16 pb-16 flex items-center justify-center bg-gray-50">
+      <div className="w-full h-full pt-12 pb-16 flex items-center justify-center bg-gray-50">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
           <h3 className="text-lg font-semibold text-red-600 mb-4">
             Problème de configuration Mapbox
@@ -318,7 +324,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   }
 
   return (
-    <div className="w-full h-full pt-16 pb-16">
+    <div className="w-full h-full pt-12 pb-16">
       <div ref={mapContainer} className="relative w-full h-full">
         {(isLoading || !mapLoaded) && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
