@@ -6,11 +6,13 @@ import SearchHeader from '@/components/geosearch/SearchHeader';
 import PrintButton from '@/components/geosearch/PrintButton';
 import MultiMapToggle from '@/components/geosearch/MultiMapToggle';
 import SEOHead from '@/components/SEOHead';
+import { MapboxTokenWarning } from '@/components/MapboxTokenWarning';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
+import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const GeoSearch: React.FC = () => {
@@ -46,6 +48,15 @@ const GeoSearch: React.FC = () => {
     setShowFilters,
     initializeMapbox
   } = useGeoSearchStore();
+
+  // Vérifier si le token Mapbox est valide
+  const [showTokenWarning, setShowTokenWarning] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isMapboxTokenValid()) {
+      setShowTokenWarning(true);
+    }
+  }, []);
 
   // Synchroniser la géolocalisation
   useEffect(() => {
@@ -130,6 +141,16 @@ const GeoSearch: React.FC = () => {
   const seoDescription = filters.category
     ? t('geosearch.seoDescWithCategory', { category: filters.category })
     : t('geosearch.seoDesc');
+
+  // Afficher l'avertissement du token si nécessaire
+  if (showTokenWarning) {
+    return (
+      <>
+        <SEOHead title={seoTitle} description={seoDescription} />
+        <MapboxTokenWarning onTokenUpdate={() => setShowTokenWarning(false)} />
+      </>
+    );
+  }
 
   if (!isMapboxReady && mapboxError) {
     return (
