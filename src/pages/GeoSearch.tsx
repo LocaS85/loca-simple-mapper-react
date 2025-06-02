@@ -13,7 +13,7 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const GeoSearch: React.FC = () => {
   const { toast } = useToast();
@@ -198,13 +198,6 @@ const GeoSearch: React.FC = () => {
           open={showFilters}
           onReset={handleResetFilters}
         />
-        
-        {isMapboxReady && (
-          <div className="absolute top-24 right-4 z-20 bg-green-100 border border-green-300 text-green-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
-            <CheckCircle size={16} />
-            <span>API connectée</span>
-          </div>
-        )}
         
         {networkStatus === 'slow' && (
           <div className="absolute top-24 left-4 z-20 bg-yellow-100 border border-yellow-300 text-yellow-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">

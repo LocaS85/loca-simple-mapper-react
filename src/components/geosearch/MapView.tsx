@@ -11,7 +11,6 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
 import MapMarkers from './map/MapMarkers';
-import MapLegend from './map/MapLegend';
 import MapStatusIndicator from './map/MapStatusIndicator';
 
 interface MapViewProps {
@@ -36,7 +35,8 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     isLoading,
     isMapboxReady,
     mapboxError,
-    networkStatus
+    networkStatus,
+    setUserLocation
   } = useGeoSearchStore();
 
   // Track render performance
@@ -88,7 +88,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         console.log('📍 Géolocalisation mise à jour:', coords);
         
         // Update store with new location
-        const { setUserLocation } = useGeoSearchStore.getState();
         setUserLocation(coords);
         
         toast({
@@ -169,7 +168,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       console.error('❌ Erreur d\'initialisation de la carte:', error);
       setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
     }
-  }, [isMobile, userLocation, isMapboxReady, toast, t]);
+  }, [isMobile, userLocation, isMapboxReady, toast, t, setUserLocation]);
 
   // Update user location marker
   useEffect(() => {
@@ -334,10 +333,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
               resultsCount={results.length} 
               isLoading={isLoading} 
             />
-            
-            {userLocation && (
-              <MapLegend hasRouteLayer={hasRouteLayer} />
-            )}
           </>
         )}
       </div>

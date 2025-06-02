@@ -41,17 +41,15 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
   return (
     <div className="absolute top-0 left-0 right-0 z-30 bg-white shadow-md border-b">
       <div className="flex items-center gap-2 p-4">
-        {/* Bouton de géolocalisation */}
+        {/* Bouton de géolocalisation - icône uniquement */}
         <Button
           variant="outline"
           size="sm"
           onClick={onRequestUserLocation}
-          className="shrink-0"
+          className="shrink-0 p-2"
+          title={t('geosearch.myLocation')}
         >
           <MapPin className="h-4 w-4" />
-          <span className="hidden sm:inline ml-1">
-            {t('geosearch.myLocation')}
-          </span>
         </Button>
 
         {/* Barre de recherche principale avec auto-suggestion */}
@@ -63,17 +61,15 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
           />
         </div>
 
-        {/* Bouton filtres */}
+        {/* Bouton filtres - icône uniquement */}
         <Button
           variant="outline"
           size="sm"
           onClick={onToggleFilters}
-          className="shrink-0"
+          className="shrink-0 p-2"
+          title={t('geosearch.filters')}
         >
           <Filter className="h-4 w-4" />
-          <span className="hidden sm:inline ml-1">
-            {t('geosearch.filters')}
-          </span>
         </Button>
       </div>
     </div>
