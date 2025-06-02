@@ -69,19 +69,19 @@ const EnhancedMapboxSearch: React.FC<EnhancedMapboxSearchProps> = ({
       // Créer le geocoder
       geocoderRef.current = new MapboxGeocoder(geocoderOptions);
 
-      // Ajouter au conteneur
-      if (standalone) {
+      // Ajouter au conteneur approprié
+      if (standalone && geocoderContainerRef.current) {
         geocoderContainerRef.current.innerHTML = '';
         geocoderRef.current.addTo(geocoderContainerRef.current);
       } else if (mapRef?.current) {
         mapRef.current.addControl(geocoderRef.current);
       } else {
-        console.error('Mapbox map reference manquante pour le geocoder');
+        console.warn('Aucun conteneur valide pour le geocoder');
         return;
       }
 
       // Gérer les résultats
-      geocoderRef.current.on('result', (e) => {
+      geocoderRef.current.on('result', (e: any) => {
         const { center, place_name, properties, context } = e.result;
         const [lng, lat] = center;
         
@@ -126,8 +126,16 @@ const EnhancedMapboxSearch: React.FC<EnhancedMapboxSearchProps> = ({
       });
 
       // Gérer les erreurs
-      geocoderRef.current.on('error', (err) => {
+      geocoderRef.current.on('error', (err: any) => {
         console.error('Erreur du géocodeur:', err);
+      });
+
+      // Gérer l'effacement
+      geocoderRef.current.on('clear', () => {
+        if (markerRef.current) {
+          markerRef.current.remove();
+          markerRef.current = null;
+        }
       });
 
       // Initialiser avec une valeur si fournie

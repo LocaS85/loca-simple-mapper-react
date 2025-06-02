@@ -5,22 +5,53 @@ declare module 'mapbox-gl' {
 }
 
 declare module '@mapbox/mapbox-gl-geocoder' {
-  interface MapboxGeocoder {
-    new (options: any): any;
+  import mapboxgl from 'mapbox-gl';
+  
+  namespace MapboxGeocoder {
+    interface Options {
+      accessToken: string;
+      mapboxgl?: typeof mapboxgl;
+      marker?: boolean | object;
+      proximity?: { longitude: number; latitude: number };
+      placeholder?: string;
+      language?: string;
+      countries?: string;
+      bbox?: [number, number, number, number];
+      types?: string;
+      minLength?: number;
+      limit?: number;
+      filter?: (feature: any) => boolean;
+      localGeocoder?: (query: string) => any[];
+      [key: string]: any;
+    }
   }
-  const MapboxGeocoder: MapboxGeocoder;
+  
+  class MapboxGeocoder implements mapboxgl.IControl {
+    constructor(options: MapboxGeocoder.Options);
+    onAdd(map: mapboxgl.Map): HTMLElement;
+    onRemove(map: mapboxgl.Map): void;
+    addTo(container: HTMLElement | mapboxgl.Map): this;
+    on(event: string, callback: Function): this;
+    clear(): this;
+    setInput(value: string): this;
+  }
+  
   export = MapboxGeocoder;
 }
 
 declare module '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions' {
-  interface MapboxDirections {
-    new (options: any): any;
+  import mapboxgl from 'mapbox-gl';
+  
+  class MapboxDirections implements mapboxgl.IControl {
+    constructor(options: any);
+    onAdd(map: mapboxgl.Map): HTMLElement;
+    onRemove(map: mapboxgl.Map): void;
     on(event: string, callback: (e?: any) => void): void;
     setProfile(profile: string): void;
     setOrigin(origin: [number, number]): void;
     setDestination(destination: [number, number]): void;
   }
-  const MapboxDirections: MapboxDirections;
+  
   export = MapboxDirections;
 }
 
