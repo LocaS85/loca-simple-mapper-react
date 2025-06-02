@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from "react-router-dom";
 import Index from '@/pages/Index';
@@ -12,7 +11,6 @@ import Premium from '@/pages/Premium';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Payment from '@/pages/Payment';
-import ModernGeoSearch from '@/pages/ModernGeoSearch';
 import Account from '@/pages/Account';
 import ForgotPassword from '@/pages/ForgotPassword';
 import Favorites from '@/pages/Favorites';
@@ -35,7 +33,6 @@ export const AppRoutes: React.FC = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/payment" element={<Payment />} />
-      <Route path="/modern-search" element={<ModernGeoSearch />} />
       <Route path="/account" element={<Account />} />
       <Route path="/favorites" element={<Favorites />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -50,7 +47,6 @@ export const navigationRoutes = [
   { path: '/', label: 'Accueil' },
   { path: '/categories', label: 'Catégories' },
   { path: '/geosearch', label: 'Recherche Géographique' },
-  { path: '/modern-search', label: 'Recherche Moderne' },
   { path: '/about', label: 'À Propos' },
 ];
 
