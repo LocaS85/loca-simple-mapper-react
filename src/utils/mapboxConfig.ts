@@ -17,10 +17,9 @@ declare global {
  * Get the Mapbox token from environment, with fallback
  */
 export function getMapboxToken(): string {
-  // Check for runtime token
+  // Check for runtime token (browser environment only)
   const token = window.__MAPBOX_TOKEN__ || 
                 import.meta.env.VITE_MAPBOX_TOKEN || 
-                process.env.MAPBOX_TOKEN || 
                 localStorage.getItem('mapbox_token');
 
   if (!token) {
