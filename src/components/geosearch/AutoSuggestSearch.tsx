@@ -111,29 +111,33 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     setHasError(false);
     
     try {
-      // Configuration améliorée pour une recherche plus large
+      // Configuration étendue pour rechercher les établissements commerciaux
       const searchParams = new URLSearchParams({
         access_token: mapboxToken,
         language: 'fr',
-        limit: '8',
-        // Types étendus pour inclure les commerces et POI
+        limit: '10',
+        // Types étendus pour inclure tous les types de POI
         types: 'poi,address,place,postcode,locality,neighborhood'
       });
       
       // Ajouter la proximité si on a la localisation utilisateur
       if (userLocation) {
         searchParams.append('proximity', `${userLocation[0]},${userLocation[1]}`);
-        console.log('📍 Recherche avec proximité:', userLocation);
+        // Élargir la zone de recherche pour les établissements
+        const radius = 25; // 25km autour de la position
+        const bbox = this.calculateBbox(userLocation, radius);
+        searchParams.append('bbox', bbox.join(','));
+        console.log('📍 Recherche avec proximité et rayon élargi:', userLocation);
       } else {
-        // Fallback sur la France
+        // Fallback sur la France avec bbox étendu
         searchParams.append('country', 'fr');
-        console.log('🇫🇷 Recherche limitée à la France');
+        console.log('🇫🇷 Recherche dans toute la France');
       }
       
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchText)}.json?${searchParams.toString()}`;
       
       console.log('📡 Requête API:', url.split('?')[0]);
-      console.log('🔍 Paramètres de recherche:', Object.fromEntries(searchParams));
+      console.log('🔍 Recherche pour établissement:', searchText);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -163,11 +167,21 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
       console.log('📋 Données reçues:', data.features?.length || 0, 'résultats');
       
       if (data.features && Array.isArray(data.features)) {
-        setSuggestions(data.features);
-        console.log(`✅ ${data.features.length} suggestions trouvées pour "${searchText}"`);
+        // Filtrer et prioriser les POI commerciaux
+        const filteredFeatures = data.features.filter((feature: any) => {
+          const placeName = feature.place_name.toLowerCase();
+          const text = feature.text.toLowerCase();
+          const searchLower = searchText.toLowerCase();
+          
+          // Prioriser les correspondances exactes de nom d'établissement
+          return text.includes(searchLower) || placeName.includes(searchLower);
+        });
         
-        // Log des types de résultats pour debug
-        data.features.forEach((feature: any, index: number) => {
+        setSuggestions(filteredFeatures);
+        console.log(`✅ ${filteredFeatures.length} suggestions trouvées pour "${searchText}"`);
+        
+        // Log des résultats pour debug
+        filteredFeatures.forEach((feature: any, index: number) => {
           console.log(`  ${index + 1}. ${feature.text} (${feature.place_type.join(', ')}) - ${feature.place_name}`);
         });
       } else {
@@ -200,6 +214,17 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Méthode pour calculer la bbox autour d'un point
+  const calculateBbox = (center: [number, number], radiusKm: number): [number, number, number, number] => {
+    const radiusInDegrees = radiusKm / 111.32; // Approximation: 1 degré ≈ 111.32 km
+    return [
+      center[0] - radiusInDegrees, // ouest
+      center[1] - radiusInDegrees, // sud
+      center[0] + radiusInDegrees, // est
+      center[1] + radiusInDegrees  // nord
+    ];
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
