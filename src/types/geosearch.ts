@@ -23,3 +23,19 @@ export interface SearchResult {
   distance: number;
   duration: number;
 }
+
+export interface GeoLocationOptions {
+  enableHighAccuracy?: boolean;
+  timeout?: number;
+  maximumAge?: number;
+  autoRequest?: boolean;
+}
+
+export interface GeoSearchState {
+  userLocation: [number, number] | null;
+  startingPosition: [number, number] | null;
+  filters: GeoSearchFilters;
+  results: SearchResult[];
+  isLoading: boolean;
+  showFilters: boolean;
+}

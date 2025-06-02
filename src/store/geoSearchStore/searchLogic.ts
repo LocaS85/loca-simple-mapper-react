@@ -1,6 +1,6 @@
 
 import { SearchResult } from '@/types/geosearch';
-import { mapboxApiService } from '@/services/mapboxApiService';
+import { MapboxSearchResult } from '@/services/mapbox/types';
 
 export const calculateDistance = (point1: [number, number], point2: [number, number]): number => {
   const R = 6371;
@@ -14,7 +14,7 @@ export const calculateDistance = (point1: [number, number], point2: [number, num
   return R * c;
 };
 
-export const convertMapboxToSearchResult = (mapboxResult: any, userLocation: [number, number]): SearchResult => {
+export const convertMapboxToSearchResult = (mapboxResult: MapboxSearchResult, userLocation: [number, number]): SearchResult => {
   const distance = calculateDistance(userLocation, mapboxResult.coordinates);
   
   return {
@@ -57,5 +57,15 @@ export const createMockResults = (userLocation: [number, number]): SearchResult[
     category: 'cafe',
     distance: 0.3,
     duration: 4
+  },
+  {
+    id: 'test-3',
+    name: 'Boutique Mode',
+    address: '78 Boulevard Haussmann, France',
+    coordinates: [userLocation[0] - 0.002, userLocation[1] + 0.002] as [number, number],
+    type: 'shop',
+    category: 'shop',
+    distance: 0.4,
+    duration: 5
   }
 ];

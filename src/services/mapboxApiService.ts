@@ -1,10 +1,10 @@
 
-import { isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { isMapboxTokenValid, getMapboxToken } from '@/utils/mapboxConfig';
 import { MapboxGeocodingService } from './mapbox/geocoding';
 import { MapboxDirectionsService } from './mapbox/directions';
 import { MapboxIsochroneService } from './mapbox/isochrone';
 import { MapboxSearchResult, MapboxDirectionsResult, MapboxSearchOptions } from './mapbox/types';
-import { TransportMode } from '@/types';
+import { TransportMode } from '@/lib/data/transportModes';
 import { networkErrorHandler } from './networkErrorHandler';
 
 class MapboxApiService {
@@ -12,6 +12,7 @@ class MapboxApiService {
   private directionsService: MapboxDirectionsService;
   private isochroneService: MapboxIsochroneService;
   private isInitialized = false;
+  private token: string | null = null;
 
   constructor() {
     this.geocodingService = new MapboxGeocodingService();
@@ -26,6 +27,7 @@ class MapboxApiService {
       }
 
       if (isMapboxTokenValid()) {
+        this.token = getMapboxToken();
         console.log('🎯 Service Mapbox initialisé avec succès');
         this.isInitialized = true;
         return true;
@@ -40,7 +42,7 @@ class MapboxApiService {
   }
 
   async searchPlaces(query: string, center: [number, number], options: MapboxSearchOptions = {}): Promise<MapboxSearchResult[]> {
-    if (!await this.initialize()) {
+    if (!this.isInitialized && !await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
     
@@ -51,7 +53,7 @@ class MapboxApiService {
   }
 
   async getDirections(origin: [number, number], destination: [number, number], transportMode: TransportMode = 'walking'): Promise<MapboxDirectionsResult> {
-    if (!await this.initialize()) {
+    if (!this.isInitialized && !await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
     
@@ -62,7 +64,7 @@ class MapboxApiService {
   }
 
   async createIsochrone(center: [number, number], duration: number, transportMode: TransportMode = 'walking'): Promise<any> {
-    if (!await this.initialize()) {
+    if (!this.isInitialized && !await this.initialize()) {
       throw new Error('Service Mapbox non initialisé');
     }
     
@@ -76,8 +78,13 @@ class MapboxApiService {
     return this.isInitialized;
   }
 
+  getToken(): string | null {
+    return this.token;
+  }
+
   reset(): void {
     this.isInitialized = false;
+    this.token = null;
     networkErrorHandler.reset();
   }
 }

@@ -37,6 +37,7 @@ const GeoSearch: React.FC = () => {
     showFilters,
     userLocation,
     mapboxError,
+    networkStatus,
     updateFilters,
     loadResults,
     performSearch,
@@ -181,6 +182,20 @@ const GeoSearch: React.FC = () => {
           <div className="absolute top-24 right-4 z-20 bg-green-100 border border-green-300 text-green-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
             <CheckCircle size={16} />
             <span>API connectée</span>
+          </div>
+        )}
+        
+        {networkStatus === 'slow' && (
+          <div className="absolute top-24 left-4 z-20 bg-yellow-100 border border-yellow-300 text-yellow-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
+            <AlertCircle size={16} />
+            <span>Connexion lente</span>
+          </div>
+        )}
+        
+        {networkStatus === 'offline' && (
+          <div className="absolute top-24 left-4 z-20 bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
+            <AlertCircle size={16} />
+            <span>Mode hors-ligne</span>
           </div>
         )}
         

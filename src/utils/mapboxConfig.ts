@@ -1,71 +1,66 @@
 
-// Configuration Mapbox optimisée avec token public pour le frontend
-export const getMapboxToken = (): string => {
-  // IMPORTANT: Utiliser un token PUBLIC (pk.) pour le frontend, pas secret (sk.)
-  const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 
-                import.meta.env.MAPBOX_ACCESS_TOKEN ||
-                'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWF6Z3A1Ym4waXN6MmtzYzh4bWZ2YWIxIn0.tbWmkuCSJw4h_Ol1Q6ed0A'; // Token public valide
-
-  if (!token) {
-    console.error('⚠️ MAPBOX TOKEN MANQUANT! Veuillez configurer VITE_MAPBOX_ACCESS_TOKEN');
-    throw new Error('Token Mapbox non configuré');
-  }
-
-  // Validation pour s'assurer qu'on utilise un token public
-  if (!token.startsWith('pk.')) {
-    console.error('❌ ERREUR: Token secret détecté! Utiliser un token PUBLIC (pk.) pour le frontend');
-    throw new Error('Token Mapbox incorrect - utilisez un token public (pk.) pour le frontend');
-  }
-
-  return token;
-};
-
-// Fonction de validation du token Mapbox
-export const isMapboxTokenValid = (): boolean => {
-  try {
-    const token = getMapboxToken();
-    return token && token.startsWith('pk.') && token.length > 50;
-  } catch (error) {
-    console.error('Token Mapbox invalide:', error);
-    return false;
-  }
-};
-
-// Configuration des styles de carte disponibles
-export const MAPBOX_STYLES = {
-  streets: 'mapbox://styles/mapbox/streets-v12',
-  outdoors: 'mapbox://styles/mapbox/outdoors-v12',
-  light: 'mapbox://styles/mapbox/light-v11',
-  dark: 'mapbox://styles/mapbox/dark-v11',
-  satellite: 'mapbox://styles/mapbox/satellite-v9',
-  satelliteStreets: 'mapbox://styles/mapbox/satellite-streets-v12',
-  navigation: 'mapbox://styles/mapbox/navigation-day-v1',
-  navigationNight: 'mapbox://styles/mapbox/navigation-night-v1'
-} as const;
-
-// Configuration par défaut pour la France
-export const FRANCE_BOUNDS = {
-  bbox: [-5.559, 41.26, 9.662, 51.312] as [number, number, number, number],
-  center: [2.3522, 48.8566] as [number, number], // Paris
-  zoom: 6
-};
-
-// Valeurs par défaut pour la carte
+// Constants for default map values
 export const DEFAULT_MAP_CENTER: [number, number] = [2.3522, 48.8566]; // Paris
 export const DEFAULT_MAP_ZOOM = 12;
 
-// Configuration des limites de recherche
-export const SEARCH_CONFIG = {
-  minQueryLength: 2,
-  maxResults: 8,
-  debounceMs: 300,
-  timeoutMs: 10000,
-  retryAttempts: 2
-};
+// Default radius in kilometers
+export const DEFAULT_SEARCH_RADIUS = 10;
 
-// Configuration optimisée pour éviter les erreurs de build
-export const MAPBOX_CONFIG = {
-  // Worker settings pour éviter les erreurs CSP
-  workerClass: null,
-  workerCount: 0
-};
+/**
+ * Get the Mapbox token from environment, with fallback
+ */
+export function getMapboxToken(): string {
+  // Check for runtime token
+  const token = window.__MAPBOX_TOKEN__ || 
+                import.meta.env.VITE_MAPBOX_TOKEN || 
+                process.env.MAPBOX_TOKEN || 
+                localStorage.getItem('mapbox_token');
+
+  if (!token) {
+    throw new Error('Token Mapbox non configuré. Utilisez VITE_MAPBOX_TOKEN dans .env ou window.__MAPBOX_TOKEN__');
+  }
+
+  return token;
+}
+
+/**
+ * Checks if token is a valid Mapbox token format (starts with 'pk.')
+ */
+export function isMapboxTokenValid(): boolean {
+  try {
+    const token = getMapboxToken();
+    // Les tokens publics commencent par 'pk.'
+    const isPublic = token.startsWith('pk.');
+    // Vérification basique de longueur
+    const hasValidLength = token.length > 50;
+    
+    return isPublic && hasValidLength;
+  } catch (error) {
+    console.error('❌ Erreur lors de la vérification du token Mapbox:', error);
+    return false;
+  }
+}
+
+/**
+ * Save token to localStorage
+ */
+export function saveMapboxToken(token: string): void {
+  localStorage.setItem('mapbox_token', token);
+  // Add global for runtime access
+  (window as any).__MAPBOX_TOKEN__ = token;
+}
+
+/**
+ * Calculate bounding box around a point (in km)
+ */
+export function calculateBoundingBox(center: [number, number], radiusKm: number): [number, number, number, number] {
+  // Approximation: 1 degree ≈ 111.32 km at the equator
+  const radiusInDegrees = radiusKm / 111.32; 
+  
+  return [
+    center[0] - radiusInDegrees,  // west
+    center[1] - radiusInDegrees,  // south
+    center[0] + radiusInDegrees,  // east
+    center[1] + radiusInDegrees   // north
+  ];
+}

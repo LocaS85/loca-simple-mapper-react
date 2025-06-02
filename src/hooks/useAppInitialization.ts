@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useSearchParams } from 'react-router-dom';
 
@@ -12,18 +12,29 @@ export const useAppInitialization = () => {
   } = useGeoSearchStore();
   
   const [searchParams] = useSearchParams();
+  const [initialized, setInitialized] = useState(false);
 
   // Initialisation de Mapbox
   useEffect(() => {
     if (!isMapboxReady) {
       console.log('🚀 Initialisation de Mapbox depuis useAppInitialization...');
-      initializeMapbox();
+      initializeMapbox()
+        .then((success) => {
+          if (success) {
+            setInitialized(true);
+          }
+        })
+        .catch((error) => {
+          console.error('Erreur lors de l\'initialisation:', error);
+        });
+    } else {
+      setInitialized(true);
     }
   }, [isMapboxReady, initializeMapbox]);
 
   // Synchronisation avec les paramètres URL
   useEffect(() => {
-    if (!isMapboxReady) return;
+    if (!initialized) return;
 
     const urlFilters = {
       category: searchParams.get('category'),
@@ -57,10 +68,10 @@ export const useAppInitialization = () => {
         performSearch();
       }, 1000);
     }
-  }, [searchParams, isMapboxReady, updateFilters, performSearch]);
+  }, [searchParams, initialized, updateFilters, performSearch]);
 
   return { 
-    isInitialized: isMapboxReady,
+    isInitialized: initialized,
     isMapboxReady 
   };
 };
