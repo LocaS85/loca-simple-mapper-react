@@ -68,7 +68,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       // Add navigation controls only
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
-      // Add geolocation control with enhanced options - this is the ONLY geolocation button
+      // Add geolocation control - this is the ONLY geolocation button
       const geolocateControlInstance = new mapboxgl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true,
@@ -77,7 +77,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         },
         trackUserLocation: true,
         showUserHeading: true,
-        showAccuracyCircle: true
+        showAccuracyCircle: false
       });
       
       geolocateControl.current = geolocateControlInstance;
@@ -178,21 +178,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     }
   }, [isMobile, userLocation, isMapboxReady, toast, t, setUserLocation]);
 
-  // Expose method to trigger geolocation from header
-  useEffect(() => {
-    // Store the trigger function globally so SearchHeader can access it
-    (window as any).triggerMapGeolocation = () => {
-      if (geolocateControl.current) {
-        geolocateControl.current.trigger();
-      }
-    };
-    
-    return () => {
-      delete (window as any).triggerMapGeolocation;
-    };
-  }, []);
-
-  // Update user location marker
+  // Update user location marker - ADD VISIBLE MARKER
   useEffect(() => {
     if (!map.current || !mapLoaded || !userLocation) return;
 
@@ -201,12 +187,13 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       userMarker.current.remove();
     }
 
-    // Create user location marker
+    // Create user location marker with visible icon
     const userMarkerElement = document.createElement('div');
     userMarkerElement.className = 'user-location-marker';
     userMarkerElement.innerHTML = `
-      <div class="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-pulse">
-        <div class="w-3 h-3 bg-white rounded-full"></div>
+      <div class="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center relative">
+        <div class="w-2 h-2 bg-white rounded-full"></div>
+        <div class="absolute w-10 h-10 bg-blue-400 rounded-full opacity-30 animate-ping"></div>
       </div>
     `;
 
@@ -324,7 +311,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   }
 
   return (
-    <div className="w-full h-full pt-12 pb-16">
+    <div className="w-full h-full">
       <div ref={mapContainer} className="relative w-full h-full">
         {(isLoading || !mapLoaded) && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
