@@ -1,29 +1,29 @@
 
 import { useEffect } from 'react';
-import { useAppStore } from '@/store/appStore';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useSearchParams } from 'react-router-dom';
 
 export const useAppInitialization = () => {
   const { 
-    isInitialized, 
-    initializeApp, 
+    isMapboxReady,
+    initializeMapbox,
     updateFilters,
     performSearch
-  } = useAppStore();
+  } = useGeoSearchStore();
   
   const [searchParams] = useSearchParams();
 
-  // Initialisation de l'application
+  // Initialisation de Mapbox
   useEffect(() => {
-    if (!isInitialized) {
-      console.log('Initialisation de l\'application GeoSearch...');
-      initializeApp();
+    if (!isMapboxReady) {
+      console.log('🚀 Initialisation de Mapbox depuis useAppInitialization...');
+      initializeMapbox();
     }
-  }, [isInitialized, initializeApp]);
+  }, [isMapboxReady, initializeMapbox]);
 
   // Synchronisation avec les paramètres URL
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isMapboxReady) return;
 
     const urlFilters = {
       category: searchParams.get('category'),
@@ -48,15 +48,19 @@ export const useAppInitialization = () => {
     });
 
     if (hasUrlParams) {
-      console.log('Mise à jour des filtres depuis URL:', urlFilters);
+      console.log('📱 Mise à jour des filtres depuis URL:', urlFilters);
       updateFilters(urlFilters);
+      
       // Déclencher une recherche après un court délai
       setTimeout(() => {
-        console.log('Déclenchement de la recherche automatique');
+        console.log('🔍 Déclenchement de la recherche automatique depuis URL');
         performSearch();
       }, 1000);
     }
-  }, [searchParams, isInitialized, updateFilters, performSearch]);
+  }, [searchParams, isMapboxReady, updateFilters, performSearch]);
 
-  return { isInitialized };
+  return { 
+    isInitialized: isMapboxReady,
+    isMapboxReady 
+  };
 };

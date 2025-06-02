@@ -16,7 +16,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 const GeoSearch: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
-  const { isInitialized } = useAppInitialization();
+  const { isInitialized, isMapboxReady } = useAppInitialization();
 
   const { 
     coordinates: geoCoordinates, 
@@ -36,7 +36,6 @@ const GeoSearch: React.FC = () => {
     isLoading,
     showFilters,
     userLocation,
-    isMapboxReady,
     mapboxError,
     updateFilters,
     loadResults,
@@ -47,16 +46,10 @@ const GeoSearch: React.FC = () => {
     initializeMapbox
   } = useGeoSearchStore();
 
-  // Initialiser Mapbox
-  useEffect(() => {
-    if (!isMapboxReady) {
-      initializeMapbox();
-    }
-  }, [initializeMapbox, isMapboxReady]);
-
   // Synchroniser la géolocalisation
   useEffect(() => {
     if (geoCoordinates && !userLocation) {
+      console.log('📍 Mise à jour de la position utilisateur:', geoCoordinates);
       setUserLocation(geoCoordinates);
     }
   }, [geoCoordinates, userLocation, setUserLocation]);
@@ -64,6 +57,7 @@ const GeoSearch: React.FC = () => {
   // Gérer les erreurs de géolocalisation
   useEffect(() => {
     if (geoError && !userLocation) {
+      console.log('⚠️ Erreur de géolocalisation, utilisation de Paris par défaut');
       setUserLocation([2.3522, 48.8566]); // Paris par défaut
       toast({
         title: t("geosearch.locationError"),
@@ -76,6 +70,7 @@ const GeoSearch: React.FC = () => {
   // Démarrer une recherche automatique
   useEffect(() => {
     if (isMapboxReady && userLocation && !searchResults.length && !isLoading) {
+      console.log('🔍 Démarrage de la recherche automatique');
       loadResults();
     }
   }, [isMapboxReady, userLocation, searchResults.length, isLoading, loadResults]);
@@ -118,7 +113,7 @@ const GeoSearch: React.FC = () => {
     try {
       await performSearch(query);
     } catch (error) {
-      console.error('Erreur lors de la recherche:', error);
+      console.error('❌ Erreur lors de la recherche:', error);
       toast({
         title: "Erreur de recherche",
         description: "Impossible d'effectuer la recherche",

@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import checker from "vite-plugin-checker";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,17 +17,21 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
+    checker({ 
+      typescript: true,
+      overlay: {
+        initialIsOpen: false,
+      }
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Remove the mapbox-gl alias as we're now using the CDN version
     },
   },
   optimizeDeps: {
     include: ['react-map-gl', 'mapbox-gl'],
     esbuildOptions: {
-      // Define global variables for better compatibility
       define: {
         global: 'globalThis',
       }
@@ -36,7 +41,6 @@ export default defineConfig(({ mode }) => ({
     sourcemap: true,
     rollupOptions: {
       onwarn(warning, defaultHandler) {
-        // Ignore certain warnings during build
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || warning.code === 'CIRCULAR_DEPENDENCY') {
           return;
         }
