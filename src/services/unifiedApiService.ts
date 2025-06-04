@@ -64,15 +64,16 @@ export const unifiedSearchService = {
     const token = getMapboxToken();
     console.log('🔑 Utilisation du token pour la recherche:', token.substring(0, 15) + '...');
     
-    // Valider les paramètres
+    // Valider les paramètres - surtout le center
     const validatedParams = filterSyncService.prepareApiParams(params, params.center);
-    if (!validatedParams) {
-      console.warn('⚠️ Paramètres de recherche invalides:', params);
-      return this.generateMockResults(params);
+    if (!validatedParams || !validatedParams.center || 
+        validatedParams.center[0] === 0 && validatedParams.center[1] === 0) {
+      console.warn('⚠️ Center invalide ou [0,0], utilisation de Paris par défaut');
+      validatedParams.center = [2.3522, 48.8566];
     }
     
     const searchOperation = async (): Promise<SearchPlace[]> => {
-      console.log('🔍 Recherche unifiée avec paramètres validés:', validatedParams);
+      console.log('🔍 Recherche unifiée avec center validé:', validatedParams.center);
       
       // Construire la requête avec fallback
       let query = validatedParams.query || '';
@@ -89,13 +90,15 @@ export const unifiedSearchService = {
       
       console.log('📝 Requête finale:', query);
       
-      // Paramètres Mapbox optimisés
+      // Paramètres Mapbox optimisés avec autocomplete et types
       const searchParams = new URLSearchParams({
         access_token: token,
         proximity: validatedParams.center.join(','),
         limit: Math.min(validatedParams.aroundMeCount, 10).toString(),
         country: 'fr',
-        language: 'fr'
+        language: 'fr',
+        types: 'poi,address',
+        autocomplete: 'true'
       });
       
       // Bbox pour le rayon avec validation
@@ -106,6 +109,7 @@ export const unifiedSearchService = {
       
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
       console.log('📡 URL de requête:', url.split('?')[0]);
+      console.log('📍 Proximity:', validatedParams.center.join(','));
       
       const response = await fetch(url);
       console.log('📨 Réponse API - Statut:', response.status);

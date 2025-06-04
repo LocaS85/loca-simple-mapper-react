@@ -28,7 +28,8 @@ export class MapboxGeocodingService {
       limit: limit.toString(),
       country: 'fr',
       language: 'fr',
-      types: 'poi,address'
+      types: 'poi,address',
+      autocomplete: 'true'
     });
 
     if (radius > 0) {
@@ -40,6 +41,7 @@ export class MapboxGeocodingService {
     
     try {
       console.log('🔍 Recherche Mapbox avec requête améliorée:', searchQuery);
+      console.log('📍 Center utilisé:', center);
       const response = await fetch(url);
       
       if (response.status === 401) {
