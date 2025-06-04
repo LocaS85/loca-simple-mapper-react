@@ -81,6 +81,10 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
     <FenetreFiltrageUnifiee
       open={open}
       onClose={onClose}
+      category={localFilters.category}
+      setCategory={handleCategoryChange}
+      subcategory={localFilters.subcategory}
+      setSubcategory={handleSubcategoryChange}
       maxDistance={localFilters.distance}
       setMaxDistance={handleMaxDistanceChange}
       maxDuration={localFilters.maxDuration}
@@ -93,10 +97,6 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
       setDistanceUnit={handleDistanceUnitChange}
       transportMode={localFilters.transport}
       setTransportMode={handleTransportModeChange}
-      category={localFilters.category}
-      setCategory={handleCategoryChange}
-      subcategory={localFilters.subcategory}
-      setSubcategory={handleSubcategoryChange}
       onReset={handleResetFilters}
     />
   );

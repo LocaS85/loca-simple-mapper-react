@@ -18,7 +18,6 @@ import { Car, User, Bike, Bus, Compass, Route, Filter, RefreshCw } from 'lucide-
 import { TransportMode } from '@/lib/data/transportModes';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { Category } from '@/types';
 
 export interface FenetreFiltrageUnifieeProps {
   open: boolean;
@@ -35,9 +34,10 @@ export interface FenetreFiltrageUnifieeProps {
   setDistanceUnit: (unit: 'km' | 'mi') => void;
   transportMode: TransportMode;
   setTransportMode: (mode: TransportMode) => void;
-  categories?: Category[];
-  selectedCategory?: Category | null;
-  onCategorySelect?: (category: Category | null) => void;
+  category: string | null;
+  setCategory: (category: string | null) => void;
+  subcategory: string | null;
+  setSubcategory: (subcategory: string | null) => void;
   onReset?: () => void;
 }
 
@@ -46,6 +46,20 @@ const modesDeTansport = [
   { id: 'walking' as TransportMode, name: 'À pied', icon: <User className="h-4 w-4" /> },
   { id: 'cycling' as TransportMode, name: 'Vélo', icon: <Bike className="h-4 w-4" /> },
   { id: 'bus' as TransportMode, name: 'Transport', icon: <Bus className="h-4 w-4" /> },
+];
+
+// Catégories disponibles pour les filtres
+const categoriesDisponibles = [
+  { id: 'restaurant', name: 'Restaurants' },
+  { id: 'hotel', name: 'Hôtels' },
+  { id: 'gas_station', name: 'Stations-service' },
+  { id: 'hospital', name: 'Hôpitaux' },
+  { id: 'pharmacy', name: 'Pharmacies' },
+  { id: 'bank', name: 'Banques' },
+  { id: 'supermarket', name: 'Supermarchés' },
+  { id: 'shopping_mall', name: 'Centres commerciaux' },
+  { id: 'tourist_attraction', name: 'Attractions touristiques' },
+  { id: 'park', name: 'Parcs' }
 ];
 
 const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
@@ -63,9 +77,10 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
   setDistanceUnit,
   transportMode,
   setTransportMode,
-  categories,
-  selectedCategory,
-  onCategorySelect,
+  category,
+  setCategory,
+  subcategory,
+  setSubcategory,
   onReset
 }) => {
   const { t } = useTranslation();
@@ -98,37 +113,28 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
         </SheetHeader>
         
         <div className="mt-6 space-y-6">
-          {/* Section Catégorie - Afficher uniquement si les catégories sont fournies */}
-          {categories && onCategorySelect && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-medium">{t('filters.category')}</h3>
-              <Select 
-                value={selectedCategory?.id || ''} 
-                onValueChange={(value) => {
-                  if (value) {
-                    const category = categories.find(c => c.id === value);
-                    if (category) onCategorySelect(category);
-                  } else {
-                    onCategorySelect(null);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('categories.allCategories')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">
-                    {t('categories.allCategories')}
+          {/* Section Catégorie */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-medium">{t('filters.category')}</h3>
+            <Select 
+              value={category || ''} 
+              onValueChange={(value) => setCategory(value || null)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t('categories.allCategories')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">
+                  {t('categories.allCategories')}
+                </SelectItem>
+                {categoriesDisponibles.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
                   </SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Section Mode de Transport */}
           <div className="space-y-3">
