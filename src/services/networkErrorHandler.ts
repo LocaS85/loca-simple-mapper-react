@@ -57,7 +57,8 @@ class NetworkErrorHandler {
     }
     
     const enhancedError = new Error(message);
-    enhancedError.cause = originalError;
+    // Ajouter l'erreur originale comme propriété personnalisée au lieu d'utiliser 'cause'
+    (enhancedError as any).originalError = originalError;
     return enhancedError;
   }
 

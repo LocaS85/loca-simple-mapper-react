@@ -9,10 +9,51 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MapPin, Phone, Mail, Users, Coffee, MapIcon, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail, Users, Coffee, MapIcon, Clock, CheckCircle, Star } from 'lucide-react';
 
 const About = () => {
   const isMobile = useIsMobile();
+  
+  const pricingPlans = [
+    {
+      name: "Gratuit",
+      price: "0€",
+      period: "par mois",
+      features: [
+        "10 recherches par jour",
+        "Accès basique aux cartes",
+        "Recherche simple",
+        "Support communautaire"
+      ],
+      popular: false
+    },
+    {
+      name: "Premium",
+      price: "9,99€",
+      period: "par mois",
+      features: [
+        "Recherche illimitée",
+        "Cartes détaillées",
+        "Filtres avancés",
+        "Sans publicité",
+        "Support prioritaire"
+      ],
+      popular: true
+    },
+    {
+      name: "Pro",
+      price: "29,99€",
+      period: "par mois",
+      features: [
+        "Tout du Premium",
+        "API d'accès",
+        "Exportation données",
+        "Support 24/7",
+        "Intégrations personnalisées"
+      ],
+      popular: false
+    }
+  ];
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -90,88 +131,42 @@ const About = () => {
         </Card>
       </div>
       
-      {/* History section */}
+      {/* Pricing section */}
       <div className="mb-10">
-        <h2 className="text-xl md:text-2xl font-semibold mb-6">Notre histoire</h2>
-        <div className={`${isMobile ? 'space-y-6' : 'flex gap-8'}`}>
-          <div className={`${isMobile ? 'w-full' : 'w-2/3'}`}>
-            <p className="text-gray-600 mb-4">
-              Fondée en 2023, LocaSimple est née de la frustration de son fondateur face aux applications
-              de cartographie complexes et surchargées. L'idée était simple : créer une alternative
-              qui se concentre sur l'essentiel.
-            </p>
-            <p className="text-gray-600 mb-4">
-              Après des mois de développement et de tests avec des utilisateurs réels,
-              nous avons lancé notre première version en janvier 2024. Depuis, notre équipe
-              s'est agrandie et notre application s'est enrichie de nouvelles fonctionnalités,
-              tout en restant fidèle à notre mission initiale : la simplicité avant tout.
-            </p>
-            <p className="text-gray-600">
-              Aujourd'hui, LocaSimple compte plus de 50 000 utilisateurs actifs et continue
-              de se développer grâce aux retours de notre communauté engagée.
-            </p>
-          </div>
-          <div className={`${isMobile ? 'w-full h-60' : 'w-1/3 h-auto'} bg-gray-200 rounded-lg overflow-hidden`}>
-            <img 
-              src="https://images.unsplash.com/photo-1523712999610-f77fbcfc3843" 
-              alt="Croissance de LocaSimple" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </div>
-      
-      {/* Team section */}
-      <div className="mb-10">
-        <h2 className="text-xl md:text-2xl font-semibold mb-6">Notre équipe</h2>
-        <div className={`grid ${isMobile ? 'grid-cols-2 gap-4' : 'grid-cols-4 gap-6'}`}>
-          <div className="text-center">
-            <div className="w-full aspect-square rounded-full bg-gray-200 overflow-hidden mb-3">
-              <img 
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e" 
-                alt="Thomas Martin" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h3 className="font-medium">Thomas Martin</h3>
-            <p className="text-sm text-gray-500">Fondateur & CEO</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-full aspect-square rounded-full bg-gray-200 overflow-hidden mb-3">
-              <img 
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330" 
-                alt="Sophie Dubois" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h3 className="font-medium">Sophie Dubois</h3>
-            <p className="text-sm text-gray-500">Lead Developer</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-full aspect-square rounded-full bg-gray-200 overflow-hidden mb-3">
-              <img 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d" 
-                alt="Nicolas Chen" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h3 className="font-medium">Nicolas Chen</h3>
-            <p className="text-sm text-gray-500">UX Designer</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-full aspect-square rounded-full bg-gray-200 overflow-hidden mb-3">
-              <img 
-                src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e" 
-                alt="Emma Bernard" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h3 className="font-medium">Emma Bernard</h3>
-            <p className="text-sm text-gray-500">Marketing</p>
-          </div>
+        <h2 className="text-xl md:text-2xl font-semibold mb-6 text-center">Nos tarifs</h2>
+        <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-6'}`}>
+          {pricingPlans.map((plan, index) => (
+            <Card key={index} className={`relative ${plan.popular ? 'border-blue-500 shadow-lg scale-105' : ''}`}>
+              {plan.popular && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  ⭐ Populaire
+                </div>
+              )}
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">{plan.price}</span>
+                  <span className="text-gray-600">/{plan.period}</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button 
+                  className={`w-full mt-6 ${plan.popular ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
+                  variant={plan.popular ? "default" : "outline"}
+                >
+                  {plan.name === "Gratuit" ? "Commencer" : "Choisir ce plan"}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
       

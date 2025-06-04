@@ -1,4 +1,3 @@
-
 // Configuration centralisée pour Mapbox avec validation avancée
 export const DEFAULT_MAP_CENTER: [number, number] = [2.3522, 48.8566]; // Paris
 export const DEFAULT_MAP_ZOOM = 12;
@@ -19,6 +18,13 @@ export function getMapboxToken(): string {
   const token = import.meta.env.VITE_MAPBOX_TOKEN || 
                 window.__MAPBOX_TOKEN__ || 
                 localStorage.getItem('mapbox_token');
+
+  console.log('🔍 Vérification token Mapbox:', {
+    fromEnv: !!import.meta.env.VITE_MAPBOX_TOKEN,
+    fromWindow: !!window.__MAPBOX_TOKEN__,
+    fromStorage: !!localStorage.getItem('mapbox_token'),
+    tokenFound: !!token
+  });
 
   if (!token) {
     console.warn('⚠️ Token Mapbox non configuré. Veuillez configurer VITE_MAPBOX_TOKEN dans .env');
@@ -58,7 +64,28 @@ export function isMapboxTokenValid(): boolean {
 export function saveMapboxToken(token: string): void {
   localStorage.setItem('mapbox_token', token);
   window.__MAPBOX_TOKEN__ = token;
-  console.log('💾 Token Mapbox sauvegardé');
+  console.log('💾 Token Mapbox sauvegardé et configuré');
+  
+  // Test immédiat de la connexion
+  testTokenConnection(token);
+}
+
+/**
+ * Test de connexion avec le token
+ */
+async function testTokenConnection(token: string): Promise<void> {
+  try {
+    const testUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/test.json?access_token=${token}&limit=1`;
+    const response = await fetch(testUrl);
+    
+    if (response.ok) {
+      console.log('✅ Connexion API Mapbox réussie');
+    } else {
+      console.error('❌ Erreur connexion API Mapbox:', response.status);
+    }
+  } catch (error) {
+    console.error('❌ Test de connexion échoué:', error);
+  }
 }
 
 /**
