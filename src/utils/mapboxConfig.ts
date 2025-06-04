@@ -23,7 +23,8 @@ export function getMapboxToken(): string {
                 localStorage.getItem('mapbox_token');
 
   if (!token) {
-    throw new Error('Token Mapbox non configuré. Utilisez VITE_MAPBOX_TOKEN dans .env ou window.__MAPBOX_TOKEN__');
+    console.warn('⚠️ Token Mapbox non configuré. Veuillez configurer VITE_MAPBOX_TOKEN dans .env.local');
+    throw new Error('Token Mapbox non configuré. Utilisez VITE_MAPBOX_TOKEN dans .env.local ou window.__MAPBOX_TOKEN__');
   }
 
   return token;
@@ -39,6 +40,12 @@ export function isMapboxTokenValid(): boolean {
     const isPublic = token.startsWith('pk.');
     // Vérification basique de longueur
     const hasValidLength = token.length > 50;
+    
+    console.log('🔍 Validation du token:', { 
+      isPublic, 
+      hasValidLength, 
+      tokenPrefix: token.substring(0, 15) + '...' 
+    });
     
     return isPublic && hasValidLength;
   } catch (error) {

@@ -5,6 +5,7 @@ import { LocateFixed, MapPin } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getMapboxToken, isMapboxTokenValid, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
+import MapboxSetup from '@/components/MapboxSetup';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SearchResult } from '@/types/geosearch';
 
@@ -33,11 +34,27 @@ export default function MapboxMap({
   const isMobile = useIsMobile();
   const [mapError, setMapError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showTokenSetup, setShowTokenSetup] = useState(false);
 
-  const mapboxToken = getMapboxToken();
+  // Vérifier le token Mapbox au chargement
+  useEffect(() => {
+    try {
+      const token = getMapboxToken();
+      if (!isMapboxTokenValid()) {
+        setShowTokenSetup(true);
+        return;
+      }
+    } catch (error) {
+      console.error('Erreur de configuration Mapbox:', error);
+      setShowTokenSetup(true);
+      return;
+    }
+  }, []);
 
   // Obtain the user's position
   useEffect(() => {
+    if (showTokenSetup) return;
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -57,7 +74,7 @@ export default function MapboxMap({
         { maximumAge: 10000, timeout: 5000, enableHighAccuracy: true }
       );
     }
-  }, [toast]);
+  }, [toast, showTokenSetup]);
 
   // Helper to get color based on category
   const getColorForCategory = (cat: string) => {
@@ -73,9 +90,17 @@ export default function MapboxMap({
     }
   };
 
+  // Afficher l'interface de configuration du token
+  if (showTokenSetup) {
+    return <MapboxSetup />;
+  }
+
+  // Vérifier que le token est valide avant de rendre la carte
   if (!isMapboxTokenValid()) {
     return <MapboxError onRetry={() => window.location.reload()} />;
   }
+
+  const mapboxToken = getMapboxToken();
 
   return (
     <div className="relative w-full h-full min-h-[300px] rounded-2xl shadow-xl overflow-hidden border border-gray-200">
