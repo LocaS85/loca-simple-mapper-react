@@ -15,18 +15,19 @@ interface SearchHeaderProps {
     placeName: string 
   }) => void;
   onSearch?: (query?: string) => void;
+  onMyLocationClick?: () => void;
 }
 
 const SearchHeader: React.FC<SearchHeaderProps> = ({
   filters,
   onToggleFilters,
   onLocationSelect,
-  onSearch
+  onSearch,
+  onMyLocationClick
 }) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Handle location selection from AutoSuggestSearch
   const handleAutoSuggestLocationSelect = (result: any) => {
     if (result && result.coordinates) {
       onLocationSelect({
@@ -34,24 +35,34 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         coordinates: result.coordinates,
         placeName: result.place_name || result.name || ''
       });
+      
+      // Fermer automatiquement après sélection
+      setIsExpanded(false);
     }
+  };
+
+  const handleMyLocationClick = () => {
+    if (onMyLocationClick) {
+      onMyLocationClick();
+    }
+    setIsExpanded(false);
   };
 
   return (
     <>
-      {/* Header collapsé */}
+      {/* Header collapsé - largeur réduite pour éviter le chevauchement avec zoom */}
       {!isExpanded && (
-        <div className="absolute top-4 left-4 right-20 z-30">
+        <div className="absolute top-4 left-4 right-24 z-30 max-w-sm">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-white/20 p-2">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsExpanded(true)}
-                className="flex-1 justify-start h-8 text-sm text-gray-600"
+                className="flex-1 justify-start h-8 text-sm text-gray-600 min-w-0"
               >
-                <MapPin className="h-4 w-4 mr-2" />
-                Rechercher un lieu...
+                <MapPin className="h-4 w-4 mr-2 shrink-0" />
+                <span className="truncate">Rechercher un lieu...</span>
               </Button>
               
               <Button
@@ -68,18 +79,20 @@ const SearchHeader: React.FC<SearchHeaderProps> = ({
         </div>
       )}
 
-      {/* Header étendu */}
+      {/* Header étendu - largeur réduite pour éviter le chevauchement */}
       {isExpanded && (
-        <div className="absolute top-4 left-4 right-20 z-30">
+        <div className="absolute top-4 left-4 right-24 z-30 max-w-md">
           <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 p-3">
             <div className="flex items-center gap-2">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <AutoSuggestSearch
                   onResultSelect={handleAutoSuggestLocationSelect}
-                  placeholder={t('geosearch.searchPlaceholder')}
+                  placeholder="Rechercher un lieu ou adresse..."
                   initialValue={filters.query}
                   onBlur={() => setIsExpanded(false)}
                   autoFocus={true}
+                  showMyLocationButton={true}
+                  onMyLocationClick={handleMyLocationClick}
                 />
               </div>
 

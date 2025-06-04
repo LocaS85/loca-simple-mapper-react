@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
 import { FenetreFiltrageUnifiee } from '../filters';
@@ -25,40 +25,50 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
     ...filters
   });
 
-  // Update local filters when props change
-  React.useEffect(() => {
+  // Synchroniser les filtres locaux avec les props
+  useEffect(() => {
     setLocalFilters({...filters});
   }, [filters]);
 
-  // Handle filter changes
+  // Gérer les changements de filtres avec synchronisation immédiate
+  const handleFilterChange = (key: keyof GeoSearchFilters, value: any) => {
+    const newFilters = { ...localFilters, [key]: value };
+    setLocalFilters(newFilters);
+    
+    // Appliquer immédiatement le changement pour synchronisation avec Mapbox
+    onChange({ [key]: value });
+  };
+
   const handleMaxDistanceChange = (value: number) => {
-    setLocalFilters(prev => ({ ...prev, distance: value }));
-    onChange({ distance: value });
+    handleFilterChange('distance', value);
   };
 
   const handleTransportModeChange = (value: TransportMode) => {
-    setLocalFilters(prev => ({ ...prev, transport: value }));
-    onChange({ transport: value });
+    handleFilterChange('transport', value);
   };
 
   const handleAroundMeCountChange = (value: number) => {
-    setLocalFilters(prev => ({ ...prev, aroundMeCount: value }));
-    onChange({ aroundMeCount: value });
+    handleFilterChange('aroundMeCount', value);
   };
 
   const handleShowMultiDirectionsChange = (value: boolean) => {
-    setLocalFilters(prev => ({ ...prev, showMultiDirections: value }));
-    onChange({ showMultiDirections: value });
+    handleFilterChange('showMultiDirections', value);
   };
 
   const handleDistanceUnitChange = (value: 'km' | 'mi') => {
-    setLocalFilters(prev => ({ ...prev, unit: value }));
-    onChange({ unit: value });
+    handleFilterChange('unit', value);
   };
 
   const handleMaxDurationChange = (value: number) => {
-    setLocalFilters(prev => ({ ...prev, maxDuration: value }));
-    onChange({ maxDuration: value });
+    handleFilterChange('maxDuration', value);
+  };
+
+  const handleCategoryChange = (value: string | null) => {
+    handleFilterChange('category', value);
+  };
+
+  const handleSubcategoryChange = (value: string | null) => {
+    handleFilterChange('subcategory', value);
   };
 
   const handleResetFilters = () => {
@@ -83,6 +93,10 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
       setDistanceUnit={handleDistanceUnitChange}
       transportMode={localFilters.transport}
       setTransportMode={handleTransportModeChange}
+      category={localFilters.category}
+      setCategory={handleCategoryChange}
+      subcategory={localFilters.subcategory}
+      setSubcategory={handleSubcategoryChange}
       onReset={handleResetFilters}
     />
   );

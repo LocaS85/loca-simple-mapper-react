@@ -13,7 +13,7 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 const GeoSearch: React.FC = () => {
   const { toast } = useToast();
@@ -26,9 +26,9 @@ const GeoSearch: React.FC = () => {
     error: geoError
   } = useGeolocation({
     enableHighAccuracy: true,
-    timeout: 10000,
+    timeout: 15000,
     maximumAge: 300000,
-    autoRequest: true
+    autoRequest: false // Ne pas auto-déclencher, géré par le bouton
   });
 
   const {
@@ -48,41 +48,53 @@ const GeoSearch: React.FC = () => {
     initializeMapbox
   } = useGeoSearchStore();
 
-  // Vérifier si le token Mapbox est valide
   const [showTokenWarning, setShowTokenWarning] = React.useState(false);
 
+  // Vérifier le token Mapbox
   React.useEffect(() => {
     if (!isMapboxTokenValid()) {
       setShowTokenWarning(true);
     }
   }, []);
 
-  // Synchroniser la géolocalisation
+  // Synchroniser la géolocalisation uniquement si détectée
   useEffect(() => {
     if (geoCoordinates && !userLocation) {
-      console.log('📍 Mise à jour de la position utilisateur:', geoCoordinates);
+      console.log('📍 Position détectée et appliquée:', geoCoordinates);
       setUserLocation(geoCoordinates);
-    }
-  }, [geoCoordinates, userLocation, setUserLocation]);
-
-  // Gérer les erreurs de géolocalisation
-  useEffect(() => {
-    if (geoError && !userLocation) {
-      console.log('⚠️ Erreur de géolocalisation, utilisation de Paris par défaut');
-      setUserLocation([2.3522, 48.8566]); // Paris par défaut
+      
       toast({
-        title: t("geosearch.locationError"),
-        description: t("geosearch.usingDefaultLocation"),
+        title: "Position détectée",
+        description: "Votre localisation a été mise à jour",
         variant: "default",
       });
     }
-  }, [geoError, userLocation, setUserLocation, toast, t]);
+  }, [geoCoordinates, userLocation, setUserLocation, toast]);
 
-  // Démarrer une recherche automatique
+  // Gérer les erreurs de géolocalisation avec message personnalisé
+  useEffect(() => {
+    if (geoError) {
+      console.warn('⚠️ Erreur de géolocalisation:', geoError);
+      
+      // Si aucune position utilisateur, utiliser Paris par défaut
+      if (!userLocation) {
+        setUserLocation([2.3522, 48.8566]);
+        toast({
+          title: "Position par défaut",
+          description: "Utilisation de Paris comme position de référence",
+          variant: "default",
+        });
+      }
+    }
+  }, [geoError, userLocation, setUserLocation, toast]);
+
+  // Déclencher une recherche automatique après initialisation
   useEffect(() => {
     if (isMapboxReady && userLocation && !searchResults.length && !isLoading) {
       console.log('🔍 Démarrage de la recherche automatique');
-      loadResults();
+      setTimeout(() => {
+        loadResults();
+      }, 1000);
     }
   }, [isMapboxReady, userLocation, searchResults.length, isLoading, loadResults]);
 
@@ -91,15 +103,65 @@ const GeoSearch: React.FC = () => {
     coordinates: [number, number]; 
     placeName: string 
   }) => {
+    console.log('📍 Nouvelle localisation sélectionnée:', location);
     setUserLocation(location.coordinates);
     updateFilters({ query: location.name });
     
     toast({
-      title: t("geosearch.locationSelected"),
-      description: t("geosearch.searchingAround", { 
-        place: location.placeName || location.name 
-      }),
+      title: "Lieu sélectionné",
+      description: `Recherche autour de ${location.placeName || location.name}`,
+      variant: "default",
     });
+    
+    // Déclencher une nouvelle recherche
+    setTimeout(() => {
+      loadResults();
+    }, 300);
+  };
+
+  const handleMyLocationClick = async () => {
+    console.log('📍 Demande de géolocalisation manuelle');
+    
+    if (!navigator.geolocation) {
+      toast({
+        title: "Géolocalisation non supportée",
+        description: "Votre navigateur ne supporte pas la géolocalisation",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
+        });
+      });
+
+      const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
+      setUserLocation(coords);
+      
+      toast({
+        title: "Position mise à jour",
+        description: "Votre localisation a été détectée",
+        variant: "default",
+      });
+      
+      // Déclencher une nouvelle recherche
+      setTimeout(() => {
+        loadResults();
+      }, 500);
+      
+    } catch (error) {
+      console.error('❌ Erreur de géolocalisation manuelle:', error);
+      toast({
+        title: "Erreur de localisation",
+        description: "Impossible d'obtenir votre position",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleResetFilters = () => {
@@ -113,6 +175,12 @@ const GeoSearch: React.FC = () => {
       aroundMeCount: 3,
       showMultiDirections: false,
       maxDuration: 20
+    });
+    
+    toast({
+      title: "Filtres réinitialisés",
+      description: "Tous les filtres ont été remis à zéro",
+      variant: "default",
     });
   };
 
@@ -137,7 +205,7 @@ const GeoSearch: React.FC = () => {
     ? t('geosearch.seoDescWithCategory', { category: filters.category })
     : t('geosearch.seoDesc');
 
-  // Afficher l'avertissement du token si nécessaire
+  // Afficher l'avertissement du token
   if (showTokenWarning) {
     return (
       <>
@@ -147,23 +215,26 @@ const GeoSearch: React.FC = () => {
     );
   }
 
+  // Afficher l'erreur Mapbox
   if (!isMapboxReady && mapboxError) {
     return (
       <>
         <SEOHead title={seoTitle} description={seoDescription} />
         
-        <div className="relative h-screen w-full overflow-hidden bg-gray-100">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-lg shadow-lg z-10 text-center max-w-md mx-4">
-            <AlertCircle size={48} className="mx-auto mb-4 text-red-500" />
+        <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 to-gray-100">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-xl shadow-xl z-10 text-center max-w-md mx-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+            </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               Erreur de connexion API
             </h3>
             <p className="text-gray-600 mb-6">{mapboxError}</p>
             <button
               onClick={() => initializeMapbox()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 mx-auto"
             >
-              Réessayer
+              <span>Réessayer</span>
             </button>
           </div>
         </div>
@@ -181,6 +252,7 @@ const GeoSearch: React.FC = () => {
           onToggleFilters={toggleFilters}
           onLocationSelect={handleLocationSelect}
           onSearch={handleSearch}
+          onMyLocationClick={handleMyLocationClick}
         />
         
         <MapView transport={filters.transport} />
@@ -193,25 +265,12 @@ const GeoSearch: React.FC = () => {
           onReset={handleResetFilters}
         />
         
-        {networkStatus === 'slow' && (
-          <div className="absolute top-20 left-4 z-20 bg-yellow-100 border border-yellow-300 text-yellow-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
-            <AlertCircle size={16} />
-            <span>Connexion lente</span>
-          </div>
-        )}
-        
-        {networkStatus === 'offline' && (
-          <div className="absolute top-20 left-4 z-20 bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
-            <AlertCircle size={16} />
-            <span>Mode hors-ligne</span>
-          </div>
-        )}
-        
+        {/* Indicateur de géolocalisation en cours */}
         {geoLoading && (
-          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg z-10">
-            <div className="flex items-center gap-2 text-blue-600">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <span className="text-sm">{t("geosearch.detectingLocation")}</span>
+          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg z-30 border border-blue-200">
+            <div className="flex items-center gap-3 text-blue-600">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm font-medium">Détection de votre position...</span>
             </div>
           </div>
         )}
