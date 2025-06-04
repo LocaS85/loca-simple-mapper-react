@@ -2,37 +2,37 @@
 import { getMapboxToken } from './mapboxConfig';
 
 /**
- * Validates a Mapbox token by making a test API call
+ * Valide un token Mapbox via un appel API de test
  */
 export async function validateMapboxToken(token: string): Promise<boolean> {
   try {
-    // Make a simple request to validate the token
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/paris.json?access_token=${token}`;
+    // Test avec une requête de géocodage simple
+    const testUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/paris.json?access_token=${token}&limit=1`;
     
-    const response = await fetch(url);
+    const response = await fetch(testUrl);
     
     if (response.ok) {
-      console.log('✅ Token validé avec succès');
+      console.log('✅ Token Mapbox validé avec succès');
       return true;
     }
     
     if (response.status === 401) {
-      console.error('❌ Token non autorisé (401)');
+      console.error('❌ Token Mapbox non autorisé (401)');
       return false;
     }
     
-    const errorText = await response.text();
-    console.error(`❌ Erreur de validation (${response.status}):`, errorText);
+    const errorData = await response.text();
+    console.error(`❌ Erreur validation token (${response.status}):`, errorData);
     return false;
     
   } catch (error) {
-    console.error('❌ Erreur lors de la validation du token:', error);
+    console.error('❌ Erreur réseau lors de la validation:', error);
     return false;
   }
 }
 
 /**
- * Checks if a token is available and valid
+ * Vérifie et valide le token configuré
  */
 export async function checkMapboxToken(): Promise<boolean> {
   try {
@@ -41,5 +41,36 @@ export async function checkMapboxToken(): Promise<boolean> {
   } catch (error) {
     console.error('❌ Erreur lors de la vérification du token:', error);
     return false;
+  }
+}
+
+/**
+ * Test de connectivité API Mapbox
+ */
+export async function testMapboxConnectivity(): Promise<{
+  success: boolean;
+  latency?: number;
+  error?: string;
+}> {
+  const startTime = Date.now();
+  
+  try {
+    const token = getMapboxToken();
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/test.json?access_token=${token}&limit=1`
+    );
+    
+    const latency = Date.now() - startTime;
+    
+    return {
+      success: response.ok,
+      latency,
+      error: response.ok ? undefined : `HTTP ${response.status}`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
+    };
   }
 }
