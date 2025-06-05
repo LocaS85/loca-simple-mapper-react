@@ -71,6 +71,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
       newMap.on('load', () => {
+        console.log('✅ Carte chargée avec succès');
         setMapLoaded(true);
         setMapError(null);
         
@@ -103,18 +104,26 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         });
         
         setHasRouteLayer(true);
+        console.log('✅ Couches de route ajoutées');
       });
       
       newMap.on('error', (e) => {
         console.error('❌ Erreur de carte:', e);
         setMapError('Erreur de chargement de la carte');
       });
+
+      // Attendre que la carte soit complètement prête
+      newMap.on('idle', () => {
+        console.log('✅ Carte prête pour les marqueurs');
+      });
       
       map.current = newMap;
       
       return () => {
-        map.current?.remove();
-        map.current = null;
+        if (map.current) {
+          map.current.remove();
+          map.current = null;
+        }
         geolocateControl.current = null;
         setMapLoaded(false);
         setHasRouteLayer(false);
