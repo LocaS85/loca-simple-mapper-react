@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
-import MapMarkers from './map/MapMarkers';
+import UniqueMapMarkers from './map/UniqueMapMarkers';
 import MapStatusIndicator from './map/MapStatusIndicator';
 import { MapPin } from 'lucide-react';
 
@@ -21,7 +21,6 @@ interface MapViewProps {
 const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const userMarker = useRef<mapboxgl.Marker | null>(null);
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -71,59 +70,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       // Add navigation controls
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
-      // Add enhanced geolocation control with better UX
-      const geolocateControlInstance = new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 300000
-        },
-        trackUserLocation: true,
-        showUserHeading: true,
-        showAccuracyCircle: false
-      });
-      
-      geolocateControl.current = geolocateControlInstance;
-      newMap.addControl(geolocateControlInstance, 'top-right');
-      
-      // Enhanced geolocation event handling
-      geolocateControlInstance.on('geolocate', async (e) => {
-        const coords: [number, number] = [e.coords.longitude, e.coords.latitude];
-        console.log('📍 Géolocalisation détectée:', coords);
-        
-        setUserLocation(coords);
-        
-        // Trigger automatic search with new location
-        setTimeout(() => {
-          loadResults();
-        }, 500);
-        
-        toast({
-          title: "Position détectée",
-          description: "Recherche mise à jour avec votre localisation",
-          variant: "default",
-        });
-      });
-      
-      geolocateControlInstance.on('error', (e) => {
-        console.error('❌ Erreur de géolocalisation:', e);
-        
-        let errorMessage = "Impossible d'obtenir votre position";
-        if (e.code === 1) {
-          errorMessage = "Géolocalisation refusée. Autorisez l'accès à votre position.";
-        } else if (e.code === 2) {
-          errorMessage = "Position indisponible. Vérifiez votre connexion.";
-        } else if (e.code === 3) {
-          errorMessage = "Délai d'attente dépassé pour la géolocalisation.";
-        }
-        
-        toast({
-          title: "Erreur de localisation",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      });
-      
       newMap.on('load', () => {
         setMapLoaded(true);
         setMapError(null);
@@ -157,13 +103,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         });
         
         setHasRouteLayer(true);
-        
-        // Auto-trigger geolocation if no user location
-        if (!userLocation) {
-          setTimeout(() => {
-            geolocateControlInstance.trigger();
-          }, 1000);
-        }
       });
       
       newMap.on('error', (e) => {
@@ -174,9 +113,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       map.current = newMap;
       
       return () => {
-        if (userMarker.current) {
-          userMarker.current.remove();
-        }
         map.current?.remove();
         map.current = null;
         geolocateControl.current = null;
@@ -188,47 +124,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
     }
   }, [isMobile, userLocation, isMapboxReady, toast, t, setUserLocation, loadResults]);
-
-  // Enhanced user location marker with better visibility
-  useEffect(() => {
-    if (!map.current || !mapLoaded || !userLocation) return;
-
-    if (userMarker.current) {
-      userMarker.current.remove();
-    }
-
-    // Create enhanced user location marker
-    const userMarkerElement = document.createElement('div');
-    userMarkerElement.className = 'user-location-marker';
-    userMarkerElement.innerHTML = `
-      <div class="relative">
-        <div class="w-8 h-8 bg-blue-500 rounded-full border-3 border-white shadow-xl flex items-center justify-center animate-pulse">
-          <div class="w-3 h-3 bg-white rounded-full"></div>
-        </div>
-        <div class="absolute w-12 h-12 bg-blue-400 rounded-full opacity-20 animate-ping -top-2 -left-2"></div>
-      </div>
-    `;
-
-    userMarker.current = new mapboxgl.Marker(userMarkerElement)
-      .setLngLat(userLocation)
-      .setPopup(new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(`
-        <div class="p-3 flex items-center gap-3">
-          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-semibold text-sm text-blue-600">Ma position</h3>
-            <p class="text-xs text-gray-500">Votre localisation actuelle</p>
-          </div>
-        </div>
-      `))
-      .addTo(map.current);
-
-    console.log('📍 Marqueur utilisateur créé:', userLocation);
-  }, [userLocation, mapLoaded, t]);
 
   // Optimized bounds fitting with enhanced logic
   const fitBounds = throttle(() => {
@@ -364,7 +259,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         
         {mapLoaded && map.current && (
           <>
-            <MapMarkers
+            <UniqueMapMarkers
               map={map.current}
               userLocation={userLocation}
               results={results}

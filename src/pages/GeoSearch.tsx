@@ -13,23 +13,12 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 const GeoSearch: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isInitialized, isMapboxReady } = useAppInitialization();
-
-  const { 
-    coordinates: geoCoordinates, 
-    isLoading: geoLoading, 
-    error: geoError
-  } = useGeolocation({
-    enableHighAccuracy: true,
-    timeout: 15000,
-    maximumAge: 300000,
-    autoRequest: false // Ne pas auto-déclencher, géré par le bouton
-  });
 
   const {
     results: searchResults,
@@ -56,37 +45,6 @@ const GeoSearch: React.FC = () => {
       setShowTokenWarning(true);
     }
   }, []);
-
-  // Synchroniser la géolocalisation uniquement si détectée
-  useEffect(() => {
-    if (geoCoordinates && !userLocation) {
-      console.log('📍 Position détectée et appliquée:', geoCoordinates);
-      setUserLocation(geoCoordinates);
-      
-      toast({
-        title: "Position détectée",
-        description: "Votre localisation a été mise à jour",
-        variant: "default",
-      });
-    }
-  }, [geoCoordinates, userLocation, setUserLocation, toast]);
-
-  // Gérer les erreurs de géolocalisation avec message personnalisé
-  useEffect(() => {
-    if (geoError) {
-      console.warn('⚠️ Erreur de géolocalisation:', geoError);
-      
-      // Si aucune position utilisateur, utiliser Paris par défaut
-      if (!userLocation) {
-        setUserLocation([2.3522, 48.8566]);
-        toast({
-          title: "Position par défaut",
-          description: "Utilisation de Paris comme position de référence",
-          variant: "default",
-        });
-      }
-    }
-  }, [geoError, userLocation, setUserLocation, toast]);
 
   // Déclencher une recherche automatique après initialisation
   useEffect(() => {
@@ -119,49 +77,29 @@ const GeoSearch: React.FC = () => {
     }, 300);
   };
 
-  const handleMyLocationClick = async () => {
-    console.log('📍 Demande de géolocalisation manuelle');
+  const handleMyLocationClick = async (coordinates: [number, number]) => {
+    console.log('📍 Position reçue du bouton Ma Position:', coordinates);
     
-    if (!navigator.geolocation) {
-      toast({
-        title: "Géolocalisation non supportée",
-        description: "Votre navigateur ne supporte pas la géolocalisation",
-        variant: "destructive",
-      });
+    // Éviter les doublons - vérifier si la position a changé
+    if (userLocation && 
+        Math.abs(userLocation[0] - coordinates[0]) < 0.0001 && 
+        Math.abs(userLocation[1] - coordinates[1]) < 0.0001) {
+      console.log('📍 Position identique, pas de mise à jour');
       return;
     }
-
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000
-        });
-      });
-
-      const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
-      setUserLocation(coords);
-      
-      toast({
-        title: "Position mise à jour",
-        description: "Votre localisation a été détectée",
-        variant: "default",
-      });
-      
-      // Déclencher une nouvelle recherche
-      setTimeout(() => {
-        loadResults();
-      }, 500);
-      
-    } catch (error) {
-      console.error('❌ Erreur de géolocalisation manuelle:', error);
-      toast({
-        title: "Erreur de localisation",
-        description: "Impossible d'obtenir votre position",
-        variant: "destructive",
-      });
-    }
+    
+    setUserLocation(coordinates);
+    
+    toast({
+      title: "Position mise à jour",
+      description: "Recherche actualisée avec votre localisation",
+      variant: "default",
+    });
+    
+    // Déclencher une nouvelle recherche
+    setTimeout(() => {
+      loadResults();
+    }, 500);
   };
 
   const handleResetFilters = () => {
@@ -253,6 +191,7 @@ const GeoSearch: React.FC = () => {
           onLocationSelect={handleLocationSelect}
           onSearch={handleSearch}
           onMyLocationClick={handleMyLocationClick}
+          isLoading={isLoading}
         />
         
         <MapView transport={filters.transport} />
@@ -264,16 +203,6 @@ const GeoSearch: React.FC = () => {
           open={showFilters}
           onReset={handleResetFilters}
         />
-        
-        {/* Indicateur de géolocalisation en cours */}
-        {geoLoading && (
-          <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg z-30 border border-blue-200">
-            <div className="flex items-center gap-3 text-blue-600">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm font-medium">Détection de votre position...</span>
-            </div>
-          </div>
-        )}
         
         <div className="fixed bottom-4 right-4 z-10">
           <MultiMapToggle />
