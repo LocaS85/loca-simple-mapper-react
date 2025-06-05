@@ -105,7 +105,7 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     }
 
     try {
-      // Créer l'élément DOM pour le marqueur utilisateur
+      // Créer l'élément DOM pour le marqueur utilisateur avec une icône plus visible
       const userElement = document.createElement('div');
       userElement.className = 'user-location-marker';
       userElement.style.cssText = `
@@ -113,46 +113,57 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
         flex-direction: column;
         align-items: center;
         cursor: pointer;
+        z-index: 1000;
       `;
       
       userElement.innerHTML = `
         <div style="
-          width: 32px;
-          height: 32px;
-          background: #3B82F6;
-          border: 3px solid white;
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+          border: 4px solid white;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-          animation: pulse 2s infinite;
+          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+          position: relative;
         ">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
           <div style="
+            position: absolute;
+            top: -2px;
+            right: -2px;
             width: 12px;
             height: 12px;
-            background: white;
+            background: #10B981;
+            border: 2px solid white;
             border-radius: 50%;
+            animation: pulse 2s infinite;
           "></div>
         </div>
         <div style="
-          font-size: 11px;
+          font-size: 10px;
           font-weight: bold;
-          background: #3B82F6;
+          background: rgba(59, 130, 246, 0.9);
           color: white;
-          padding: 2px 8px;
-          border-radius: 12px;
+          padding: 2px 6px;
+          border-radius: 8px;
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           margin-top: 4px;
           white-space: nowrap;
+          backdrop-filter: blur(10px);
         ">
-          Ma position
+          📍 Vous êtes ici
         </div>
         <style>
           @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
           }
         </style>
       `;
@@ -164,15 +175,18 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
         closeOnClick: false
       }).setHTML(`
         <div style="padding: 12px; min-width: 160px;">
-          <h3 style="font-weight: bold; font-size: 14px; color: #3B82F6; margin-bottom: 8px;">
-            📍 Votre position
+          <h3 style="font-weight: bold; font-size: 14px; color: #3B82F6; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">📍</span> Votre position
           </h3>
           <p style="font-size: 12px; color: #6B7280; margin: 0;">
             Localisation actuelle détectée
           </p>
-          <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">
-            Lat: ${userLocation[1].toFixed(6)}<br>
-            Lng: ${userLocation[0].toFixed(6)}
+          <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px; font-family: monospace;">
+            Latitude: ${userLocation[1].toFixed(6)}<br>
+            Longitude: ${userLocation[0].toFixed(6)}
+          </div>
+          <div style="margin-top: 8px; padding: 4px 8px; background: #F0F9FF; border-radius: 4px; font-size: 10px; color: #0369A1;">
+            💡 Cliquez sur un POI pour voir l'itinéraire
           </div>
         </div>
       `);

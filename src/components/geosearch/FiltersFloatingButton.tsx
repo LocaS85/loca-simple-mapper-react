@@ -100,7 +100,6 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
           transportMode={filters.transport}
           setTransportMode={handleTransportModeChange}
           onReset={onReset}
-          isPopover={true}
         />
       </PopoverContent>
     </Popover>
