@@ -52,7 +52,6 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     if (!isMapReady() || routeSourceAdded.current) return;
 
     try {
-      // Ajouter la source pour les routes
       if (!map.getSource('route-line')) {
         map.addSource('route-line', {
           type: 'geojson',
@@ -66,7 +65,6 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
           }
         });
 
-        // Ajouter le layer de route avec style
         map.addLayer({
           id: 'route-line',
           type: 'line',
@@ -91,33 +89,103 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
 
   // Créer le marqueur utilisateur avec icône personnalisée
   useEffect(() => {
-    if (!isMapReady() || !userLocation) return;
+    if (!isMapReady() || !userLocation) {
+      console.log('⏳ Carte non prête ou pas de position utilisateur');
+      return;
+    }
 
-    clearMarkers();
+    // Supprimer l'ancien marqueur utilisateur s'il existe
+    if (userMarkerRef.current) {
+      try {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      } catch (error) {
+        console.warn('Erreur lors de la suppression de l\'ancien marqueur utilisateur:', error);
+      }
+    }
 
     try {
       // Créer l'élément DOM pour le marqueur utilisateur
       const userElement = document.createElement('div');
       userElement.className = 'user-location-marker';
+      userElement.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+      `;
+      
       userElement.innerHTML = `
-        <div class="flex flex-col items-center">
-          <div class="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center animate-pulse">
-            <div class="w-2 h-2 bg-white rounded-full"></div>
-          </div>
-          <div class="text-xs font-bold bg-blue-500 text-white px-2 py-1 rounded-full shadow-md mt-1">
-            Ma position
+        <div style="
+          width: 32px;
+          height: 32px;
+          background: #3B82F6;
+          border: 3px solid white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+          animation: pulse 2s infinite;
+        ">
+          <div style="
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+          "></div>
+        </div>
+        <div style="
+          font-size: 11px;
+          font-weight: bold;
+          background: #3B82F6;
+          color: white;
+          padding: 2px 8px;
+          border-radius: 12px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          margin-top: 4px;
+          white-space: nowrap;
+        ">
+          Ma position
+        </div>
+        <style>
+          @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+          }
+        </style>
+      `;
+
+      // Créer la popup pour le marqueur utilisateur
+      const userPopup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false
+      }).setHTML(`
+        <div style="padding: 12px; min-width: 160px;">
+          <h3 style="font-weight: bold; font-size: 14px; color: #3B82F6; margin-bottom: 8px;">
+            📍 Votre position
+          </h3>
+          <p style="font-size: 12px; color: #6B7280; margin: 0;">
+            Localisation actuelle détectée
+          </p>
+          <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px;">
+            Lat: ${userLocation[1].toFixed(6)}<br>
+            Lng: ${userLocation[0].toFixed(6)}
           </div>
         </div>
-      `;
+      `);
 
       userMarkerRef.current = new mapboxgl.Marker({
         element: userElement,
         anchor: 'bottom'
       })
         .setLngLat(userLocation)
+        .setPopup(userPopup)
         .addTo(map);
 
-      console.log('📍 Marqueur utilisateur ajouté:', userLocation);
+      console.log('📍 Marqueur utilisateur ajouté avec succès:', userLocation);
     } catch (error) {
       console.error('❌ Erreur lors de l\'ajout du marqueur utilisateur:', error);
     }

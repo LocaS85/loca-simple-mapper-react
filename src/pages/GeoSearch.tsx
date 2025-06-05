@@ -1,8 +1,7 @@
 
 import React, { useEffect } from 'react';
 import MapView from '@/components/geosearch/MapView';
-import FiltersPopup from '@/components/geosearch/FiltersPopup';
-import SearchHeader from '@/components/geosearch/SearchHeader';
+import FloatingControls from '@/components/geosearch/FloatingControls';
 import PrintButton from '@/components/geosearch/PrintButton';
 import MultiMapToggle from '@/components/geosearch/MultiMapToggle';
 import SEOHead from '@/components/SEOHead';
@@ -10,7 +9,6 @@ import { MapboxTokenWarning } from '@/components/MapboxTokenWarning';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
-import { useGeolocation } from '@/hooks/useGeolocation';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { AlertCircle } from 'lucide-react';
@@ -24,16 +22,13 @@ const GeoSearch: React.FC = () => {
     results: searchResults,
     filters,
     isLoading,
-    showFilters,
     userLocation,
     mapboxError,
     networkStatus,
     updateFilters,
     loadResults,
     performSearch,
-    toggleFilters,
     setUserLocation,
-    setShowFilters,
     initializeMapbox
   } = useGeoSearchStore();
 
@@ -185,30 +180,25 @@ const GeoSearch: React.FC = () => {
       <SEOHead title={seoTitle} description={seoDescription} />
       
       <div className="relative h-screen w-full overflow-hidden">
-        <SearchHeader
+        {/* Carte en arrière-plan */}
+        <MapView transport={filters.transport} />
+        
+        {/* Contrôles flottants */}
+        <FloatingControls
           filters={filters}
-          onToggleFilters={toggleFilters}
           onLocationSelect={handleLocationSelect}
           onSearch={handleSearch}
           onMyLocationClick={handleMyLocationClick}
+          onFiltersChange={updateFilters}
+          onResetFilters={handleResetFilters}
           isLoading={isLoading}
         />
         
-        <MapView transport={filters.transport} />
-        
-        <FiltersPopup
-          filters={filters}
-          onChange={updateFilters}
-          onClose={() => setShowFilters(false)}
-          open={showFilters}
-          onReset={handleResetFilters}
-        />
-        
-        <div className="fixed bottom-4 right-4 z-10">
+        {/* Boutons d'action en bas à droite */}
+        <div className="fixed bottom-4 right-4 z-10 flex flex-col gap-2">
           <MultiMapToggle />
+          <PrintButton results={searchResults} />
         </div>
-        
-        <PrintButton results={searchResults} />
       </div>
     </>
   );
