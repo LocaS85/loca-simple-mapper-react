@@ -70,7 +70,7 @@ export class EnhancedGeocodingService {
         return this.fallbackSearch(query, center, options);
       }
 
-      // Convertir et filtrer les résultats
+      // Convertir et filtrer les résultats avec calcul de distance
       const results = data.features
         .filter((feature: any) => feature.geometry?.coordinates)
         .map((feature: any): MapboxSearchResult => {
@@ -83,12 +83,12 @@ export class EnhancedGeocodingService {
             address: feature.place_name || feature.properties?.address || '',
             coordinates: [coords[0], coords[1]] as [number, number],
             category: this.extractCategory(feature),
-            distance: Math.round(distance * 10) / 10,
+            distance: Math.round(distance * 10) / 10, // Distance maintenant incluse dans l'interface
             properties: feature.properties || {}
           };
         })
-        .filter(result => result.distance <= radius) // Filtrer par rayon
-        .sort((a, b) => a.distance - b.distance) // Trier par distance
+        .filter(result => (result.distance || 0) <= radius) // Filtrer par rayon avec vérification null
+        .sort((a, b) => (a.distance || 0) - (b.distance || 0)) // Trier par distance avec vérification null
         .slice(0, limit); // Limiter les résultats
 
       console.log('✅ Résultats traités:', results.length);
@@ -137,7 +137,7 @@ export class EnhancedGeocodingService {
           address: feature.place_name || '',
           coordinates: feature.geometry.coordinates as [number, number],
           category: 'general',
-          distance: this.calculateDistance(center, feature.geometry.coordinates),
+          distance: this.calculateDistance(center, feature.geometry.coordinates), // Distance calculée pour fallback
           properties: feature.properties || {}
         }));
 

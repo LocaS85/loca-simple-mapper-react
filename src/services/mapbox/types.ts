@@ -7,6 +7,7 @@ export interface MapboxSearchResult {
   address: string;
   coordinates: [number, number];
   category: string;
+  distance?: number; // Ajout de la propriété distance
   relevance?: number;
   properties?: Record<string, any>;
 }
