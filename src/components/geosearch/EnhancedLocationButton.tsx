@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MapPin, Loader2, Navigation, Target } from 'lucide-react';
+import { MapPin, Loader2, Navigation, Target, Crosshair } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +17,7 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
 }) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [accuracy, setAccuracy] = useState<number | null>(null);
   const { toast } = useToast();
 
   const requestLocation = async () => {
@@ -55,7 +56,8 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
         position.coords.latitude
       ];
 
-      console.log('📍 Position détectée:', coordinates);
+      setAccuracy(position.coords.accuracy);
+      console.log('📍 Position détectée:', coordinates, 'Précision:', position.coords.accuracy);
       onLocationDetected(coordinates);
 
       toast({
@@ -105,25 +107,40 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     if (hasPermission === false) {
       return <Navigation className="h-4 w-4" />;
     }
+    if (accuracy && accuracy < 50) {
+      return <Crosshair className="h-4 w-4 text-green-600" />;
+    }
     return <Target className="h-4 w-4" />;
   };
 
   const getButtonText = () => {
     if (isDetecting) return "Détection...";
     if (hasPermission === false) return "Autoriser";
+    if (accuracy && accuracy < 50) return "Position précise";
     return "Ma position";
+  };
+
+  const getButtonVariant = () => {
+    if (accuracy && accuracy < 50) return "default";
+    if (hasPermission === false) return "destructive";
+    return "outline";
   };
 
   return (
     <Button
       onClick={requestLocation}
       disabled={disabled || isDetecting}
-      variant="outline"
+      variant={getButtonVariant() as any}
       size="sm"
       className={`flex items-center gap-2 bg-white/90 backdrop-blur-sm hover:bg-white transition-all duration-200 ${className}`}
     >
       {getButtonIcon()}
       <span className="hidden sm:inline">{getButtonText()}</span>
+      {accuracy && (
+        <span className="hidden md:inline text-xs text-gray-500">
+          ±{Math.round(accuracy)}m
+        </span>
+      )}
     </Button>
   );
 };

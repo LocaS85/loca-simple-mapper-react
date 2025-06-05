@@ -1,169 +1,196 @@
 
-import { isMapboxTokenValid, getMapboxToken } from '@/utils/mapboxConfig';
-import { validateMapboxToken } from '@/utils/mapboxValidation';
-import { MapboxGeocodingService } from './mapbox/geocoding';
-import { MapboxDirectionsService } from './mapbox/directions';
-import { MapboxIsochroneService } from './mapbox/isochrone';
-import { MapboxSearchResult, MapboxDirectionsResult, MapboxSearchOptions } from './mapbox/types';
+import { getMapboxToken } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/lib/data/transportModes';
-import { networkErrorHandler } from './networkErrorHandler';
+import { MapboxSearchResult, MapboxDirectionsResult } from './mapbox/types';
 
 class MapboxApiService {
-  private geocodingService: MapboxGeocodingService;
-  private directionsService: MapboxDirectionsService;
-  private isochroneService: MapboxIsochroneService;
-  private isInitialized = false;
-  private token: string | null = null;
+  private token: string;
+  private initialized = false;
 
   constructor() {
-    this.geocodingService = new MapboxGeocodingService();
-    this.directionsService = new MapboxDirectionsService();
-    this.isochroneService = new MapboxIsochroneService();
+    this.token = '';
   }
 
-  /**
-   * Initialisation complète du service
-   */
   async initialize(): Promise<boolean> {
     try {
-      if (this.isInitialized) {
-        console.log('🎯 Service Mapbox déjà initialisé');
-        return true;
-      }
-
-      console.log('🚀 Initialisation du service Mapbox...');
-
-      // Vérification basique du token
-      if (!isMapboxTokenValid()) {
-        console.error('❌ Token Mapbox non configuré ou format invalide');
-        return false;
-      }
-
-      // Récupération du token
       this.token = getMapboxToken();
-      console.log('🔑 Token récupéré:', this.token.substring(0, 15) + '...');
-
-      // Validation par appel API
-      const isValid = await validateMapboxToken(this.token);
-      if (!isValid) {
-        console.error('❌ Token Mapbox invalide lors du test API');
-        return false;
-      }
-
-      this.isInitialized = true;
-      console.log('✅ Service Mapbox initialisé avec succès');
+      this.initialized = true;
+      console.log('✅ Service API Mapbox initialisé');
       return true;
     } catch (error) {
-      console.error('❌ Erreur d\'initialisation du service Mapbox:', error);
+      console.error('❌ Erreur d\'initialisation API Mapbox:', error);
+      this.initialized = false;
       return false;
     }
   }
 
-  /**
-   * Recherche de lieux avec gestion d'erreurs avancée
-   */
   async searchPlaces(
-    query: string, 
-    center: [number, number], 
-    options: MapboxSearchOptions = {}
+    query: string,
+    center: [number, number],
+    options: {
+      limit?: number;
+      radius?: number;
+      categories?: string[];
+    } = {}
   ): Promise<MapboxSearchResult[]> {
-    if (!this.isInitialized && !await this.initialize()) {
-      throw new Error('Service Mapbox non initialisé - vérifiez votre token');
+    if (!this.initialized) {
+      await this.initialize();
     }
+
+    const { limit = 5, radius = 10, categories } = options;
     
-    return networkErrorHandler.handleApiCall(
-      () => this.geocodingService.searchPlaces(query, center, options),
-      (attempt) => console.log(`🔄 Recherche - Tentative ${attempt}`)
-    );
+    const searchParams = new URLSearchParams({
+      access_token: this.token,
+      proximity: `${center[0]},${center[1]}`,
+      limit: limit.toString(),
+      country: 'fr',
+      language: 'fr',
+      types: 'poi,address',
+      autocomplete: 'true'
+    });
+
+    // Ajouter bbox basé sur le rayon
+    const radiusInDegrees = radius / 111.32;
+    const bbox = [
+      center[0] - radiusInDegrees,
+      center[1] - radiusInDegrees,
+      center[0] + radiusInDegrees,
+      center[1] + radiusInDegrees
+    ];
+    searchParams.append('bbox', bbox.join(','));
+
+    if (categories && categories.length > 0) {
+      searchParams.append('category', categories.join(','));
+    }
+
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
+
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Erreur API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      return data.features?.map((feature: any): MapboxSearchResult => ({
+        id: feature.id || `place-${Date.now()}-${Math.random()}`,
+        name: feature.text || feature.properties?.name || 'Lieu sans nom',
+        address: feature.place_name || '',
+        coordinates: feature.geometry.coordinates as [number, number],
+        category: this.extractCategory(feature),
+        distance: this.calculateDistance(center, feature.geometry.coordinates),
+        properties: feature.properties || {}
+      })) || [];
+
+    } catch (error) {
+      console.error('❌ Erreur recherche API:', error);
+      throw error;
+    }
   }
 
-  /**
-   * Calcul d'itinéraires avec retry automatique
-   */
   async getDirections(
-    origin: [number, number], 
-    destination: [number, number], 
+    origin: [number, number],
+    destination: [number, number],
     transportMode: TransportMode = 'walking'
-  ): Promise<MapboxDirectionsResult> {
-    if (!this.isInitialized && !await this.initialize()) {
-      throw new Error('Service Mapbox non initialisé - vérifiez votre token');
+  ): Promise<MapboxDirectionsResult | null> {
+    if (!this.initialized) {
+      await this.initialize();
     }
+
+    const profile = this.getMapboxProfile(transportMode);
     
-    return networkErrorHandler.handleApiCall(
-      () => this.directionsService.getDirections(origin, destination, transportMode),
-      (attempt) => console.log(`🔄 Directions - Tentative ${attempt}`)
-    );
+    const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${origin[0]},${origin[1]};${destination[0]},${destination[1]}?geometries=geojson&access_token=${this.token}`;
+
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Erreur directions: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        return {
+          geometry: route.geometry,
+          distance: route.distance,
+          duration: route.duration,
+          steps: route.legs?.[0]?.steps || []
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ Erreur directions API:', error);
+      throw error;
+    }
   }
 
-  /**
-   * Création d'isochrones avec gestion d'erreurs
-   */
   async createIsochrone(
-    center: [number, number], 
-    duration: number, 
+    center: [number, number],
+    duration: number,
     transportMode: TransportMode = 'walking'
   ): Promise<any> {
-    if (!this.isInitialized && !await this.initialize()) {
-      throw new Error('Service Mapbox non initialisé - vérifiez votre token');
+    if (!this.initialized) {
+      await this.initialize();
+    }
+
+    const profile = this.getMapboxProfile(transportMode);
+    
+    const url = `https://api.mapbox.com/isochrone/v1/mapbox/${profile}/${center[0]},${center[1]}?contours_minutes=${duration}&polygons=true&access_token=${this.token}`;
+
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Erreur isochrone: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('❌ Erreur isochrone API:', error);
+      throw error;
+    }
+  }
+
+  private getMapboxProfile(transportMode: TransportMode): string {
+    switch (transportMode) {
+      case 'car': return 'driving';
+      case 'walking': return 'walking';
+      case 'cycling': return 'cycling';
+      case 'bus':
+      case 'train': return 'driving'; // Fallback
+      default: return 'walking';
+    }
+  }
+
+  private extractCategory(feature: any): string {
+    if (feature.properties?.category) {
+      return feature.properties.category;
     }
     
-    return networkErrorHandler.handleApiCall(
-      () => this.isochroneService.createIsochrone(center, duration, transportMode),
-      (attempt) => console.log(`🔄 Isochrone - Tentative ${attempt}`)
-    );
-  }
-
-  /**
-   * Statut du service
-   */
-  isReady(): boolean {
-    return this.isInitialized && !!this.token;
-  }
-
-  /**
-   * Obtenir le token actuel
-   */
-  getToken(): string | null {
-    return this.token;
-  }
-
-  /**
-   * Réinitialiser le service
-   */
-  reset(): void {
-    this.isInitialized = false;
-    this.token = null;
-    networkErrorHandler.reset();
-    console.log('🔄 Service Mapbox réinitialisé');
-  }
-
-  /**
-   * Test de connectivité
-   */
-  async testConnection(): Promise<boolean> {
-    try {
-      const results = await this.searchPlaces('test', [2.3522, 48.8566], { limit: 1 });
-      console.log('✅ Test de connectivité réussi');
-      return true;
-    } catch (error) {
-      console.error('❌ Test de connectivité échoué:', error);
-      return false;
+    const placeType = feature.place_type?.[0];
+    switch (placeType) {
+      case 'poi': return 'point_of_interest';
+      case 'address': return 'address';
+      default: return 'general';
     }
+  }
+
+  private calculateDistance(point1: [number, number], point2: [number, number]): number {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (point2[1] - point1[1]) * Math.PI / 180;
+    const dLon = (point2[0] - point1[0]) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(point1[1] * Math.PI / 180) * Math.cos(point2[1] * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   }
 }
 
-// Instance singleton
 export const mapboxApiService = new MapboxApiService();
-
-// Hook pour utiliser l'API Mapbox
-export const useMapboxApi = () => {
-  return {
-    searchPlaces: mapboxApiService.searchPlaces.bind(mapboxApiService),
-    getDirections: mapboxApiService.getDirections.bind(mapboxApiService),
-    createIsochrone: mapboxApiService.createIsochrone.bind(mapboxApiService),
-    isReady: mapboxApiService.isReady.bind(mapboxApiService),
-    initialize: mapboxApiService.initialize.bind(mapboxApiService),
-    testConnection: mapboxApiService.testConnection.bind(mapboxApiService),
-    reset: mapboxApiService.reset.bind(mapboxApiService)
-  };
-};

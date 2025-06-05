@@ -2,176 +2,212 @@
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { SearchResult } from '@/types/geosearch';
-import { useTranslation } from 'react-i18next';
+import { mapboxApiService } from '@/services/mapboxApiService';
 
 interface UniqueMapMarkersProps {
   map: mapboxgl.Map;
   userLocation: [number, number] | null;
   results: SearchResult[];
-  onRouteRequest?: (placeId: string) => void;
+  onRouteRequest: (placeId: string) => void;
 }
 
-const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({ 
-  map, 
-  userLocation, 
-  results, 
-  onRouteRequest 
+const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
+  map,
+  userLocation,
+  results,
+  onRouteRequest
 }) => {
-  const { t } = useTranslation();
-  const markersRef = useRef<{
-    user?: mapboxgl.Marker;
-    results: Map<string, mapboxgl.Marker>;
-  }>({
-    results: new Map()
-  });
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const routeSourceAdded = useRef(false);
 
-  useEffect(() => {
-    if (!map || !map.isStyleLoaded()) {
-      console.log('⏳ Carte non prête pour les marqueurs');
-      return;
-    }
-
-    // Nettoyer tous les marqueurs existants
-    if (markersRef.current.user) {
-      markersRef.current.user.remove();
-      markersRef.current.user = undefined;
-    }
+  // Nettoyer les marqueurs existants
+  const clearMarkers = () => {
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
     
-    markersRef.current.results.forEach(marker => {
-      marker.remove();
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+  };
+
+  // Initialiser la source et le layer de route
+  useEffect(() => {
+    if (!map || routeSourceAdded.current) return;
+
+    // Ajouter la source pour les routes
+    if (!map.getSource('route-line')) {
+      map.addSource('route-line', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: []
+          }
+        }
+      });
+
+      // Ajouter le layer de route avec style
+      map.addLayer({
+        id: 'route-line',
+        type: 'line',
+        source: 'route-line',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#3B82F6',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 10, 3, 15, 8],
+          'line-opacity': 0.8
+        }
+      });
+
+      routeSourceAdded.current = true;
+    }
+  }, [map]);
+
+  // Créer le marqueur utilisateur avec icône personnalisée
+  useEffect(() => {
+    if (!map || !userLocation) return;
+
+    clearMarkers();
+
+    // Créer l'élément DOM pour le marqueur utilisateur
+    const userElement = document.createElement('div');
+    userElement.className = 'user-location-marker';
+    userElement.innerHTML = `
+      <div class="flex flex-col items-center">
+        <div class="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center animate-pulse">
+          <div class="w-2 h-2 bg-white rounded-full"></div>
+        </div>
+        <div class="text-xs font-bold bg-blue-500 text-white px-2 py-1 rounded-full shadow-md mt-1">
+          Ma position
+        </div>
+      </div>
+    `;
+
+    userMarkerRef.current = new mapboxgl.Marker({
+      element: userElement,
+      anchor: 'bottom'
+    })
+      .setLngLat(userLocation)
+      .addTo(map);
+
+    console.log('📍 Marqueur utilisateur ajouté:', userLocation);
+  }, [map, userLocation]);
+
+  // Créer les marqueurs pour les résultats avec POI
+  useEffect(() => {
+    if (!map || !results.length) return;
+
+    // Nettoyer les anciens marqueurs de résultats
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    results.forEach((result, index) => {
+      if (!result.coordinates) return;
+
+      // Créer l'élément DOM pour le marqueur POI
+      const element = document.createElement('div');
+      element.className = 'poi-marker';
+      element.innerHTML = `
+        <div class="flex flex-col items-center cursor-pointer">
+          <div class="w-8 h-8 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center hover:bg-red-600 transition-colors">
+            <span class="text-white font-bold text-sm">${index + 1}</span>
+          </div>
+          <div class="text-xs font-medium bg-white px-2 py-1 rounded shadow-md mt-1 max-w-32 truncate">
+            ${result.name}
+          </div>
+        </div>
+      `;
+
+      // Créer la popup avec informations détaillées
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false
+      }).setHTML(`
+        <div class="p-3 min-w-48">
+          <h3 class="font-bold text-sm mb-2">${result.name}</h3>
+          <p class="text-xs text-gray-600 mb-2">${result.address}</p>
+          <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
+            <span>📍 ${result.distance?.toFixed(1)} km</span>
+            <span>⏱️ ${result.duration} min</span>
+          </div>
+          <div class="flex gap-2">
+            <button class="route-btn bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600" 
+                    data-place-id="${result.id}">
+              🗺️ Itinéraire
+            </button>
+            <button class="info-btn bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">
+              ℹ️ Infos
+            </button>
+          </div>
+        </div>
+      `);
+
+      const marker = new mapboxgl.Marker({
+        element,
+        anchor: 'bottom'
+      })
+        .setLngLat(result.coordinates)
+        .setPopup(popup)
+        .addTo(map);
+
+      // Gérer les clics sur les boutons de la popup
+      element.addEventListener('click', () => {
+        marker.togglePopup();
+      });
+
+      // Gérer le clic sur le bouton itinéraire
+      popup.on('open', () => {
+        const routeBtn = popup.getElement()?.querySelector('.route-btn') as HTMLButtonElement;
+        if (routeBtn) {
+          routeBtn.addEventListener('click', () => {
+            onRouteRequest(result.id);
+            drawRoute(userLocation, result.coordinates);
+          });
+        }
+      });
+
+      markersRef.current.push(marker);
     });
-    markersRef.current.results.clear();
+
+    console.log('🎯 Marqueurs POI ajoutés:', results.length);
+  }, [map, results, userLocation, onRouteRequest]);
+
+  // Fonction pour dessiner la route
+  const drawRoute = async (start: [number, number] | null, end: [number, number]) => {
+    if (!map || !start) return;
 
     try {
-      // Ajouter le marqueur de position utilisateur (unique)
-      if (userLocation) {
-        const userMarkerElement = document.createElement('div');
-        userMarkerElement.className = 'user-location-marker';
-        userMarkerElement.innerHTML = `
-          <div class="relative">
-            <div class="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-xl flex items-center justify-center">
-              <div class="w-3 h-3 bg-white rounded-full"></div>
-            </div>
-            <div class="absolute w-12 h-12 bg-blue-400 rounded-full opacity-20 animate-ping -top-2 -left-2"></div>
-          </div>
-        `;
-
-        const userMarker = new mapboxgl.Marker(userMarkerElement)
-          .setLngLat(userLocation)
-          .setPopup(new mapboxgl.Popup({ offset: 25, closeButton: false }).setHTML(`
-            <div class="p-3 flex items-center gap-3">
-              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-              </div>
-              <div>
-                <h3 class="font-semibold text-sm text-blue-600">Ma position</h3>
-                <p class="text-xs text-gray-500">Localisation actuelle</p>
-              </div>
-            </div>
-          `))
-          .addTo(map);
-
-        markersRef.current.user = userMarker;
-        console.log('📍 Marqueur utilisateur ajouté');
-      }
+      const directions = await mapboxApiService.getDirections(start, end, 'walking');
       
-      // Ajouter les marqueurs de résultats (éviter les doublons)
-      const addedPositions = new Set<string>();
-      
-      results.forEach((place, index) => {
-        if (!place.coordinates) return;
-        
-        // Créer une clé unique pour la position
-        const positionKey = `${place.coordinates[0].toFixed(6)}_${place.coordinates[1].toFixed(6)}`;
-        
-        // Éviter les doublons de position
-        if (addedPositions.has(positionKey)) {
-          console.log(`⚠️ Position dupliquée ignorée pour: ${place.name}`);
-          return;
+      if (directions && directions.geometry) {
+        const source = map.getSource('route-line') as mapboxgl.GeoJSONSource;
+        if (source) {
+          source.setData({
+            type: 'Feature',
+            properties: {},
+            geometry: directions.geometry as GeoJSON.Geometry
+          });
         }
-        
-        addedPositions.add(positionKey);
-        
-        const resultMarkerElement = document.createElement('div');
-        resultMarkerElement.className = 'result-marker cursor-pointer';
-        resultMarkerElement.innerHTML = `
-          <div class="relative">
-            <div class="w-7 h-7 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
-              <span class="text-white text-xs font-bold">${index + 1}</span>
-            </div>
-          </div>
-        `;
-
-        const popup = new mapboxgl.Popup({ 
-          offset: 25,
-          closeButton: true,
-          closeOnClick: false
-        }).setHTML(`
-          <div class="p-3 min-w-[200px] max-w-[280px]">
-            <h3 class="font-bold text-sm mb-2 text-gray-800">${place.name}</h3>
-            <p class="text-xs text-gray-600 mb-3 line-clamp-2">${place.address}</p>
-            <div class="flex justify-between text-xs mb-3">
-              <span class="text-blue-600 flex items-center gap-1">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                </svg>
-                ${place.distance} km
-              </span>
-              <span class="text-green-600 flex items-center gap-1">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                </svg>
-                ${place.duration || '~'} min
-              </span>
-            </div>
-            ${onRouteRequest ? `
-              <button 
-                class="w-full bg-blue-500 text-white text-xs py-2 px-3 rounded hover:bg-blue-600 transition-colors font-medium"
-                onclick="window.showRouteToPlace('${place.id}')"
-              >
-                📍 Voir l'itinéraire
-              </button>
-            ` : ''}
-          </div>
-        `);
-
-        const resultMarker = new mapboxgl.Marker(resultMarkerElement)
-          .setLngLat(place.coordinates)
-          .setPopup(popup)
-          .addTo(map);
-
-        markersRef.current.results.set(place.id, resultMarker);
-      });
-
-      // Ajouter la fonction globale pour afficher l'itinéraire
-      if (onRouteRequest) {
-        (window as any).showRouteToPlace = (placeId: string) => {
-          onRouteRequest(placeId);
-        };
       }
-
-      console.log(`✅ ${markersRef.current.results.size + (markersRef.current.user ? 1 : 0)} marqueurs uniques ajoutés`);
-      
     } catch (error) {
-      console.error('❌ Erreur lors de l\'ajout des marqueurs:', error);
+      console.error('❌ Erreur lors du tracé de la route:', error);
     }
-    
-    // Nettoyage à la destruction
+  };
+
+  // Nettoyer lors du démontage
+  useEffect(() => {
     return () => {
-      if (markersRef.current.user) {
-        markersRef.current.user.remove();
-        markersRef.current.user = undefined;
-      }
-      
-      markersRef.current.results.forEach(marker => {
-        marker.remove();
-      });
-      markersRef.current.results.clear();
+      clearMarkers();
     };
-  }, [map, userLocation, results, t, onRouteRequest]);
+  }, []);
 
   return null;
 };
