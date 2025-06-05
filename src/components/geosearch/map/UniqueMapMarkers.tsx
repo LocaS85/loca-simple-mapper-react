@@ -87,7 +87,7 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     }
   }, [map]);
 
-  // Créer le marqueur utilisateur avec icône personnalisée
+  // Créer le marqueur utilisateur simple
   useEffect(() => {
     if (!isMapReady() || !userLocation) {
       console.log('⏳ Carte non prête ou pas de position utilisateur');
@@ -105,95 +105,45 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     }
 
     try {
-      // Créer l'élément DOM pour le marqueur utilisateur avec une icône plus visible
+      // Créer un simple marqueur avec icône "Ma position"
       const userElement = document.createElement('div');
       userElement.className = 'user-location-marker';
       userElement.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        width: 24px;
+        height: 24px;
+        background: #3B82F6;
+        border: 3px solid white;
+        border-radius: 50%;
         cursor: pointer;
-        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
       `;
       
       userElement.innerHTML = `
         <div style="
-          width: 40px;
-          height: 40px;
-          background: linear-gradient(135deg, #3B82F6, #1D4ED8);
-          border: 4px solid white;
+          width: 8px;
+          height: 8px;
+          background: white;
           border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-          position: relative;
-        ">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-          <div style="
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 12px;
-            height: 12px;
-            background: #10B981;
-            border: 2px solid white;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-          "></div>
-        </div>
-        <div style="
-          font-size: 10px;
-          font-weight: bold;
-          background: rgba(59, 130, 246, 0.9);
-          color: white;
-          padding: 2px 6px;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          margin-top: 4px;
-          white-space: nowrap;
-          backdrop-filter: blur(10px);
-        ">
-          📍 Vous êtes ici
-        </div>
-        <style>
-          @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-          }
-        </style>
+        "></div>
       `;
 
-      // Créer la popup pour le marqueur utilisateur
+      // Créer la popup simple
       const userPopup = new mapboxgl.Popup({
-        offset: 25,
+        offset: 15,
         closeButton: true,
         closeOnClick: false
       }).setHTML(`
-        <div style="padding: 12px; min-width: 160px;">
-          <h3 style="font-weight: bold; font-size: 14px; color: #3B82F6; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 16px;">📍</span> Votre position
-          </h3>
-          <p style="font-size: 12px; color: #6B7280; margin: 0;">
-            Localisation actuelle détectée
-          </p>
-          <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px; font-family: monospace;">
-            Latitude: ${userLocation[1].toFixed(6)}<br>
-            Longitude: ${userLocation[0].toFixed(6)}
-          </div>
-          <div style="margin-top: 8px; padding: 4px 8px; background: #F0F9FF; border-radius: 4px; font-size: 10px; color: #0369A1;">
-            💡 Cliquez sur un POI pour voir l'itinéraire
-          </div>
+        <div style="padding: 8px;">
+          <strong>Ma position</strong>
         </div>
       `);
 
       userMarkerRef.current = new mapboxgl.Marker({
         element: userElement,
-        anchor: 'bottom'
+        anchor: 'center'
       })
         .setLngLat(userLocation)
         .setPopup(userPopup)
@@ -205,7 +155,7 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     }
   }, [map, userLocation]);
 
-  // Créer les marqueurs pour les résultats avec POI
+  // Créer les marqueurs pour les POI
   useEffect(() => {
     if (!isMapReady() || !results.length) return;
 
@@ -226,39 +176,75 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
         // Créer l'élément DOM pour le marqueur POI
         const element = document.createElement('div');
         element.className = 'poi-marker';
+        element.style.cssText = `
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        `;
+        
         element.innerHTML = `
-          <div class="flex flex-col items-center cursor-pointer">
-            <div class="w-8 h-8 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center hover:bg-red-600 transition-colors">
-              <span class="text-white font-bold text-sm">${index + 1}</span>
-            </div>
-            <div class="text-xs font-medium bg-white px-2 py-1 rounded shadow-md mt-1 max-w-32 truncate">
-              ${result.name}
-            </div>
+          <div style="
+            width: 32px;
+            height: 32px;
+            background: #EF4444;
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-weight: bold;
+            color: white;
+            font-size: 12px;
+          ">
+            ${index + 1}
+          </div>
+          <div style="
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            margin-top: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            max-width: 100px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+          ">
+            ${result.name}
           </div>
         `;
 
-        // Créer la popup avec informations détaillées
+        // Créer la popup pour le POI
         const popup = new mapboxgl.Popup({
           offset: 25,
           closeButton: true,
           closeOnClick: false
         }).setHTML(`
-          <div class="p-3 min-w-48">
-            <h3 class="font-bold text-sm mb-2">${result.name}</h3>
-            <p class="text-xs text-gray-600 mb-2">${result.address}</p>
-            <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
+          <div style="padding: 12px; min-width: 200px;">
+            <h3 style="font-weight: bold; margin-bottom: 8px;">${result.name}</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${result.address}</p>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 12px;">
               <span>📍 ${result.distance?.toFixed(1)} km</span>
               <span>⏱️ ${result.duration} min</span>
             </div>
-            <div class="flex gap-2">
-              <button class="route-btn bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600" 
-                      data-place-id="${result.id}">
-                🗺️ Itinéraire
-              </button>
-              <button class="info-btn bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">
-                ℹ️ Infos
-              </button>
-            </div>
+            <button 
+              id="route-btn-${result.id}"
+              style="
+                background: #3B82F6;
+                color: white;
+                padding: 6px 12px;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+                cursor: pointer;
+                width: 100%;
+              "
+            >
+              🗺️ Voir l'itinéraire
+            </button>
           </div>
         `);
 
@@ -270,18 +256,14 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
           .setPopup(popup)
           .addTo(map);
 
-        // Gérer les clics sur les boutons de la popup
-        element.addEventListener('click', () => {
-          marker.togglePopup();
-        });
-
         // Gérer le clic sur le bouton itinéraire
         popup.on('open', () => {
-          const routeBtn = popup.getElement()?.querySelector('.route-btn') as HTMLButtonElement;
+          const routeBtn = document.getElementById(`route-btn-${result.id}`);
           if (routeBtn) {
             routeBtn.addEventListener('click', () => {
               onRouteRequest(result.id);
               drawRoute(userLocation, result.coordinates);
+              popup.remove();
             });
           }
         });
