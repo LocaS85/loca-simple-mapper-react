@@ -82,11 +82,10 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          size="sm"
-          className="bg-white/90 backdrop-blur-sm shadow-md hover:bg-white"
+          className="w-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white justify-start text-left"
         >
           <Search className="h-4 w-4 mr-2" />
-          Rechercher
+          <span className="text-gray-500">Rechercher un lieu...</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

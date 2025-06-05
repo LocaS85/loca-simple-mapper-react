@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MapPin, Loader2, Navigation, Target, Crosshair } from 'lucide-react';
+import { Loader2, Navigation, Target, Crosshair } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -113,13 +113,6 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     return <Target className="h-4 w-4" />;
   };
 
-  const getButtonText = () => {
-    if (isDetecting) return "Détection...";
-    if (hasPermission === false) return "Autoriser";
-    if (accuracy && accuracy < 50) return "Position précise";
-    return "Ma position";
-  };
-
   const getButtonVariant = () => {
     if (accuracy && accuracy < 50) return "default";
     if (hasPermission === false) return "destructive";
@@ -132,15 +125,10 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
       disabled={disabled || isDetecting}
       variant={getButtonVariant() as any}
       size="sm"
-      className={`flex items-center gap-2 bg-white/90 backdrop-blur-sm hover:bg-white transition-all duration-200 ${className}`}
+      className={`w-10 h-10 p-0 bg-white/90 backdrop-blur-sm hover:bg-white transition-all duration-200 shadow-md ${className}`}
+      title="Ma position"
     >
       {getButtonIcon()}
-      <span className="hidden sm:inline">{getButtonText()}</span>
-      {accuracy && (
-        <span className="hidden md:inline text-xs text-gray-500">
-          ±{Math.round(accuracy)}m
-        </span>
-      )}
     </Button>
   );
 };
