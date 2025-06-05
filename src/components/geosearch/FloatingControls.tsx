@@ -26,14 +26,33 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
 }) => {
   return (
     <>
-      {/* Barre de recherche en haut */}
-      <div className="absolute top-4 left-4 right-20 z-20">
-        <SearchPopup
-          filters={filters}
-          onLocationSelect={onLocationSelect}
-          onSearch={onSearch}
-          isLoading={isLoading}
-        />
+      {/* Contrôles principaux en haut - layout responsive */}
+      <div className="absolute top-4 left-4 right-4 z-20">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          {/* Barre de recherche */}
+          <div className="flex-1">
+            <SearchPopup
+              filters={filters}
+              onLocationSelect={onLocationSelect}
+              onSearch={onSearch}
+              isLoading={isLoading}
+            />
+          </div>
+          
+          {/* Contrôles - Filtres et Ma Position */}
+          <div className="flex gap-2 justify-end sm:justify-start">
+            <FiltersFloatingButton
+              filters={filters}
+              onChange={onFiltersChange}
+              onReset={onResetFilters}
+              isLoading={isLoading}
+            />
+            <EnhancedLocationButton
+              onLocationDetected={onMyLocationClick}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
 
         {/* Indicateurs de filtres actifs */}
         {(filters.category || filters.transport !== 'walking' || filters.distance !== 10) && (
@@ -55,20 +74,6 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
             )}
           </div>
         )}
-      </div>
-
-      {/* Contrôles à droite - évitent la zone des contrôles Mapbox */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
-        <EnhancedLocationButton
-          onLocationDetected={onMyLocationClick}
-          disabled={isLoading}
-        />
-        <FiltersFloatingButton
-          filters={filters}
-          onChange={onFiltersChange}
-          onReset={onResetFilters}
-          isLoading={isLoading}
-        />
       </div>
     </>
   );

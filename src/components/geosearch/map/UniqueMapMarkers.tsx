@@ -87,7 +87,7 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     }
   }, [map]);
 
-  // Créer le marqueur utilisateur simple
+  // Créer le marqueur utilisateur avec géolocalisation visible
   useEffect(() => {
     if (!isMapReady() || !userLocation) {
       console.log('⏳ Carte non prête ou pas de position utilisateur');
@@ -105,39 +105,93 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     }
 
     try {
-      // Créer un simple marqueur avec icône "Ma position"
+      // Créer un marqueur de géolocalisation plus visible avec pulsation
       const userElement = document.createElement('div');
-      userElement.className = 'user-location-marker';
-      userElement.style.cssText = `
-        width: 24px;
-        height: 24px;
-        background: #3B82F6;
-        border: 3px solid white;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `;
-      
+      userElement.className = 'user-geolocation-marker';
       userElement.innerHTML = `
         <div style="
-          width: 8px;
-          height: 8px;
-          background: white;
-          border-radius: 50%;
-        "></div>
+          position: relative;
+          width: 20px;
+          height: 20px;
+        ">
+          <!-- Cercle de pulsation -->
+          <div style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+          "></div>
+          <!-- Marqueur principal -->
+          <div style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: #3B82F6;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 1;
+          ">
+            <!-- Point central -->
+            <div style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 4px;
+              height: 4px;
+              background: white;
+              border-radius: 50%;
+            "></div>
+          </div>
+        </div>
+        <style>
+          @keyframes pulse {
+            0% {
+              transform: translate(-50%, -50%) scale(0.8);
+              opacity: 1;
+            }
+            100% {
+              transform: translate(-50%, -50%) scale(2);
+              opacity: 0;
+            }
+          }
+        </style>
       `;
 
-      // Créer la popup simple
+      // Créer la popup pour Ma position
       const userPopup = new mapboxgl.Popup({
-        offset: 15,
+        offset: 20,
         closeButton: true,
         closeOnClick: false
       }).setHTML(`
-        <div style="padding: 8px;">
-          <strong>Ma position</strong>
+        <div style="padding: 10px; text-align: center;">
+          <div style="
+            width: 32px;
+            height: 32px;
+            background: #3B82F6;
+            border-radius: 50%;
+            margin: 0 auto 8px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+          ">
+            📍
+          </div>
+          <strong style="color: #1f2937;">Ma position</strong>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+            Position actuelle détectée
+          </div>
         </div>
       `);
 
@@ -149,9 +203,9 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
         .setPopup(userPopup)
         .addTo(map);
 
-      console.log('📍 Marqueur utilisateur ajouté avec succès:', userLocation);
+      console.log('📍 Marqueur de géolocalisation ajouté avec succès:', userLocation);
     } catch (error) {
-      console.error('❌ Erreur lors de l\'ajout du marqueur utilisateur:', error);
+      console.error('❌ Erreur lors de l\'ajout du marqueur de géolocalisation:', error);
     }
   }, [map, userLocation]);
 
