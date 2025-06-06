@@ -98,17 +98,13 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
       size={size}
       onClick={handleLocationClick}
       disabled={disabled || isDetecting}
-      className={`
-        ${className}
-        ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}
-        bg-white shadow-md hover:bg-gray-50 border border-gray-300
-      `}
+      className={className}
       title="Détecter ma position"
     >
       {isDetecting ? (
-        <Loader2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} animate-spin`} />
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
       ) : (
-        <Navigation className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+        <Navigation className="h-3.5 w-3.5" />
       )}
     </Button>
   );

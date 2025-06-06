@@ -36,16 +36,16 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
           variant={hasActiveFilters ? "default" : "outline"}
           size="icon"
           className={`
-            ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}
-            bg-white shadow-md hover:bg-gray-50 border border-gray-300 relative
-            ${hasActiveFilters ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' : ''}
+            w-[29px] h-[29px] min-w-[29px] min-h-[29px] p-0
+            border border-[rgba(0,0,0,0.1)] shadow-sm hover:bg-gray-50 transition-colors rounded-sm relative
+            ${hasActiveFilters ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' : 'bg-white'}
           `}
           disabled={isLoading}
           title="Filtres de recherche"
         >
-          <SlidersHorizontal className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+          <SlidersHorizontal className="h-3.5 w-3.5" />
           {hasActiveFilters && (
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full border border-white"></span>
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-orange-500 rounded-full border border-white"></span>
           )}
         </Button>
       </PopoverTrigger>

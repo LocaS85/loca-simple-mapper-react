@@ -154,11 +154,17 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     <div className="w-full h-full relative">
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {/* Boutons filtres et position - Parfaitement alignés sous les contrôles de zoom */}
-      <div className={`absolute ${isMobile ? 'top-20 right-2' : 'top-28 right-4'} z-40`}>
-        <div className="flex flex-col gap-2">
-          {/* Bouton Filtres - Même taille que les contrôles de navigation */}
-          <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}>
+      {/* Boutons filtres et position - Alignés parfaitement sous les contrôles de navigation */}
+      <div className={`absolute ${
+        isMobile 
+          ? 'top-[112px] right-[12px]' 
+          : 'top-[120px] right-[12px]'
+      } z-40`}>
+        <div className="flex flex-col gap-1">
+          {/* Bouton Filtres - Même style que les contrôles Mapbox */}
+          <div className={`${
+            isMobile ? 'w-[29px] h-[29px]' : 'w-[29px] h-[29px]'
+          }`}>
             <FiltersFloatingButton
               filters={filters}
               onChange={updateFilters}
@@ -167,8 +173,10 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             />
           </div>
           
-          {/* Bouton Position - Même taille que les contrôles de navigation */}
-          <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}>
+          {/* Bouton Position - Même style que les contrôles Mapbox */}
+          <div className={`${
+            isMobile ? 'w-[29px] h-[29px]' : 'w-[29px] h-[29px]'
+          }`}>
             <EnhancedLocationButton
               onLocationDetected={(coords) => {
                 useGeoSearchStore.getState().setUserLocation(coords);
@@ -176,7 +184,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
               disabled={isLoading}
               variant="outline"
               size="icon"
-              className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-white shadow-md hover:bg-gray-50 border border-gray-300`}
+              className={`w-[29px] h-[29px] min-w-[29px] min-h-[29px] p-0 border border-[rgba(0,0,0,0.1)] bg-white shadow-sm hover:bg-gray-50 transition-colors rounded-sm`}
               isIconOnly={true}
             />
           </div>
