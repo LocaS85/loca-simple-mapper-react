@@ -21,14 +21,15 @@ export class GeoSearchService {
     try {
       console.log('🔍 Recherche à proximité avec filtres:', filters);
       
-      if (!userLocation || !Array.isArray(userLocation) || userLocation.length !== 2) {
+      if (!this.isValidCoordinates(userLocation)) {
         throw new Error('Position utilisateur invalide');
       }
 
       let searchQuery = this.buildSearchQuery(filters);
+      console.log('📝 Requête construite:', searchQuery);
       
       const results = await mapboxApiService.searchPlaces(searchQuery, userLocation, {
-        limit: filters.aroundMeCount || 5,
+        limit: filters.aroundMeCount || 10,
         radius: filters.distance || 10,
         categories: filters.category ? [filters.category] : undefined
       });
@@ -38,7 +39,11 @@ export class GeoSearchService {
         return [];
       }
 
-      return results.map(result => this.convertToSearchResult(result, userLocation, filters));
+      console.log('📍 Résultats bruts de l\'API:', results.length);
+      const processedResults = results.map(result => this.convertToSearchResult(result, userLocation, filters));
+      console.log('✅ Résultats traités:', processedResults.length);
+      
+      return processedResults;
     } catch (error) {
       console.error('❌ Erreur de recherche géographique:', error);
       throw new Error(`Erreur de recherche: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
@@ -55,13 +60,16 @@ export class GeoSearchService {
         throw new Error('Requête de recherche invalide');
       }
 
-      if (!userLocation || !Array.isArray(userLocation) || userLocation.length !== 2) {
+      if (!this.isValidCoordinates(userLocation)) {
         throw new Error('Position utilisateur invalide');
       }
 
+      console.log('🔍 Recherche par requête:', query, 'Position:', userLocation);
+
       const results = await mapboxApiService.searchPlaces(query.trim(), userLocation, {
-        limit: 10,
-        radius: filters.distance || 10
+        limit: 15,
+        radius: filters.distance || 10,
+        categories: filters.category ? [filters.category] : undefined
       });
 
       if (!Array.isArray(results)) {
@@ -69,7 +77,10 @@ export class GeoSearchService {
         return [];
       }
 
-      return results.map(result => this.convertToSearchResult(result, userLocation, filters));
+      console.log('📍 Résultats bruts de l\'API pour la requête:', results.length);
+      const processedResults = results.map(result => this.convertToSearchResult(result, userLocation, filters));
+      
+      return processedResults;
     } catch (error) {
       console.error('❌ Erreur de recherche par requête:', error);
       throw new Error(`Erreur de recherche: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
@@ -86,6 +97,7 @@ export class GeoSearchService {
         throw new Error('Coordonnées invalides pour le calcul d\'itinéraire');
       }
 
+      console.log('🗺️ Calcul d\'itinéraire:', { origin, destination, transport });
       return await mapboxApiService.getDirections(origin, destination, transport);
     } catch (error) {
       console.error('❌ Erreur de calcul d\'itinéraire:', error);
@@ -105,7 +117,9 @@ export class GeoSearchService {
     }
     
     if (!query) {
-      query = 'restaurant'; // Valeur par défaut sécurisée
+      // Valeurs par défaut basées sur les catégories populaires
+      const defaultQueries = ['restaurant', 'café', 'magasin', 'pharmacie', 'banque'];
+      query = defaultQueries[Math.floor(Math.random() * defaultQueries.length)];
     }
     
     return query;
@@ -117,29 +131,53 @@ export class GeoSearchService {
     filters: GeoSearchFilters
   ): SearchResult {
     try {
-      if (!mapboxResult || !mapboxResult.coordinates) {
-        throw new Error('Résultat Mapbox invalide');
+      if (!mapboxResult) {
+        throw new Error('Résultat Mapbox vide');
       }
 
-      const distance = GeoCoordinates.calculateDistance(
-        userLocation,
-        mapboxResult.coordinates
-      );
+      // Extraire les coordonnées de différentes structures possibles
+      let coordinates: [number, number];
+      if (mapboxResult.coordinates) {
+        coordinates = mapboxResult.coordinates;
+      } else if (mapboxResult.geometry?.coordinates) {
+        coordinates = mapboxResult.geometry.coordinates;
+      } else if (mapboxResult.center) {
+        coordinates = mapboxResult.center;
+      } else {
+        throw new Error('Coordonnées non trouvées dans le résultat');
+      }
 
+      if (!this.isValidCoordinates(coordinates)) {
+        throw new Error('Coordonnées invalides dans le résultat');
+      }
+
+      const distance = GeoCoordinates.calculateDistance(userLocation, coordinates);
       const duration = this.estimateDuration(distance, filters.transport || 'walking');
+
+      // Extraire le nom de différentes sources possibles
+      const name = mapboxResult.name || 
+                   mapboxResult.text || 
+                   mapboxResult.place_name?.split(',')[0] || 
+                   'Lieu sans nom';
+
+      // Extraire l'adresse
+      const address = mapboxResult.address || 
+                     mapboxResult.place_name || 
+                     mapboxResult.properties?.address || 
+                     'Adresse non disponible';
 
       return {
         id: mapboxResult.id || `result-${Date.now()}-${Math.random()}`,
-        name: mapboxResult.name || 'Lieu sans nom',
-        address: mapboxResult.address || 'Adresse non disponible',
-        coordinates: mapboxResult.coordinates,
-        type: mapboxResult.category || 'point_of_interest',
+        name,
+        address,
+        coordinates,
+        type: mapboxResult.category || mapboxResult.properties?.category || 'point_of_interest',
         category: mapboxResult.category || filters.category || 'general',
         distance: Math.round(distance * 10) / 10,
         duration
       };
     } catch (error) {
-      console.error('❌ Erreur conversion résultat:', error);
+      console.error('❌ Erreur conversion résultat:', error, 'Résultat brut:', mapboxResult);
       // Retourner un résultat par défaut plutôt que de lever une erreur
       return {
         id: `error-${Date.now()}`,
@@ -173,7 +211,9 @@ export class GeoSearchService {
            typeof coords[0] === 'number' && 
            typeof coords[1] === 'number' &&
            !isNaN(coords[0]) && 
-           !isNaN(coords[1]);
+           !isNaN(coords[1]) &&
+           coords[0] >= -180 && coords[0] <= 180 && // longitude
+           coords[1] >= -90 && coords[1] <= 90; // latitude
   }
 }
 

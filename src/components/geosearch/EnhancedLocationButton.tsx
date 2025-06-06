@@ -7,9 +7,10 @@ import { useToast } from '@/hooks/use-toast';
 interface EnhancedLocationButtonProps {
   onLocationDetected: (coordinates: [number, number]) => void;
   disabled?: boolean;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "icon";
-  size?: "default" | "sm" | "lg" | "icon";
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg";
   className?: string;
+  isIconOnly?: boolean;
 }
 
 export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
@@ -17,7 +18,8 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
   disabled = false,
   variant = "outline",
   size = "default",
-  className = ""
+  className = "",
+  isIconOnly = false
 }) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const { toast } = useToast();
@@ -92,11 +94,11 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     if (isDetecting) {
       return <Loader2 className="h-4 w-4 animate-spin" />;
     }
-    return variant === "icon" ? <Navigation className="h-4 w-4" /> : <MapPin className="h-4 w-4" />;
+    return isIconOnly ? <Navigation className="h-4 w-4" /> : <MapPin className="h-4 w-4" />;
   };
 
   const renderContent = () => {
-    if (variant === "icon") {
+    if (isIconOnly) {
       return renderIcon();
     }
     
@@ -116,7 +118,7 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
       size={size}
       onClick={handleLocationClick}
       disabled={disabled || isDetecting}
-      className={`${className} ${isDetecting ? 'cursor-wait' : ''}`}
+      className={`${className} ${isDetecting ? 'cursor-wait' : ''} ${isIconOnly ? 'px-2' : ''}`}
       title="Détecter ma position"
     >
       {renderContent()}

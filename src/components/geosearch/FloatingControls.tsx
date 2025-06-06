@@ -59,8 +59,9 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
               <EnhancedLocationButton
                 onLocationDetected={onMyLocationClick}
                 disabled={isLoading}
-                variant={isMobile ? 'icon' : 'icon'}
+                variant="outline"
                 size="sm"
+                isIconOnly={true}
               />
             </div>
           </div>

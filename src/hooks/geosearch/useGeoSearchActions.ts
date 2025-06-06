@@ -1,5 +1,5 @@
 
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/hooks/use-toast';
 import { geoSearchService } from '@/services/geoSearchService';
@@ -35,7 +35,14 @@ export const useGeoSearchActions = ({
   // Main search function
   const performSearch = useCallback(async (query?: string) => {
     if (!userLocation || !isMapboxReady) {
-      console.log('❌ Conditions non remplies pour la recherche');
+      console.log('❌ Conditions non remplies pour la recherche:', { userLocation, isMapboxReady });
+      if (!userLocation) {
+        toast({
+          title: "Position requise",
+          description: "Veuillez autoriser la géolocalisation ou sélectionner une position",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -51,13 +58,19 @@ export const useGeoSearchActions = ({
         searchResults = await geoSearchService.searchNearby(userLocation, filters);
       }
       
-      setResults(searchResults);
-      console.log('✅ Recherche terminée:', searchResults.length, 'résultats');
+      console.log('✅ Résultats de recherche:', searchResults);
+      setResults(searchResults || []);
       
-      if (searchResults.length === 0) {
+      if (!searchResults || searchResults.length === 0) {
         toast({
           title: "Aucun résultat",
-          description: "Aucun lieu trouvé pour votre recherche",
+          description: "Aucun lieu trouvé pour votre recherche. Essayez d'élargir votre zone de recherche.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Recherche terminée",
+          description: `${searchResults.length} lieu${searchResults.length > 1 ? 'x' : ''} trouvé${searchResults.length > 1 ? 's' : ''}`,
           variant: "default",
         });
       }
@@ -66,9 +79,10 @@ export const useGeoSearchActions = ({
       console.error('❌ Erreur de recherche:', error);
       toast({
         title: "Erreur de recherche",
-        description: "Impossible d'effectuer la recherche. Vérifiez votre connexion.",
+        description: "Impossible d'effectuer la recherche. Vérifiez votre connexion et réessayez.",
         variant: "destructive",
       });
+      setResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +95,7 @@ export const useGeoSearchActions = ({
       return;
     }
 
+    console.log('🔄 Mise à jour des filtres:', newFilters);
     updateFilters(newFilters);
     
     // Auto-trigger search for important filter changes
@@ -91,7 +106,7 @@ export const useGeoSearchActions = ({
     
     if (shouldAutoSearch && userLocation && isMapboxReady) {
       console.log('🔄 Auto-recherche déclenchée par changement de filtres');
-      setTimeout(() => performSearch(searchQuery), 300);
+      setTimeout(() => performSearch(searchQuery), 500);
     }
   }, [updateFilters, userLocation, isMapboxReady, performSearch, searchQuery]);
 
@@ -101,8 +116,13 @@ export const useGeoSearchActions = ({
     coordinates: [number, number];
     placeName: string;
   }) => {
-    if (!location?.coordinates || !Array.isArray(location.coordinates)) {
+    if (!location?.coordinates || !Array.isArray(location.coordinates) || location.coordinates.length !== 2) {
       console.error('❌ Données de lieu invalides:', location);
+      toast({
+        title: "Erreur de lieu",
+        description: "Les données de localisation sont invalides",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -117,7 +137,7 @@ export const useGeoSearchActions = ({
       variant: "default",
     });
     
-    setTimeout(() => performSearch(location.name), 500);
+    setTimeout(() => performSearch(location.name), 800);
   }, [setUserLocation, updateFilters, performSearch, setSearchQuery, toast]);
 
   // Search handler
@@ -128,7 +148,12 @@ export const useGeoSearchActions = ({
     }
     console.log('🔍 Déclenchement de recherche:', query);
     setSearchQuery(query);
-  }, [setSearchQuery]);
+    
+    // Immediate search for non-empty queries
+    if (query.trim() && userLocation && isMapboxReady) {
+      setTimeout(() => performSearch(query), 300);
+    }
+  }, [setSearchQuery, userLocation, isMapboxReady, performSearch]);
 
   // Transport change handler
   const handleTransportChange = useCallback((transport: TransportMode) => {
