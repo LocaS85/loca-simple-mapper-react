@@ -61,9 +61,9 @@ export const useGeoSearchManager = () => {
     }
   }, [geoError, toast]);
 
-  // Debounced search
+  // Debounced search - Fixed to handle undefined values
   const debouncedSearch = useDebounce(async (query: string) => {
-    if (query.trim() && userLocation) {
+    if (query && query.trim() && userLocation) {
       await performSearch(query);
     }
   }, 500);
@@ -79,7 +79,7 @@ export const useGeoSearchManager = () => {
     try {
       let searchResults;
       
-      if (query) {
+      if (query && query.trim()) {
         searchResults = await geoSearchService.searchByQuery(query, userLocation, filters);
       } else {
         searchResults = await geoSearchService.searchNearby(userLocation, filters);
@@ -159,9 +159,9 @@ export const useGeoSearchManager = () => {
     }
   }, [requestLocation, geoCoordinates, setUserLocation, performSearch, toast]);
 
-  // Search handler
-  const handleSearch = useCallback((query: string) => {
-    if (!query.trim()) return;
+  // Search handler - Fixed to handle undefined values
+  const handleSearch = useCallback((query?: string) => {
+    if (!query || !query.trim()) return;
     debouncedSearch(query);
   }, [debouncedSearch]);
 

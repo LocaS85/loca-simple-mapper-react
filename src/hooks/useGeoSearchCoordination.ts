@@ -34,9 +34,9 @@ export const useGeoSearchCoordination = () => {
     maximumAge: 300000
   });
 
-  // Debounced search to avoid too many API calls
+  // Debounced search to avoid too many API calls - Fixed to handle undefined values
   const debouncedSearch = useDebounce((query: string) => {
-    if (query.trim()) {
+    if (query && query.trim()) {
       performSearch(query);
     }
   }, 500);
@@ -92,9 +92,9 @@ export const useGeoSearchCoordination = () => {
     setTimeout(() => loadResults(), 500);
   }, [setUserLocation, updateFilters, loadResults, toast]);
 
-  // Enhanced search function
-  const handleSearch = useCallback((query: string) => {
-    if (!query.trim()) return;
+  // Enhanced search function - Fixed to handle undefined values
+  const handleSearch = useCallback((query?: string) => {
+    if (!query || !query.trim()) return;
     debouncedSearch(query);
   }, [debouncedSearch]);
 
