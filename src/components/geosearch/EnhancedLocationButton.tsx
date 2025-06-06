@@ -8,7 +8,7 @@ interface EnhancedLocationButtonProps {
   onLocationDetected: (coordinates: [number, number]) => void;
   disabled?: boolean;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg";
+  size?: "default" | "sm" | "lg" | "icon";
   className?: string;
   isIconOnly?: boolean;
 }
@@ -17,9 +17,9 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
   onLocationDetected,
   disabled = false,
   variant = "outline",
-  size = "default",
+  size = "icon",
   className = "",
-  isIconOnly = false
+  isIconOnly = true
 }) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const { toast } = useToast();
@@ -90,38 +90,20 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     }
   };
 
-  const renderIcon = () => {
-    if (isDetecting) {
-      return <Loader2 className="h-4 w-4 animate-spin" />;
-    }
-    return isIconOnly ? <Navigation className="h-4 w-4" /> : <MapPin className="h-4 w-4" />;
-  };
-
-  const renderContent = () => {
-    if (isIconOnly) {
-      return renderIcon();
-    }
-    
-    return (
-      <>
-        {renderIcon()}
-        <span className="ml-2">
-          {isDetecting ? "Localisation..." : "Ma position"}
-        </span>
-      </>
-    );
-  };
-
   return (
     <Button
       variant={variant}
       size={size}
       onClick={handleLocationClick}
       disabled={disabled || isDetecting}
-      className={`${className} ${isDetecting ? 'cursor-wait' : ''} ${isIconOnly ? 'px-2' : ''}`}
+      className={className}
       title="Détecter ma position"
     >
-      {renderContent()}
+      {isDetecting ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Navigation className="h-4 w-4" />
+      )}
     </Button>
   );
 };

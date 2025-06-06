@@ -72,7 +72,7 @@ const GeoSearchLayout: React.FC = () => {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      <div className="flex flex-col h-screen bg-background overflow-hidden">
         <GeoSearchHeader
           filters={filters}
           userLocation={userLocation}
@@ -81,11 +81,11 @@ const GeoSearchLayout: React.FC = () => {
           statusInfo={statusInfo}
         />
 
-        <div className="flex-1 relative">
+        <div className="flex-1 relative overflow-hidden">
           <MapView transport={filters.transport} />
           
-          {/* Contrôles flottants avec z-index élevé */}
-          <div className="absolute top-4 left-4 right-4 z-40">
+          {/* Barre de recherche en haut */}
+          <div className="absolute top-2 left-2 right-2 z-50">
             <FloatingControls
               filters={filters}
               onLocationSelect={handleLocationSelect}
@@ -97,8 +97,8 @@ const GeoSearchLayout: React.FC = () => {
             />
           </div>
 
-          {/* Boutons d'actions */}
-          <div className="absolute bottom-4 right-3 z-30 flex flex-col gap-2">
+          {/* Boutons d'action en bas à droite */}
+          <div className="absolute bottom-20 right-2 z-30 flex flex-col gap-2">
             <MultiMapToggle />
             <PrintButton results={results} />
           </div>
@@ -117,12 +117,12 @@ const GeoSearchLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <div className="flex-1 relative">
+    <div className="flex h-screen bg-background overflow-hidden">
+      <div className="flex-1 relative overflow-hidden">
         <MapView transport={filters.transport} />
         
-        {/* Contrôles flottants avec z-index élevé */}
-        <div className="absolute top-4 left-4 right-4 z-40">
+        {/* Barre de recherche en haut */}
+        <div className="absolute top-4 left-4 right-4 z-50 max-w-2xl">
           <FloatingControls
             filters={filters}
             onLocationSelect={handleLocationSelect}
@@ -134,8 +134,8 @@ const GeoSearchLayout: React.FC = () => {
           />
         </div>
 
-        {/* Boutons d'actions */}
-        <div className="absolute bottom-4 lg:bottom-6 right-4 lg:right-6 z-30 flex flex-col gap-2 lg:gap-3">
+        {/* Boutons d'action en bas à droite */}
+        <div className="absolute bottom-4 right-4 z-30 flex flex-col gap-2">
           <MultiMapToggle />
           <PrintButton results={results} />
         </div>

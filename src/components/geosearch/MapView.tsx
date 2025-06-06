@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { TransportMode } from '@/lib/data/transportModes';
@@ -8,6 +7,9 @@ import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import UniqueMapMarkers from './map/UniqueMapMarkers';
+import FiltersFloatingButton from './FiltersFloatingButton';
+import EnhancedLocationButton from './EnhancedLocationButton';
 
 interface MapViewProps {
   transport?: TransportMode;
@@ -19,7 +21,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
   
@@ -27,12 +28,17 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     userLocation,
     results,
     isLoading,
-    networkStatus
+    isMapboxReady,
+    networkStatus,
+    initializeMapbox,
+    filters,
+    updateFilters,
+    resetFilters
   } = useGeoSearchStore();
 
   // Initialize map only once
   useEffect(() => {
-    if (!mapContainer.current || isInitialized) return;
+    if (!mapContainer.current || !isMapboxReady) return;
 
     const initializeMap = async () => {
       try {
@@ -78,7 +84,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         });
 
         map.current = newMap;
-        setIsInitialized(true);
 
       } catch (error) {
         console.error('❌ Erreur initialisation:', error);
@@ -94,21 +99,31 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         map.current = null;
         setMapInstance(null);
         setIsMapLoaded(false);
-        setIsInitialized(false);
       }
     };
-  }, []);
+  }, [isMobile, isMapboxReady, userLocation]);
 
-  // Update map center when user location changes
-  useEffect(() => {
-    if (mapInstance && userLocation) {
-      mapInstance.flyTo({
-        center: userLocation,
-        zoom: isMobile ? 14 : 16,
-        duration: 1000
-      });
+  const handleMyLocationClick = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords: [number, number] = [
+            position.coords.longitude,
+            position.coords.latitude
+          ];
+          useGeoSearchStore.getState().setUserLocation(coords);
+        },
+        (error) => {
+          console.error('❌ Erreur de géolocalisation:', error);
+          toast({
+            title: "Erreur de géolocalisation",
+            description: "Impossible d'obtenir votre position",
+            variant: "destructive",
+          });
+        }
+      );
     }
-  }, [mapInstance, userLocation, isMobile]);
+  };
 
   if (mapError) {
     return (
@@ -135,29 +150,47 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   }
 
   return (
-    <div className="absolute inset-0">
-      <div ref={mapContainer} className="w-full h-full" />
+    <div className="w-full h-full relative">
+      <div ref={mapContainer} className="absolute inset-0" />
       
-      {!isMapLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
-          <div className="text-center bg-white p-6 rounded-lg shadow-lg">
+      {/* Contrôles de navigation Mapbox par défaut en haut à droite */}
+      
+      {/* Boutons supplémentaires sous les contrôles de zoom */}
+      <div className="absolute top-16 right-2 sm:right-4 z-40 flex flex-col gap-2">
+        <FiltersFloatingButton
+          filters={filters}
+          onChange={updateFilters}
+          onReset={resetFilters}
+          isLoading={isLoading}
+        />
+        <EnhancedLocationButton
+          onLocationDetected={(coords) => handleMyLocationClick()}
+          disabled={isLoading}
+          variant="outline"
+          size="icon"
+          className="w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-md hover:bg-gray-50"
+          isIconOnly={true}
+        />
+      </div>
+      
+      {/* Marqueurs */}
+      {isMapLoaded && mapInstance && (
+        <UniqueMapMarkers
+          map={mapInstance}
+          userLocation={userLocation}
+          results={results}
+          onRouteRequest={(placeId) => console.log('Route demandée pour:', placeId)}
+        />
+      )}
+      
+      {/* Loading overlay */}
+      {(isLoading || !isMapLoaded) && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-20">
+          <div className="text-center bg-white p-4 sm:p-6 rounded-lg shadow-lg">
             <LoadingSpinner />
             <p className="mt-3 text-sm text-gray-600 font-medium">
-              Chargement de la carte...
+              {!isMapLoaded ? 'Chargement de la carte...' : 'Recherche en cours...'}
             </p>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              {networkStatus === 'offline' ? (
-                <>
-                  <WifiOff className="h-4 w-4 text-red-500" />
-                  <span className="text-xs text-red-600">Hors ligne</span>
-                </>
-              ) : (
-                <>
-                  <Wifi className="h-4 w-4 text-green-500" />
-                  <span className="text-xs text-green-600">En ligne</span>
-                </>
-              )}
-            </div>
           </div>
         </div>
       )}
