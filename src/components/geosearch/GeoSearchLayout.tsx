@@ -4,11 +4,10 @@ import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapView from './MapView';
 import FloatingControls from './FloatingControls';
-import FiltersPopup from './FiltersPopup';
 import PrintButton from './PrintButton';
 import MultiMapToggle from './MultiMapToggle';
 import { GeoSearchHeader } from './layout/GeoSearchHeader';
-import { GeoSearchSidebar } from './layout/GeoSearchSidebar';
+import { GeoSearchSidebarPopup } from './layout/GeoSearchSidebarPopup';
 import { GeoSearchMobileResults } from './layout/GeoSearchMobileResults';
 
 const GeoSearchLayout: React.FC = () => {
@@ -26,7 +25,7 @@ const GeoSearchLayout: React.FC = () => {
     handleMyLocationClick
   } = useGeoSearchManager();
 
-  const [showFilters, setShowFilters] = React.useState(false);
+  const [showSidebarPopup, setShowSidebarPopup] = React.useState(false);
   const [showResults, setShowResults] = React.useState(false);
   const [isResultsExpanded, setIsResultsExpanded] = React.useState(false);
 
@@ -68,23 +67,23 @@ const GeoSearchLayout: React.FC = () => {
           statusInfo={statusInfo}
         />
 
-        {/* Mobile: Enhanced search controls */}
-        <div className="px-3 sm:px-4 py-2 bg-white border-b">
-          <FloatingControls
-            filters={filters}
-            onLocationSelect={handleLocationSelect}
-            onSearch={handleSearch}
-            onMyLocationClick={handleMyLocationClick}
-            onFiltersChange={handleFiltersChange}
-            onResetFilters={handleResetFilters}
-            isLoading={isLoading}
-          />
-        </div>
-
         {/* Mobile: Map container */}
         <div className="flex-1 relative overflow-hidden">
           <MapView transport={filters.transport} />
           
+          {/* Mobile: Floating controls overlay */}
+          <div className="absolute top-4 left-4 right-4 z-20">
+            <FloatingControls
+              filters={filters}
+              onLocationSelect={handleLocationSelect}
+              onSearch={handleSearch}
+              onMyLocationClick={handleMyLocationClick}
+              onFiltersChange={handleFiltersChange}
+              onResetFilters={handleResetFilters}
+              isLoading={isLoading}
+            />
+          </div>
+
           {/* Mobile: Floating action buttons */}
           <div className="absolute bottom-4 right-3 z-20 flex flex-col gap-2">
             <MultiMapToggle />
@@ -101,24 +100,39 @@ const GeoSearchLayout: React.FC = () => {
             onToggleExpanded={() => setIsResultsExpanded(!isResultsExpanded)}
           />
         </div>
-
-        {/* Mobile: Filters popup */}
-        <FiltersPopup
-          filters={filters}
-          onChange={handleFiltersChange}
-          onClose={() => setShowFilters(false)}
-          open={showFilters}
-          onReset={handleResetFilters}
-        />
       </div>
     );
   }
 
-  // Desktop layout - responsive improvements
+  // Desktop layout - full screen map with overlay controls
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Desktop: Enhanced sidebar */}
-      <GeoSearchSidebar
+      {/* Desktop: Full screen map */}
+      <div className="flex-1 relative overflow-hidden">
+        <MapView transport={filters.transport} />
+        
+        {/* Desktop: Floating controls overlay */}
+        <div className="absolute top-4 left-4 right-4 z-20">
+          <FloatingControls
+            filters={filters}
+            onLocationSelect={handleLocationSelect}
+            onSearch={handleSearch}
+            onMyLocationClick={handleMyLocationClick}
+            onFiltersChange={handleFiltersChange}
+            onResetFilters={handleResetFilters}
+            isLoading={isLoading}
+          />
+        </div>
+
+        {/* Desktop: Floating action buttons */}
+        <div className="absolute bottom-4 lg:bottom-6 right-4 lg:right-6 z-20 flex flex-col gap-2 lg:gap-3">
+          <MultiMapToggle />
+          <PrintButton results={results} />
+        </div>
+      </div>
+
+      {/* Desktop: Sidebar popup */}
+      <GeoSearchSidebarPopup
         filters={filters}
         userLocation={userLocation}
         results={results}
@@ -129,26 +143,8 @@ const GeoSearchLayout: React.FC = () => {
         onMyLocationClick={handleMyLocationClick}
         onFiltersChange={handleFiltersChange}
         onResetFilters={handleResetFilters}
-      />
-
-      {/* Desktop: Map area */}
-      <div className="flex-1 relative overflow-hidden">
-        <MapView transport={filters.transport} />
-        
-        {/* Desktop: Floating action buttons */}
-        <div className="absolute bottom-4 lg:bottom-6 right-4 lg:right-6 z-20 flex flex-col gap-2 lg:gap-3">
-          <MultiMapToggle />
-          <PrintButton results={results} />
-        </div>
-      </div>
-
-      {/* Desktop: Filters popup */}
-      <FiltersPopup
-        filters={filters}
-        onChange={handleFiltersChange}
-        onClose={() => setShowFilters(false)}
-        open={showFilters}
-        onReset={handleResetFilters}
+        open={showSidebarPopup}
+        onOpenChange={setShowSidebarPopup}
       />
     </div>
   );
