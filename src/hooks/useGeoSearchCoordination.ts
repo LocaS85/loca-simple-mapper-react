@@ -34,9 +34,9 @@ export const useGeoSearchCoordination = () => {
     maximumAge: 300000
   });
 
-  // Debounced search to avoid too many API calls - Fixed to handle undefined values
-  const debouncedSearch = useDebounce((query: string) => {
-    if (query && query.trim()) {
+  // Debounced search with proper validation
+  const debouncedSearch = useDebounce((query?: string) => {
+    if (query && typeof query === 'string' && query.trim()) {
       performSearch(query);
     }
   }, 500);
@@ -48,19 +48,21 @@ export const useGeoSearchCoordination = () => {
     }
   }, [geoCoordinates, userLocation, setUserLocation]);
 
-  // Handle geolocation errors
+  // Handle geolocation errors with better messages
   useEffect(() => {
     if (geoError) {
       toast({
         title: "Erreur de géolocalisation",
-        description: "Impossible d'obtenir votre position. Position par défaut utilisée.",
+        description: "Impossible d'obtenir votre position. Utilisation de la position par défaut (Paris).",
         variant: "destructive",
       });
     }
   }, [geoError, toast]);
 
-  // Coordinated filter update
+  // Coordinated filter update with validation
   const updateCoordinatedFilters = useCallback((newFilters: Partial<GeoSearchFilters>) => {
+    if (!newFilters || typeof newFilters !== 'object') return;
+    
     updateFilters(newFilters);
     
     // Auto-trigger search for critical filter changes
@@ -74,27 +76,32 @@ export const useGeoSearchCoordination = () => {
     }
   }, [updateFilters, userLocation, loadResults]);
 
-  // Enhanced location selection
+  // Enhanced location selection with validation
   const handleLocationSelect = useCallback((location: {
     name: string;
     coordinates: [number, number];
     placeName: string;
   }) => {
+    if (!location || !location.coordinates || !Array.isArray(location.coordinates)) {
+      console.error('Invalid location data:', location);
+      return;
+    }
+
     setUserLocation(location.coordinates);
-    updateFilters({ query: location.name });
+    updateFilters({ query: location.name || '' });
     
     toast({
       title: "Lieu sélectionné",
-      description: `Recherche autour de ${location.placeName}`,
+      description: `Recherche autour de ${location.placeName || location.name}`,
       variant: "default",
     });
     
     setTimeout(() => loadResults(), 500);
   }, [setUserLocation, updateFilters, loadResults, toast]);
 
-  // Enhanced search function - Fixed to handle undefined values
+  // Enhanced search function with proper type safety
   const handleSearch = useCallback((query?: string) => {
-    if (!query || !query.trim()) return;
+    if (!query || typeof query !== 'string' || !query.trim()) return;
     debouncedSearch(query);
   }, [debouncedSearch]);
 
@@ -115,34 +122,36 @@ export const useGeoSearchCoordination = () => {
         
         toast({
           title: "Position mise à jour",
-          description: "Votre localisation a été actualisée",
+          description: "Votre localisation a été actualisée avec succès",
           variant: "default",
         });
         
         setTimeout(() => loadResults(), 500);
       }
     } catch (error) {
+      console.error('Erreur de géolocalisation:', error);
       toast({
         title: "Erreur de localisation",
-        description: "Impossible d'obtenir votre position",
+        description: "Impossible d'obtenir votre position. Vérifiez les permissions de géolocalisation.",
         variant: "destructive",
       });
     }
   }, [requestLocation, geoCoordinates, setUserLocation, loadResults, toast]);
 
-  // Status indicators
+  // Status indicators with enhanced information
   const statusInfo = useMemo(() => ({
-    hasResults: results.length > 0,
+    hasResults: Array.isArray(results) && results.length > 0,
     isReady: isMapboxReady && userLocation !== null,
     canSearch: isMapboxReady && !isLoading,
-    networkOk: networkStatus === 'online'
-  }), [results.length, isMapboxReady, userLocation, isLoading, networkStatus]);
+    networkOk: networkStatus === 'online',
+    totalResults: Array.isArray(results) ? results.length : 0
+  }), [results, isMapboxReady, userLocation, isLoading, networkStatus]);
 
   return {
     // State
     userLocation,
     filters,
-    results,
+    results: Array.isArray(results) ? results : [],
     isLoading,
     isMapboxReady,
     networkStatus,
