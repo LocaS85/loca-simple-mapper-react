@@ -1,19 +1,22 @@
 
-import React from 'react';
-import GeoSearchController from '@/components/geosearch/GeoSearchController';
-import GeoSearchLayout from '@/components/geosearch/GeoSearchLayout';
+import React, { Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import SEOHead from '@/components/SEOHead';
 import { MapboxTokenWarning } from '@/components/MapboxTokenWarning';
-import { useTranslation } from 'react-i18next';
-import { useGeoSearchManager } from '@/hooks/useGeoSearchManager';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+
+// Lazy load components for better performance
+const GeoSearchController = React.lazy(() => import('@/components/geosearch/GeoSearchController'));
+const GeoSearchLayout = React.lazy(() => import('@/components/geosearch/GeoSearchLayout'));
 
 const GeoSearch: React.FC = () => {
   const { t } = useTranslation();
   const [showTokenWarning, setShowTokenWarning] = React.useState(false);
   const [isChecking, setIsChecking] = React.useState(true);
 
-  const { filters, statusInfo, isMapboxReady } = useGeoSearchManager();
+  const { filters } = useGeoSearchManager();
 
   // Check Mapbox token on mount
   React.useEffect(() => {
@@ -53,22 +56,27 @@ const GeoSearch: React.FC = () => {
     return `Recherche géographique avancée pour trouver des lieux, services et points d'intérêt près de vous. Calcul d'itinéraires et géolocalisation précise.`;
   }, [filters.category]);
 
+  // Enhanced loading component
+  const LoadingScreen = () => (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 px-4">
+      <div className="text-center p-6 sm:p-8 bg-white rounded-xl shadow-lg max-w-md w-full">
+        <LoadingSpinner />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 mt-4">
+          Vérification de la configuration
+        </h3>
+        <p className="text-gray-600 text-sm">
+          Préparation des services de géolocalisation...
+        </p>
+      </div>
+    </div>
+  );
+
   // Show loading while checking token
   if (isChecking) {
     return (
       <>
         <SEOHead title={seoTitle} description={seoDescription} />
-        <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-          <div className="text-center p-6 sm:p-8 bg-white rounded-xl shadow-lg max-w-md w-full">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Vérification de la configuration
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Préparation des services de géolocalisation...
-            </p>
-          </div>
-        </div>
+        <LoadingScreen />
       </>
     );
   }
@@ -90,9 +98,11 @@ const GeoSearch: React.FC = () => {
     <>
       <SEOHead title={seoTitle} description={seoDescription} />
       
-      <GeoSearchController>
-        <GeoSearchLayout />
-      </GeoSearchController>
+      <Suspense fallback={<LoadingScreen />}>
+        <GeoSearchController>
+          <GeoSearchLayout />
+        </GeoSearchController>
+      </Suspense>
     </>
   );
 };
