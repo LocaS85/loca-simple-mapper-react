@@ -25,7 +25,7 @@ export const useGeoSearchCoordination = () => {
   } = useGeoSearchStore();
 
   const {
-    location: geoLocation,
+    coordinates: geoCoordinates,
     error: geoError,
     requestLocation
   } = useGeolocation({
@@ -43,10 +43,10 @@ export const useGeoSearchCoordination = () => {
 
   // Update user location when geolocation changes
   useEffect(() => {
-    if (geoLocation && !userLocation) {
-      setUserLocation([geoLocation.longitude, geoLocation.latitude]);
+    if (geoCoordinates && !userLocation) {
+      setUserLocation([geoCoordinates[0], geoCoordinates[1]]);
     }
-  }, [geoLocation, userLocation, setUserLocation]);
+  }, [geoCoordinates, userLocation, setUserLocation]);
 
   // Handle geolocation errors
   useEffect(() => {
@@ -106,9 +106,11 @@ export const useGeoSearchCoordination = () => {
   // Get my location with enhanced error handling
   const handleMyLocationClick = useCallback(async () => {
     try {
-      const location = await requestLocation();
-      if (location) {
-        const coordinates: [number, number] = [location.longitude, location.latitude];
+      await requestLocation();
+      
+      // Wait for coordinates to be updated
+      if (geoCoordinates) {
+        const coordinates: [number, number] = [geoCoordinates[0], geoCoordinates[1]];
         setUserLocation(coordinates);
         
         toast({
@@ -126,7 +128,7 @@ export const useGeoSearchCoordination = () => {
         variant: "destructive",
       });
     }
-  }, [requestLocation, setUserLocation, loadResults, toast]);
+  }, [requestLocation, geoCoordinates, setUserLocation, loadResults, toast]);
 
   // Status indicators
   const statusInfo = useMemo(() => ({
