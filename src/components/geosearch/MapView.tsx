@@ -154,40 +154,32 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     <div className="w-full h-full relative">
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {/* Boutons filtres et position - Alignés parfaitement sous les contrôles de navigation */}
+      {/* Boutons filtres et position - Alignés en colonne sous les contrôles de navigation */}
       <div className={`absolute ${
         isMobile 
-          ? 'top-[112px] right-[12px]' 
-          : 'top-[120px] right-[12px]'
+          ? 'top-[112px] right-[16px]' 
+          : 'top-[120px] right-[16px]'
       } z-40`}>
         <div className="flex flex-col gap-1">
-          {/* Bouton Filtres - Même style que les contrôles Mapbox */}
-          <div className={`${
-            isMobile ? 'w-[29px] h-[29px]' : 'w-[29px] h-[29px]'
-          }`}>
-            <FiltersFloatingButton
-              filters={filters}
-              onChange={updateFilters}
-              onReset={resetFilters}
-              isLoading={isLoading}
-            />
-          </div>
+          {/* Bouton Filtres - Style identique aux contrôles Mapbox */}
+          <FiltersFloatingButton
+            filters={filters}
+            onChange={updateFilters}
+            onReset={resetFilters}
+            isLoading={isLoading}
+          />
           
-          {/* Bouton Position - Même style que les contrôles Mapbox */}
-          <div className={`${
-            isMobile ? 'w-[29px] h-[29px]' : 'w-[29px] h-[29px]'
-          }`}>
-            <EnhancedLocationButton
-              onLocationDetected={(coords) => {
-                useGeoSearchStore.getState().setUserLocation(coords);
-              }}
-              disabled={isLoading}
-              variant="outline"
-              size="icon"
-              className={`w-[29px] h-[29px] min-w-[29px] min-h-[29px] p-0 border border-[rgba(0,0,0,0.1)] bg-white shadow-sm hover:bg-gray-50 transition-colors rounded-sm`}
-              isIconOnly={true}
-            />
-          </div>
+          {/* Bouton Position - Style identique aux contrôles Mapbox */}
+          <EnhancedLocationButton
+            onLocationDetected={(coords) => {
+              useGeoSearchStore.getState().setUserLocation(coords);
+            }}
+            disabled={isLoading}
+            variant="outline"
+            size="icon"
+            className="w-[29px] h-[29px] min-w-[29px] min-h-[29px] p-0 border border-[rgba(0,0,0,0.1)] bg-white shadow-sm hover:bg-gray-50 transition-colors rounded-sm"
+            isIconOnly={true}
+          />
         </div>
       </div>
       
