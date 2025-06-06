@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Search, MapPin, Loader2 } from 'lucide-react';
 import { GeoSearchFilters } from '@/types/geosearch';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SearchPopupProps {
   filters: GeoSearchFilters;
@@ -21,6 +22,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState(filters.query || '');
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +51,11 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
             placeholder="Rechercher des lieux..."
             value={searchQuery}
             onChange={handleInputChange}
-            className="pl-10 pr-12 h-12 bg-white shadow-lg border-2 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+            className={`
+              pl-10 pr-12 bg-white shadow-lg border-2 border-gray-200 
+              focus:border-blue-400 focus:ring-blue-400 rounded-xl
+              ${isMobile ? 'h-12 text-base' : 'h-12 text-base'}
+            `}
             disabled={isLoading}
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />

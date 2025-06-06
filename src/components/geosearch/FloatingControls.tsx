@@ -33,8 +33,8 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
 
   return (
     <div className="w-full">
-      {/* Barre de recherche principale */}
-      <div className="w-full max-w-lg mx-auto">
+      {/* Barre de recherche principale - Hauteur fixe pour alignement */}
+      <div className="w-full">
         <SearchPopup
           filters={filters}
           onLocationSelect={onLocationSelect}
@@ -43,9 +43,9 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
         />
       </div>
 
-      {/* Badges des filtres actifs */}
+      {/* Badges des filtres actifs - Espacement optimisé */}
       {(filters.category || filters.transport !== 'walking' || filters.distance !== 10 || filters.maxDuration !== 20) && (
-        <div className="mt-2 flex flex-wrap gap-1 sm:gap-2 justify-center">
+        <div className={`${isMobile ? 'mt-2' : 'mt-3'} flex flex-wrap gap-2 justify-start`}>
           {filters.category && (
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium shadow-sm">
               📍 {filters.category}
@@ -69,12 +69,12 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
         </div>
       )}
 
-      {/* Indicateur de statut */}
+      {/* Indicateur de statut - Position optimisée */}
       {isLoading && (
-        <div className="mt-2 flex justify-center">
-          <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-600 shadow-sm">
-            <span className="flex items-center gap-1">
-              <Loader2 className="h-3 w-3 animate-spin" />
+        <div className={`${isMobile ? 'mt-2' : 'mt-3'} flex justify-start`}>
+          <div className="bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-600 shadow-sm border border-gray-200">
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
               Recherche en cours...
             </span>
           </div>

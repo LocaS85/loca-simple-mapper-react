@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Loader2, Navigation } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EnhancedLocationButtonProps {
   onLocationDetected: (coordinates: [number, number]) => void;
@@ -23,6 +24,7 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
 }) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleLocationClick = async () => {
     if (!navigator.geolocation) {
@@ -96,13 +98,17 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
       size={size}
       onClick={handleLocationClick}
       disabled={disabled || isDetecting}
-      className={className}
+      className={`
+        ${className}
+        ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}
+        bg-white shadow-md hover:bg-gray-50 border border-gray-300
+      `}
       title="Détecter ma position"
     >
       {isDetecting ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} animate-spin`} />
       ) : (
-        <Navigation className="h-4 w-4" />
+        <Navigation className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
       )}
     </Button>
   );

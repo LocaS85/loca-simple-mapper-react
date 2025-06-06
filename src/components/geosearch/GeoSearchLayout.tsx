@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -72,33 +71,42 @@ const GeoSearchLayout: React.FC = () => {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col h-screen bg-background overflow-hidden">
-        <GeoSearchHeader
-          filters={filters}
-          userLocation={userLocation}
-          isLoading={isLoading}
-          networkStatus={networkStatus}
-          statusInfo={statusInfo}
-        />
-
+      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
         <div className="flex-1 relative overflow-hidden">
           <MapView transport={filters.transport} />
           
-          {/* Barre de recherche en haut */}
-          <div className="absolute top-2 left-2 right-2 z-50">
-            <FloatingControls
-              filters={filters}
-              onLocationSelect={handleLocationSelect}
-              onSearch={handleSearch}
-              onMyLocationClick={handleMyLocationClick}
-              onFiltersChange={updateFilters}
-              onResetFilters={resetFilters}
-              isLoading={isLoading}
-            />
+          {/* Barre de recherche avec menu burger aligné */}
+          <div className="absolute top-3 left-3 right-3 z-[100]">
+            <div className="flex items-center gap-2">
+              {/* Menu burger avec hauteur exacte de la barre de recherche */}
+              <button 
+                className="flex-shrink-0 w-12 h-12 bg-white shadow-lg border-2 border-gray-200 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+                onClick={() => setShowSidebarPopup(true)}
+              >
+                <div className="w-4 h-4 flex flex-col justify-between">
+                  <div className="w-full h-0.5 bg-gray-700"></div>
+                  <div className="w-full h-0.5 bg-gray-700"></div>
+                  <div className="w-full h-0.5 bg-gray-700"></div>
+                </div>
+              </button>
+              
+              {/* Barre de recherche */}
+              <div className="flex-1">
+                <FloatingControls
+                  filters={filters}
+                  onLocationSelect={handleLocationSelect}
+                  onSearch={handleSearch}
+                  onMyLocationClick={handleMyLocationClick}
+                  onFiltersChange={updateFilters}
+                  onResetFilters={resetFilters}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Boutons d'action en bas à droite */}
-          <div className="absolute bottom-20 right-2 z-30 flex flex-col gap-2">
+          {/* Boutons d'action en bas à droite - responsive */}
+          <div className="absolute bottom-20 right-3 z-30 flex flex-col gap-2">
             <MultiMapToggle />
             <PrintButton results={results} />
           </div>
@@ -117,25 +125,42 @@ const GeoSearchLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <div className="flex-1 relative overflow-hidden">
         <MapView transport={filters.transport} />
         
-        {/* Barre de recherche en haut */}
-        <div className="absolute top-4 left-4 right-4 z-50 max-w-2xl">
-          <FloatingControls
-            filters={filters}
-            onLocationSelect={handleLocationSelect}
-            onSearch={handleSearch}
-            onMyLocationClick={handleMyLocationClick}
-            onFiltersChange={updateFilters}
-            onResetFilters={resetFilters}
-            isLoading={isLoading}
-          />
+        {/* Barre de recherche avec menu burger - Desktop */}
+        <div className="absolute top-4 left-4 right-4 z-[100]">
+          <div className="flex items-start gap-3 max-w-2xl">
+            {/* Menu burger aligné avec la barre de recherche */}
+            <button 
+              className="flex-shrink-0 w-12 h-12 bg-white shadow-lg border-2 border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-50 transition-all duration-200"
+              onClick={() => setShowSidebarPopup(true)}
+            >
+              <div className="w-5 h-5 flex flex-col justify-between">
+                <div className="w-full h-0.5 bg-gray-700 rounded-full"></div>
+                <div className="w-full h-0.5 bg-gray-700 rounded-full"></div>
+                <div className="w-full h-0.5 bg-gray-700 rounded-full"></div>
+              </div>
+            </button>
+            
+            {/* Barre de recherche */}
+            <div className="flex-1">
+              <FloatingControls
+                filters={filters}
+                onLocationSelect={handleLocationSelect}
+                onSearch={handleSearch}
+                onMyLocationClick={handleMyLocationClick}
+                onFiltersChange={updateFilters}
+                onResetFilters={resetFilters}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Boutons d'action en bas à droite */}
-        <div className="absolute bottom-4 right-4 z-30 flex flex-col gap-2">
+        {/* Boutons d'action - Desktop */}
+        <div className="absolute bottom-6 right-6 z-30 flex flex-col gap-3">
           <MultiMapToggle />
           <PrintButton results={results} />
         </div>

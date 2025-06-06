@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { GeoSearchFilters } from '@/types/geosearch';
 import { FenetreFiltrageUnifiee } from '../filters';
 import { TransportMode } from '@/lib/data/transportModes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FiltersFloatingButtonProps {
   filters: GeoSearchFilters;
@@ -21,47 +22,12 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
   isLoading = false
 }) => {
   const [open, setOpen] = React.useState(false);
+  const isMobile = useIsMobile();
 
   const hasActiveFilters = 
     filters.category || 
     filters.transport !== 'walking' || 
     filters.distance !== 10;
-
-  const handleFilterChange = (key: keyof GeoSearchFilters, value: any) => {
-    onChange({ [key]: value });
-  };
-
-  const handleMaxDistanceChange = (value: number) => {
-    handleFilterChange('distance', value);
-  };
-
-  const handleTransportModeChange = (value: TransportMode) => {
-    handleFilterChange('transport', value);
-  };
-
-  const handleAroundMeCountChange = (value: number) => {
-    handleFilterChange('aroundMeCount', value);
-  };
-
-  const handleShowMultiDirectionsChange = (value: boolean) => {
-    handleFilterChange('showMultiDirections', value);
-  };
-
-  const handleDistanceUnitChange = (value: 'km' | 'mi') => {
-    handleFilterChange('unit', value);
-  };
-
-  const handleMaxDurationChange = (value: number) => {
-    handleFilterChange('maxDuration', value);
-  };
-
-  const handleCategoryChange = (value: string | null) => {
-    handleFilterChange('category', value);
-  };
-
-  const handleSubcategoryChange = (value: string | null) => {
-    handleFilterChange('subcategory', value);
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -69,13 +35,17 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
         <Button
           variant={hasActiveFilters ? "default" : "outline"}
           size="icon"
-          className="w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-md hover:bg-gray-50 relative"
+          className={`
+            ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}
+            bg-white shadow-md hover:bg-gray-50 border border-gray-300 relative
+            ${hasActiveFilters ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' : ''}
+          `}
           disabled={isLoading}
           title="Filtres de recherche"
         >
-          <SlidersHorizontal className="h-4 w-4" />
+          <SlidersHorizontal className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           {hasActiveFilters && (
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full border border-white"></span>
           )}
         </Button>
       </PopoverTrigger>

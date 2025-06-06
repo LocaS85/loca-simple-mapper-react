@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { TransportMode } from '@/lib/data/transportModes';
@@ -153,24 +154,33 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     <div className="w-full h-full relative">
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {/* Contrôles de navigation Mapbox par défaut en haut à droite */}
-      
-      {/* Boutons supplémentaires sous les contrôles de zoom */}
-      <div className="absolute top-16 right-2 sm:right-4 z-40 flex flex-col gap-2">
-        <FiltersFloatingButton
-          filters={filters}
-          onChange={updateFilters}
-          onReset={resetFilters}
-          isLoading={isLoading}
-        />
-        <EnhancedLocationButton
-          onLocationDetected={(coords) => handleMyLocationClick()}
-          disabled={isLoading}
-          variant="outline"
-          size="icon"
-          className="w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-md hover:bg-gray-50"
-          isIconOnly={true}
-        />
+      {/* Boutons filtres et position - Parfaitement alignés sous les contrôles de zoom */}
+      <div className={`absolute ${isMobile ? 'top-20 right-2' : 'top-28 right-4'} z-40`}>
+        <div className="flex flex-col gap-2">
+          {/* Bouton Filtres - Même taille que les contrôles de navigation */}
+          <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}>
+            <FiltersFloatingButton
+              filters={filters}
+              onChange={updateFilters}
+              onReset={resetFilters}
+              isLoading={isLoading}
+            />
+          </div>
+          
+          {/* Bouton Position - Même taille que les contrôles de navigation */}
+          <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}>
+            <EnhancedLocationButton
+              onLocationDetected={(coords) => {
+                useGeoSearchStore.getState().setUserLocation(coords);
+              }}
+              disabled={isLoading}
+              variant="outline"
+              size="icon"
+              className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-white shadow-md hover:bg-gray-50 border border-gray-300`}
+              isIconOnly={true}
+            />
+          </div>
+        </div>
       </div>
       
       {/* Marqueurs */}
