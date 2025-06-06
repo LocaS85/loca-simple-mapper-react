@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useGeoSearchCoordination } from '@/hooks/useGeoSearchCoordination';
+import { useGeoSearchManager } from '@/hooks/useGeoSearchManager';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapView from './MapView';
 import FloatingControls from './FloatingControls';
@@ -11,7 +11,7 @@ import MultiMapToggle from './MultiMapToggle';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Wifi, WifiOff, Search } from 'lucide-react';
+import { MapPin, Wifi, WifiOff, Search, ChevronUp, ChevronDown } from 'lucide-react';
 
 const GeoSearchLayout: React.FC = () => {
   const isMobile = useIsMobile();
@@ -22,14 +22,15 @@ const GeoSearchLayout: React.FC = () => {
     isLoading,
     statusInfo,
     networkStatus,
-    updateCoordinatedFilters,
+    updateFiltersWithSearch,
     handleLocationSelect,
     handleSearch,
     handleMyLocationClick
-  } = useGeoSearchCoordination();
+  } = useGeoSearchManager();
 
   const [showFilters, setShowFilters] = React.useState(false);
   const [showResults, setShowResults] = React.useState(false);
+  const [isResultsExpanded, setIsResultsExpanded] = React.useState(false);
 
   // Show results panel when we have results
   React.useEffect(() => {
@@ -37,11 +38,11 @@ const GeoSearchLayout: React.FC = () => {
   }, [statusInfo.hasResults]);
 
   const handleFiltersChange = (newFilters: any) => {
-    updateCoordinatedFilters(newFilters);
+    updateFiltersWithSearch(newFilters);
   };
 
   const handleResetFilters = () => {
-    updateCoordinatedFilters({
+    updateFiltersWithSearch({
       category: null,
       subcategory: null,
       transport: 'walking',
@@ -58,14 +59,14 @@ const GeoSearchLayout: React.FC = () => {
   const StatusIndicator = () => (
     <div className="flex items-center gap-2">
       {networkStatus === 'online' ? (
-        <Wifi className="h-4 w-4 text-green-500" />
+        <Wifi className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
       ) : (
-        <WifiOff className="h-4 w-4 text-red-500" />
+        <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
       )}
       <span className="text-xs text-muted-foreground">
-        {isLoading ? 'Recherche en cours...' : 
+        {isLoading ? 'Recherche...' : 
          statusInfo.hasResults ? `${statusInfo.totalResults} résultat${statusInfo.totalResults > 1 ? 's' : ''}` :
-         'Prêt à rechercher'}
+         'Prêt'}
       </span>
     </div>
   );
@@ -77,7 +78,7 @@ const GeoSearchLayout: React.FC = () => {
     if (!hasActiveFilters) return null;
 
     return (
-      <div className="flex flex-wrap gap-2 p-2 bg-blue-50 rounded-lg">
+      <div className="flex flex-wrap gap-1 sm:gap-2 p-2 bg-blue-50 rounded-lg">
         {filters.category && (
           <Badge variant="secondary" className="text-xs">
             📍 {filters.category}
@@ -104,10 +105,10 @@ const GeoSearchLayout: React.FC = () => {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col h-screen bg-gray-50">
-        {/* Mobile: Header with search */}
-        <div className="bg-white border-b shadow-sm z-30 p-4">
-          <div className="space-y-3">
+      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+        {/* Mobile: Compact header */}
+        <div className="bg-white border-b shadow-sm z-30 p-3 sm:p-4 flex-shrink-0">
+          <div className="space-y-2 sm:space-y-3">
             <FloatingControls
               filters={filters}
               onLocationSelect={handleLocationSelect}
@@ -121,7 +122,7 @@ const GeoSearchLayout: React.FC = () => {
               <StatusIndicator />
               {userLocation && (
                 <Badge variant="outline" className="text-xs">
-                  📍 Position détectée
+                  📍 Position OK
                 </Badge>
               )}
             </div>
@@ -129,42 +130,55 @@ const GeoSearchLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile: Map */}
-        <div className="flex-1 relative">
+        {/* Mobile: Map container */}
+        <div className="flex-1 relative overflow-hidden">
           <MapView transport={filters.transport} />
           
-          {/* Mobile: Floating buttons */}
-          <div className="absolute bottom-20 right-4 z-20 flex flex-col gap-2">
+          {/* Mobile: Floating action buttons */}
+          <div className="absolute bottom-4 right-3 z-20 flex flex-col gap-2">
             <MultiMapToggle />
             <PrintButton results={results} />
           </div>
 
-          {/* Mobile: Results drawer */}
+          {/* Mobile: Sliding results panel */}
           {showResults && (
-            <div className="absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-xl shadow-2xl max-h-80 border-t">
-              <div className="p-4 border-b bg-gray-50">
+            <div className={`absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-xl shadow-2xl border-t transition-all duration-300 ${
+              isResultsExpanded ? 'h-3/4' : 'h-48'
+            }`}>
+              <div 
+                className="p-3 sm:p-4 border-b bg-gray-50 cursor-pointer"
+                onClick={() => setIsResultsExpanded(!isResultsExpanded)}
+              >
                 <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg">
+                  <h3 className="font-semibold text-sm sm:text-base">
                     Résultats trouvés
                   </h3>
-                  <Badge variant="secondary">
-                    {statusInfo.totalResults}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {statusInfo.totalResults}
+                    </Badge>
+                    {isResultsExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                    ) : (
+                      <ChevronUp className="h-4 w-4 text-gray-500" />
+                    )}
+                  </div>
                 </div>
               </div>
-              <ScrollArea className="max-h-64">
-                <div className="p-4">
-                  <EnhancedResultsList
-                    results={results}
-                    isLoading={isLoading}
-                    onNavigate={(coords) => {
-                      console.log('Navigate to:', coords);
-                    }}
-                    maxHeight="200px"
-                  />
-                </div>
-              </ScrollArea>
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
+                  <div className="p-3 sm:p-4">
+                    <EnhancedResultsList
+                      results={results}
+                      isLoading={isLoading}
+                      onNavigate={(coords) => {
+                        console.log('Navigate to:', coords);
+                      }}
+                    />
+                  </div>
+                </ScrollArea>
+              </div>
             </div>
           )}
         </div>
@@ -181,20 +195,20 @@ const GeoSearchLayout: React.FC = () => {
     );
   }
 
-  // Desktop layout
+  // Desktop layout - responsive improvements
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Desktop: Enhanced sidebar */}
-      <div className="w-96 bg-white border-r shadow-sm flex flex-col">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Desktop: Enhanced sidebar with responsive width */}
+      <div className="w-80 lg:w-96 bg-white border-r shadow-sm flex flex-col flex-shrink-0">
         {/* Search controls */}
-        <Card className="m-4 shadow-sm">
+        <Card className="m-3 lg:m-4 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Search className="h-5 w-5 text-blue-500" />
+            <CardTitle className="text-base lg:text-lg flex items-center gap-2">
+              <Search className="h-4 w-4 lg:h-5 lg:w-5 text-blue-500" />
               Recherche géographique
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 lg:space-y-4">
             <FloatingControls
               filters={filters}
               onLocationSelect={handleLocationSelect}
@@ -219,25 +233,27 @@ const GeoSearchLayout: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Results section */}
-        <div className="flex-1 overflow-hidden mx-4 mb-4">
+        {/* Results section with improved responsive design */}
+        <div className="flex-1 overflow-hidden mx-3 lg:mx-4 mb-3 lg:mb-4">
           {statusInfo.hasResults ? (
-            <Card className="h-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center justify-between">
+            <Card className="h-full flex flex-col">
+              <CardHeader className="pb-3 flex-shrink-0">
+                <CardTitle className="text-sm lg:text-base flex items-center justify-between">
                   <span>Résultats de recherche</span>
-                  <Badge variant="secondary">{statusInfo.totalResults}</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {statusInfo.totalResults}
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 h-full">
-                <div className="h-full pb-6">
+              <CardContent className="p-0 flex-1 overflow-hidden">
+                <div className="h-full">
                   <EnhancedResultsList
                     results={results}
                     isLoading={isLoading}
                     onNavigate={(coords) => {
                       console.log('Navigate to:', coords);
                     }}
-                    className="px-6"
+                    className="px-4 lg:px-6"
                   />
                 </div>
               </CardContent>
@@ -245,14 +261,14 @@ const GeoSearchLayout: React.FC = () => {
           ) : (
             <Card className="h-full">
               <CardContent className="flex items-center justify-center h-full">
-                <div className="text-center p-8">
-                  <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Search className="h-8 w-8 text-blue-400" />
+                <div className="text-center p-4 lg:p-8">
+                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search className="h-6 w-6 lg:h-8 lg:w-8 text-blue-400" />
                   </div>
-                  <h3 className="font-medium mb-2 text-gray-900">
+                  <h3 className="font-medium mb-2 text-gray-900 text-sm lg:text-base">
                     Prêt à rechercher
                   </h3>
-                  <p className="text-sm text-gray-500 max-w-xs">
+                  <p className="text-xs lg:text-sm text-gray-500 max-w-xs">
                     Saisissez un terme de recherche ou sélectionnez une catégorie pour commencer
                   </p>
                 </div>
@@ -262,12 +278,12 @@ const GeoSearchLayout: React.FC = () => {
         </div>
       </div>
 
-      {/* Desktop: Map area */}
-      <div className="flex-1 relative">
+      {/* Desktop: Map area with responsive design */}
+      <div className="flex-1 relative overflow-hidden">
         <MapView transport={filters.transport} />
         
         {/* Desktop: Floating action buttons */}
-        <div className="absolute bottom-6 right-6 z-20 flex flex-col gap-3">
+        <div className="absolute bottom-4 lg:bottom-6 right-4 lg:right-6 z-20 flex flex-col gap-2 lg:gap-3">
           <MultiMapToggle />
           <PrintButton results={results} />
         </div>

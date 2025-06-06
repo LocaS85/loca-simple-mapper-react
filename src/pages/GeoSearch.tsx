@@ -5,14 +5,14 @@ import GeoSearchLayout from '@/components/geosearch/GeoSearchLayout';
 import SEOHead from '@/components/SEOHead';
 import { MapboxTokenWarning } from '@/components/MapboxTokenWarning';
 import { useTranslation } from 'react-i18next';
-import { useGeoSearchCoordination } from '@/hooks/useGeoSearchCoordination';
+import { useGeoSearchManager } from '@/hooks/useGeoSearchManager';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 
 const GeoSearch: React.FC = () => {
   const { t } = useTranslation();
   const [showTokenWarning, setShowTokenWarning] = React.useState(false);
 
-  const { filters, statusInfo, isMapboxReady } = useGeoSearchCoordination();
+  const { filters, statusInfo, isMapboxReady } = useGeoSearchManager();
 
   // Check Mapbox token on mount
   React.useEffect(() => {
@@ -66,13 +66,13 @@ const GeoSearch: React.FC = () => {
     return (
       <>
         <SEOHead title={seoTitle} description={seoDescription} />
-        <div className="flex items-center justify-center h-screen bg-gray-50">
-          <div className="text-center p-8">
+        <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+          <div className="text-center p-6 sm:p-8 bg-white rounded-xl shadow-lg max-w-md w-full">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Initialisation de la carte
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm">
               Chargement de la géolocalisation et des services...
             </p>
           </div>

@@ -36,42 +36,63 @@ export const useGeoSearchManager = () => {
     maximumAge: 300000
   });
 
-  // Initialize Mapbox on mount
+  // Initialize Mapbox on mount with proper error handling
   useEffect(() => {
-    if (!isMapboxReady) {
-      initializeMapbox();
-    }
-  }, [isMapboxReady, initializeMapbox]);
+    const initMapbox = async () => {
+      try {
+        if (!isMapboxReady) {
+          console.log('🔧 Initialisation de Mapbox...');
+          await initializeMapbox();
+        }
+      } catch (error) {
+        console.error('❌ Erreur d\'initialisation Mapbox:', error);
+        toast({
+          title: "Erreur d'initialisation",
+          description: "Impossible d'initialiser les services de carte",
+          variant: "destructive",
+        });
+      }
+    };
+
+    initMapbox();
+  }, [isMapboxReady, initializeMapbox, toast]);
 
   // Auto-update user location from geolocation
   useEffect(() => {
     if (geoCoordinates && !userLocation) {
-      setUserLocation([geoCoordinates[0], geoCoordinates[1]]);
+      const coordinates: [number, number] = [geoCoordinates[0], geoCoordinates[1]];
+      console.log('📍 Mise à jour de la position utilisateur:', coordinates);
+      setUserLocation(coordinates);
     }
   }, [geoCoordinates, userLocation, setUserLocation]);
 
-  // Handle geolocation errors
+  // Handle geolocation errors with better user feedback
   useEffect(() => {
     if (geoError) {
+      console.error('❌ Erreur de géolocalisation:', geoError);
       toast({
         title: "Erreur de géolocalisation",
-        description: "Impossible d'obtenir votre position",
+        description: "Impossible d'obtenir votre position. Utilisation de la position par défaut.",
         variant: "destructive",
       });
+      // Set default location (Paris) if geolocation fails
+      if (!userLocation) {
+        setUserLocation([2.3522, 48.8566]);
+      }
     }
-  }, [geoError, toast]);
+  }, [geoError, toast, userLocation, setUserLocation]);
 
-  // Debounced search - Fixed to handle undefined values
+  // Debounced search with proper validation
   const debouncedSearch = useDebounce(async (query: string) => {
-    if (query && query.trim() && userLocation) {
+    if (query && typeof query === 'string' && query.trim() && userLocation) {
       await performSearch(query);
     }
   }, 500);
 
-  // Unified search function
+  // Unified search function with enhanced error handling
   const performSearch = useCallback(async (query?: string) => {
     if (!userLocation || !isMapboxReady) {
-      console.log('❌ Conditions non remplies pour la recherche');
+      console.log('❌ Conditions non remplies pour la recherche - location:', !!userLocation, 'mapbox:', isMapboxReady);
       return;
     }
 
@@ -79,20 +100,30 @@ export const useGeoSearchManager = () => {
     try {
       let searchResults;
       
-      if (query && query.trim()) {
+      if (query && typeof query === 'string' && query.trim()) {
+        console.log('🔍 Recherche par requête:', query);
         searchResults = await geoSearchService.searchByQuery(query, userLocation, filters);
       } else {
+        console.log('🔍 Recherche à proximité');
         searchResults = await geoSearchService.searchNearby(userLocation, filters);
       }
       
       setResults(searchResults);
       console.log('✅ Recherche terminée:', searchResults.length, 'résultats');
       
+      if (searchResults.length === 0) {
+        toast({
+          title: "Aucun résultat",
+          description: "Aucun lieu trouvé pour votre recherche",
+          variant: "default",
+        });
+      }
+      
     } catch (error) {
       console.error('❌ Erreur de recherche:', error);
       toast({
         title: "Erreur de recherche",
-        description: "Impossible d'effectuer la recherche",
+        description: "Impossible d'effectuer la recherche. Vérifiez votre connexion.",
         variant: "destructive",
       });
     } finally {
@@ -102,6 +133,11 @@ export const useGeoSearchManager = () => {
 
   // Enhanced filters update with auto-search
   const updateFiltersWithSearch = useCallback((newFilters: Partial<GeoSearchFilters>) => {
+    if (!newFilters || typeof newFilters !== 'object') {
+      console.warn('❌ Filtres invalides:', newFilters);
+      return;
+    }
+
     updateFilters(newFilters);
     
     // Auto-trigger search for important filter changes
@@ -110,58 +146,74 @@ export const useGeoSearchManager = () => {
       criticalFilters.includes(key)
     );
     
-    if (shouldAutoSearch && userLocation) {
+    if (shouldAutoSearch && userLocation && isMapboxReady) {
+      console.log('🔄 Auto-recherche déclenchée par changement de filtres');
       setTimeout(() => performSearch(), 300);
     }
-  }, [updateFilters, userLocation, performSearch]);
+  }, [updateFilters, userLocation, isMapboxReady, performSearch]);
 
-  // Location selection handler
+  // Location selection handler with validation
   const handleLocationSelect = useCallback((location: {
     name: string;
     coordinates: [number, number];
     placeName: string;
   }) => {
+    if (!location || !location.coordinates || !Array.isArray(location.coordinates)) {
+      console.error('❌ Données de lieu invalides:', location);
+      return;
+    }
+
+    console.log('📍 Sélection de lieu:', location);
     setUserLocation(location.coordinates);
-    updateFilters({ query: location.name });
+    updateFilters({ query: location.name || '' });
     
     toast({
       title: "Lieu sélectionné",
-      description: `Recherche autour de ${location.placeName}`,
+      description: `Recherche autour de ${location.placeName || location.name}`,
       variant: "default",
     });
     
     setTimeout(() => performSearch(), 500);
   }, [setUserLocation, updateFilters, performSearch, toast]);
 
-  // My location handler
+  // My location handler with proper async handling
   const handleMyLocationClick = useCallback(async () => {
     try {
+      console.log('🌍 Demande de géolocalisation...');
       await requestLocation();
       
-      if (geoCoordinates) {
-        const coordinates: [number, number] = [geoCoordinates[0], geoCoordinates[1]];
-        setUserLocation(coordinates);
-        
-        toast({
-          title: "Position mise à jour",
-          description: "Votre localisation a été actualisée",
-          variant: "default",
-        });
-        
-        setTimeout(() => performSearch(), 500);
-      }
+      // Wait a bit for coordinates to update
+      setTimeout(() => {
+        if (geoCoordinates) {
+          const coordinates: [number, number] = [geoCoordinates[0], geoCoordinates[1]];
+          setUserLocation(coordinates);
+          
+          toast({
+            title: "Position mise à jour",
+            description: "Votre localisation a été actualisée avec succès",
+            variant: "default",
+          });
+          
+          setTimeout(() => performSearch(), 500);
+        }
+      }, 1000);
     } catch (error) {
+      console.error('❌ Erreur de géolocalisation:', error);
       toast({
         title: "Erreur de localisation",
-        description: "Impossible d'obtenir votre position",
+        description: "Impossible d'obtenir votre position. Vérifiez les permissions.",
         variant: "destructive",
       });
     }
   }, [requestLocation, geoCoordinates, setUserLocation, performSearch, toast]);
 
-  // Search handler - Fixed to handle undefined values
+  // Search handler with proper validation
   const handleSearch = useCallback((query?: string) => {
-    if (!query || !query.trim()) return;
+    if (!query || typeof query !== 'string' || !query.trim()) {
+      console.log('❌ Requête de recherche invalide:', query);
+      return;
+    }
+    console.log('🔍 Déclenchement de recherche:', query);
     debouncedSearch(query);
   }, [debouncedSearch]);
 
@@ -170,20 +222,21 @@ export const useGeoSearchManager = () => {
     updateFiltersWithSearch({ transport });
   }, [updateFiltersWithSearch]);
 
-  // Status information
+  // Enhanced status information
   const statusInfo = useMemo(() => ({
-    hasResults: results.length > 0,
+    hasResults: Array.isArray(results) && results.length > 0,
     isReady: isMapboxReady && userLocation !== null,
-    canSearch: isMapboxReady && !isLoading,
+    canSearch: isMapboxReady && !isLoading && userLocation !== null,
     networkOk: networkStatus === 'online',
-    totalResults: results.length
-  }), [results.length, isMapboxReady, userLocation, isLoading, networkStatus]);
+    totalResults: Array.isArray(results) ? results.length : 0,
+    isInitialized: isMapboxReady && !!userLocation
+  }), [results, isMapboxReady, userLocation, isLoading, networkStatus]);
 
   return {
     // State
     userLocation,
     filters,
-    results,
+    results: Array.isArray(results) ? results : [],
     isLoading,
     isMapboxReady,
     networkStatus,
