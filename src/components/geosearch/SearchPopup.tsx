@@ -34,6 +34,12 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
     setSearchQuery(e.target.value);
   };
 
+  const handleQuickSearch = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    onSearch(suggestion);
+    setIsOpen(false);
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -43,7 +49,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
             placeholder="Rechercher des lieux..."
             value={searchQuery}
             onChange={handleInputChange}
-            className="pl-10 pr-12 bg-white/95 backdrop-blur-sm shadow-md border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+            className="pl-10 pr-12 h-12 bg-white shadow-lg border-2 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
             disabled={isLoading}
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -52,7 +58,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
+      <PopoverContent className="w-80 p-0 z-50" align="start">
         <form onSubmit={handleSubmit} className="p-4">
           <div className="space-y-3">
             <div className="relative">
@@ -86,16 +92,12 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
           <div className="mt-4 pt-4 border-t">
             <h4 className="text-sm font-medium mb-2 text-gray-700">Suggestions</h4>
             <div className="space-y-1">
-              {['Restaurants', 'Pharmacies', 'Stations essence', 'Banques'].map((suggestion) => (
+              {['Restaurants', 'Pharmacies', 'Stations essence', 'Banques', 'Supermarchés'].map((suggestion) => (
                 <button
                   key={suggestion}
                   type="button"
-                  onClick={() => {
-                    setSearchQuery(suggestion);
-                    onSearch(suggestion);
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md flex items-center gap-2"
+                  onClick={() => handleQuickSearch(suggestion)}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md flex items-center gap-2 transition-colors"
                 >
                   <MapPin className="h-3 w-3 text-gray-400" />
                   {suggestion}

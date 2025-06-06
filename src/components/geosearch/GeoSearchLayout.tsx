@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapView from './MapView';
 import FloatingControls from './FloatingControls';
@@ -17,13 +17,12 @@ const GeoSearchLayout: React.FC = () => {
     filters,
     results,
     isLoading,
-    statusInfo,
     networkStatus,
-    updateFiltersWithSearch,
-    handleLocationSelect,
-    handleSearch,
-    handleMyLocationClick
-  } = useGeoSearchManager();
+    updateFilters,
+    resetFilters,
+    performSearch,
+    setUserLocation
+  } = useGeoSearchStore();
 
   const [showSidebarPopup, setShowSidebarPopup] = React.useState(false);
   const [showResults, setShowResults] = React.useState(false);
@@ -31,28 +30,44 @@ const GeoSearchLayout: React.FC = () => {
 
   // Show results panel when we have results
   React.useEffect(() => {
-    setShowResults(statusInfo.hasResults);
-    if (statusInfo.hasResults && isMobile) {
+    setShowResults(results.length > 0);
+    if (results.length > 0 && isMobile) {
       setIsResultsExpanded(false);
     }
-  }, [statusInfo.hasResults, isMobile]);
+  }, [results.length, isMobile]);
 
-  const handleFiltersChange = (newFilters: any) => {
-    updateFiltersWithSearch(newFilters);
+  const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
+    console.log('📍 Location sélectionnée:', location);
+    setUserLocation(location.coordinates);
   };
 
-  const handleResetFilters = () => {
-    updateFiltersWithSearch({
-      category: null,
-      subcategory: null,
-      transport: 'walking',
-      distance: 10,
-      unit: 'km',
-      query: '',
-      aroundMeCount: 3,
-      showMultiDirections: false,
-      maxDuration: 20
-    });
+  const handleSearch = (query?: string) => {
+    console.log('🔍 Recherche lancée:', query);
+    performSearch(query);
+  };
+
+  const handleMyLocationClick = () => {
+    console.log('📍 Demande de géolocalisation');
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords: [number, number] = [
+            position.coords.longitude,
+            position.coords.latitude
+          ];
+          setUserLocation(coords);
+        },
+        (error) => {
+          console.error('❌ Erreur de géolocalisation:', error);
+        }
+      );
+    }
+  };
+
+  const statusInfo = {
+    totalResults: results.length,
+    hasResults: results.length > 0,
+    isReady: true
   };
 
   if (isMobile) {
@@ -66,22 +81,24 @@ const GeoSearchLayout: React.FC = () => {
           statusInfo={statusInfo}
         />
 
-        <div className="flex-1 relative overflow-hidden">
+        <div className="flex-1 relative">
           <MapView transport={filters.transport} />
           
-          <div className="absolute top-4 left-4 right-4 z-20">
+          {/* Contrôles flottants avec z-index élevé */}
+          <div className="absolute top-4 left-4 right-4 z-40">
             <FloatingControls
               filters={filters}
               onLocationSelect={handleLocationSelect}
               onSearch={handleSearch}
-              onMyLocationClick={(coords) => handleMyLocationClick()}
-              onFiltersChange={handleFiltersChange}
-              onResetFilters={handleResetFilters}
+              onMyLocationClick={handleMyLocationClick}
+              onFiltersChange={updateFilters}
+              onResetFilters={resetFilters}
               isLoading={isLoading}
             />
           </div>
 
-          <div className="absolute bottom-4 right-3 z-20 flex flex-col gap-2">
+          {/* Boutons d'actions */}
+          <div className="absolute bottom-4 right-3 z-30 flex flex-col gap-2">
             <MultiMapToggle />
             <PrintButton results={results} />
           </div>
@@ -101,22 +118,24 @@ const GeoSearchLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative">
         <MapView transport={filters.transport} />
         
-        <div className="absolute top-4 left-4 right-4 z-20">
+        {/* Contrôles flottants avec z-index élevé */}
+        <div className="absolute top-4 left-4 right-4 z-40">
           <FloatingControls
             filters={filters}
             onLocationSelect={handleLocationSelect}
             onSearch={handleSearch}
-            onMyLocationClick={(coords) => handleMyLocationClick()}
-            onFiltersChange={handleFiltersChange}
-            onResetFilters={handleResetFilters}
+            onMyLocationClick={handleMyLocationClick}
+            onFiltersChange={updateFilters}
+            onResetFilters={resetFilters}
             isLoading={isLoading}
           />
         </div>
 
-        <div className="absolute bottom-4 lg:bottom-6 right-4 lg:right-6 z-20 flex flex-col gap-2 lg:gap-3">
+        {/* Boutons d'actions */}
+        <div className="absolute bottom-4 lg:bottom-6 right-4 lg:right-6 z-30 flex flex-col gap-2 lg:gap-3">
           <MultiMapToggle />
           <PrintButton results={results} />
         </div>
@@ -130,9 +149,9 @@ const GeoSearchLayout: React.FC = () => {
         statusInfo={statusInfo}
         onLocationSelect={handleLocationSelect}
         onSearch={handleSearch}
-        onMyLocationClick={() => handleMyLocationClick()}
-        onFiltersChange={handleFiltersChange}
-        onResetFilters={handleResetFilters}
+        onMyLocationClick={handleMyLocationClick}
+        onFiltersChange={updateFilters}
+        onResetFilters={resetFilters}
         open={showSidebarPopup}
         onOpenChange={setShowSidebarPopup}
       />

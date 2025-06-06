@@ -11,7 +11,7 @@ interface FloatingControlsProps {
   filters: GeoSearchFilters;
   onLocationSelect: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
   onSearch: (query?: string) => void;
-  onMyLocationClick: (coordinates: [number, number]) => void;
+  onMyLocationClick: () => void;
   onFiltersChange: (filters: Partial<GeoSearchFilters>) => void;
   onResetFilters?: () => void;
   isLoading?: boolean;
@@ -32,10 +32,15 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
     onSearch(query);
   };
 
+  const handleLocationDetected = (coords: [number, number]) => {
+    onMyLocationClick();
+  };
+
   return (
-    <>
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-4xl mx-auto">
-        <div className="flex-1 flex gap-2">
+    <div className="relative z-30">
+      <div className="flex flex-col gap-3 max-w-4xl mx-auto">
+        {/* Barre de recherche principale */}
+        <div className="flex gap-2">
           <div className="flex-1">
             <SearchPopup
               filters={filters}
@@ -45,7 +50,7 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
             />
           </div>
           
-          <div className={`flex gap-2 ${isMobile ? 'w-full justify-between' : 'shrink-0'}`}>
+          <div className="flex gap-2 shrink-0">
             <FiltersFloatingButton
               filters={filters}
               onChange={onFiltersChange}
@@ -53,7 +58,7 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
               isLoading={isLoading}
             />
             <EnhancedLocationButton
-              onLocationDetected={(coords) => onMyLocationClick(coords)}
+              onLocationDetected={handleLocationDetected}
               disabled={isLoading}
               variant="outline"
               size="sm"
@@ -61,46 +66,48 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
             />
           </div>
         </div>
-      </div>
 
-      {(filters.category || filters.transport !== 'walking' || filters.distance !== 10) && (
-        <div className="mt-3 flex flex-wrap gap-2 max-w-4xl mx-auto">
-          {filters.category && (
-            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-              📍 {filters.category}
-            </span>
-          )}
-          {filters.transport !== 'walking' && (
-            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-              🚶 {filters.transport}
-            </span>
-          )}
-          {filters.distance !== 10 && (
-            <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-              📏 {filters.distance} {filters.unit}
-            </span>
-          )}
-          {filters.maxDuration !== 20 && (
-            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-              ⏱️ {filters.maxDuration} min
-            </span>
-          )}
-        </div>
-      )}
+        {/* Badges des filtres actifs */}
+        {(filters.category || filters.transport !== 'walking' || filters.distance !== 10) && (
+          <div className="flex flex-wrap gap-2">
+            {filters.category && (
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                📍 {filters.category}
+              </span>
+            )}
+            {filters.transport !== 'walking' && (
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                🚶 {filters.transport}
+              </span>
+            )}
+            {filters.distance !== 10 && (
+              <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                📏 {filters.distance} {filters.unit}
+              </span>
+            )}
+            {filters.maxDuration !== 20 && (
+              <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                ⏱️ {filters.maxDuration} min
+              </span>
+            )}
+          </div>
+        )}
 
-      <div className="mt-2 flex justify-center">
-        <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-600 shadow-sm">
-          {isLoading ? (
-            <span className="flex items-center gap-1">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Recherche en cours...
-            </span>
-          ) : (
-            <span>Prêt pour la recherche</span>
-          )}
+        {/* Indicateur de statut */}
+        <div className="flex justify-center">
+          <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-600 shadow-sm">
+            {isLoading ? (
+              <span className="flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Recherche en cours...
+              </span>
+            ) : (
+              <span>Prêt pour la recherche</span>
+            )}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
