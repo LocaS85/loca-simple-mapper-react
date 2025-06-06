@@ -45,7 +45,7 @@ export const GeoSearchSidebarPopup: React.FC<GeoSearchSidebarPopupProps> = ({
 }) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-80 lg:w-96 p-0">
+      <SheetContent side="left" className="w-80 lg:w-96 p-0 z-[200]">
         <div className="flex flex-col h-full">
           {/* Header */}
           <SheetHeader className="p-4 border-b bg-gray-50">
