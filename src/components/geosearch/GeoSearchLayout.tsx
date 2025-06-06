@@ -11,7 +11,7 @@ import MultiMapToggle from './MultiMapToggle';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Wifi, WifiOff, Search, ChevronUp, ChevronDown } from 'lucide-react';
+import { MapPin, Wifi, WifiOff, Search, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 
 const GeoSearchLayout: React.FC = () => {
   const isMobile = useIsMobile();
@@ -35,7 +35,10 @@ const GeoSearchLayout: React.FC = () => {
   // Show results panel when we have results
   React.useEffect(() => {
     setShowResults(statusInfo.hasResults);
-  }, [statusInfo.hasResults]);
+    if (statusInfo.hasResults && isMobile) {
+      setIsResultsExpanded(false); // Start collapsed on mobile
+    }
+  }, [statusInfo.hasResults, isMobile]);
 
   const handleFiltersChange = (newFilters: any) => {
     updateFiltersWithSearch(newFilters);
@@ -57,16 +60,23 @@ const GeoSearchLayout: React.FC = () => {
 
   // Status indicator component
   const StatusIndicator = () => (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 text-xs sm:text-sm">
       {networkStatus === 'online' ? (
-        <Wifi className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+        <Wifi className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
       ) : (
-        <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+        <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
       )}
-      <span className="text-xs text-muted-foreground">
-        {isLoading ? 'Recherche...' : 
-         statusInfo.hasResults ? `${statusInfo.totalResults} résultat${statusInfo.totalResults > 1 ? 's' : ''}` :
-         'Prêt'}
+      <span className="text-muted-foreground truncate">
+        {isLoading ? (
+          <span className="flex items-center gap-1">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Recherche...
+          </span>
+        ) : statusInfo.hasResults ? (
+          `${statusInfo.totalResults} résultat${statusInfo.totalResults > 1 ? 's' : ''}`
+        ) : (
+          'Prêt'
+        )}
       </span>
     </div>
   );
@@ -78,9 +88,9 @@ const GeoSearchLayout: React.FC = () => {
     if (!hasActiveFilters) return null;
 
     return (
-      <div className="flex flex-wrap gap-1 sm:gap-2 p-2 bg-blue-50 rounded-lg">
+      <div className="flex flex-wrap gap-1 sm:gap-2 p-2 bg-blue-50 rounded-lg overflow-hidden">
         {filters.category && (
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-xs truncate max-w-[120px]">
             📍 {filters.category}
           </Badge>
         )}
@@ -121,8 +131,9 @@ const GeoSearchLayout: React.FC = () => {
             <div className="flex items-center justify-between">
               <StatusIndicator />
               {userLocation && (
-                <Badge variant="outline" className="text-xs">
-                  📍 Position OK
+                <Badge variant="outline" className="text-xs flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  Position OK
                 </Badge>
               )}
             </div>
@@ -199,7 +210,7 @@ const GeoSearchLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Desktop: Enhanced sidebar with responsive width */}
-      <div className="w-80 lg:w-96 bg-white border-r shadow-sm flex flex-col flex-shrink-0">
+      <div className="w-80 lg:w-96 xl:w-[400px] bg-white border-r shadow-sm flex flex-col flex-shrink-0">
         {/* Search controls */}
         <Card className="m-3 lg:m-4 shadow-sm">
           <CardHeader className="pb-3">
@@ -222,8 +233,8 @@ const GeoSearchLayout: React.FC = () => {
             <div className="flex items-center justify-between pt-2 border-t">
               <StatusIndicator />
               {userLocation && (
-                <Badge variant="outline" className="text-xs">
-                  <MapPin className="h-3 w-3 mr-1" />
+                <Badge variant="outline" className="text-xs flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
                   Position OK
                 </Badge>
               )}

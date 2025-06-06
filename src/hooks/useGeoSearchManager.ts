@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -10,6 +10,7 @@ import { GeoSearchFilters } from '@/types/geosearch';
 
 export const useGeoSearchManager = () => {
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
   
   const {
     userLocation,
@@ -36,7 +37,10 @@ export const useGeoSearchManager = () => {
     maximumAge: 300000
   });
 
-  // Initialize Mapbox on mount with proper error handling
+  // Debounced search query
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  // Initialize Mapbox on mount
   useEffect(() => {
     const initMapbox = async () => {
       try {
@@ -66,7 +70,7 @@ export const useGeoSearchManager = () => {
     }
   }, [geoCoordinates, userLocation, setUserLocation]);
 
-  // Handle geolocation errors with better user feedback
+  // Handle geolocation errors
   useEffect(() => {
     if (geoError) {
       console.error('❌ Erreur de géolocalisation:', geoError);
@@ -75,24 +79,23 @@ export const useGeoSearchManager = () => {
         description: "Impossible d'obtenir votre position. Utilisation de la position par défaut.",
         variant: "destructive",
       });
-      // Set default location (Paris) if geolocation fails
       if (!userLocation) {
         setUserLocation([2.3522, 48.8566]);
       }
     }
   }, [geoError, toast, userLocation, setUserLocation]);
 
-  // Debounced search with proper validation
-  const debouncedSearch = useDebounce(async (query: string) => {
-    if (query && typeof query === 'string' && query.trim() && userLocation) {
-      await performSearch(query);
+  // Perform search when debounced query changes
+  useEffect(() => {
+    if (debouncedSearchQuery && userLocation && isMapboxReady) {
+      performSearch(debouncedSearchQuery);
     }
-  }, 500);
+  }, [debouncedSearchQuery, userLocation, isMapboxReady]);
 
-  // Unified search function with enhanced error handling
+  // Main search function
   const performSearch = useCallback(async (query?: string) => {
     if (!userLocation || !isMapboxReady) {
-      console.log('❌ Conditions non remplies pour la recherche - location:', !!userLocation, 'mapbox:', isMapboxReady);
+      console.log('❌ Conditions non remplies pour la recherche');
       return;
     }
 
@@ -100,7 +103,7 @@ export const useGeoSearchManager = () => {
     try {
       let searchResults;
       
-      if (query && typeof query === 'string' && query.trim()) {
+      if (query && query.trim()) {
         console.log('🔍 Recherche par requête:', query);
         searchResults = await geoSearchService.searchByQuery(query, userLocation, filters);
       } else {
@@ -131,7 +134,7 @@ export const useGeoSearchManager = () => {
     }
   }, [userLocation, filters, isMapboxReady, setIsLoading, setResults, toast]);
 
-  // Enhanced filters update with auto-search
+  // Enhanced filters update
   const updateFiltersWithSearch = useCallback((newFilters: Partial<GeoSearchFilters>) => {
     if (!newFilters || typeof newFilters !== 'object') {
       console.warn('❌ Filtres invalides:', newFilters);
@@ -148,17 +151,17 @@ export const useGeoSearchManager = () => {
     
     if (shouldAutoSearch && userLocation && isMapboxReady) {
       console.log('🔄 Auto-recherche déclenchée par changement de filtres');
-      setTimeout(() => performSearch(), 300);
+      setTimeout(() => performSearch(searchQuery), 300);
     }
-  }, [updateFilters, userLocation, isMapboxReady, performSearch]);
+  }, [updateFilters, userLocation, isMapboxReady, performSearch, searchQuery]);
 
-  // Location selection handler with validation
+  // Location selection handler
   const handleLocationSelect = useCallback((location: {
     name: string;
     coordinates: [number, number];
     placeName: string;
   }) => {
-    if (!location || !location.coordinates || !Array.isArray(location.coordinates)) {
+    if (!location?.coordinates || !Array.isArray(location.coordinates)) {
       console.error('❌ Données de lieu invalides:', location);
       return;
     }
@@ -166,6 +169,7 @@ export const useGeoSearchManager = () => {
     console.log('📍 Sélection de lieu:', location);
     setUserLocation(location.coordinates);
     updateFilters({ query: location.name || '' });
+    setSearchQuery(location.name || '');
     
     toast({
       title: "Lieu sélectionné",
@@ -173,30 +177,30 @@ export const useGeoSearchManager = () => {
       variant: "default",
     });
     
-    setTimeout(() => performSearch(), 500);
-  }, [setUserLocation, updateFilters, performSearch, toast]);
+    setTimeout(() => performSearch(location.name), 500);
+  }, [setUserLocation, updateFilters, performSearch]);
 
-  // My location handler with proper async handling
+  // Search handler
+  const handleSearch = useCallback((query: string) => {
+    if (typeof query !== 'string') {
+      console.log('❌ Requête de recherche invalide:', query);
+      return;
+    }
+    console.log('🔍 Déclenchement de recherche:', query);
+    setSearchQuery(query);
+  }, []);
+
+  // My location handler
   const handleMyLocationClick = useCallback(async () => {
     try {
       console.log('🌍 Demande de géolocalisation...');
       await requestLocation();
       
-      // Wait a bit for coordinates to update
-      setTimeout(() => {
-        if (geoCoordinates) {
-          const coordinates: [number, number] = [geoCoordinates[0], geoCoordinates[1]];
-          setUserLocation(coordinates);
-          
-          toast({
-            title: "Position mise à jour",
-            description: "Votre localisation a été actualisée avec succès",
-            variant: "default",
-          });
-          
-          setTimeout(() => performSearch(), 500);
-        }
-      }, 1000);
+      toast({
+        title: "Localisation en cours",
+        description: "Recherche de votre position...",
+        variant: "default",
+      });
     } catch (error) {
       console.error('❌ Erreur de géolocalisation:', error);
       toast({
@@ -205,24 +209,14 @@ export const useGeoSearchManager = () => {
         variant: "destructive",
       });
     }
-  }, [requestLocation, geoCoordinates, setUserLocation, performSearch, toast]);
-
-  // Search handler with proper validation
-  const handleSearch = useCallback((query?: string) => {
-    if (!query || typeof query !== 'string' || !query.trim()) {
-      console.log('❌ Requête de recherche invalide:', query);
-      return;
-    }
-    console.log('🔍 Déclenchement de recherche:', query);
-    debouncedSearch(query);
-  }, [debouncedSearch]);
+  }, [requestLocation, toast]);
 
   // Transport change handler
   const handleTransportChange = useCallback((transport: TransportMode) => {
     updateFiltersWithSearch({ transport });
   }, [updateFiltersWithSearch]);
 
-  // Enhanced status information
+  // Status information
   const statusInfo = useMemo(() => ({
     hasResults: Array.isArray(results) && results.length > 0,
     isReady: isMapboxReady && userLocation !== null,
@@ -241,6 +235,7 @@ export const useGeoSearchManager = () => {
     isMapboxReady,
     networkStatus,
     statusInfo,
+    searchQuery,
     
     // Actions
     updateFiltersWithSearch,
@@ -249,9 +244,6 @@ export const useGeoSearchManager = () => {
     handleTransportChange,
     handleMyLocationClick,
     performSearch,
-    clearCache,
-    
-    // Utilities
-    debouncedSearch
+    clearCache
   };
 };
