@@ -34,9 +34,7 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
 
   return (
     <>
-      {/* Main controls - responsive layout */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-4xl mx-auto">
-        {/* Search bar with integrated controls */}
         <div className="flex-1 flex gap-2">
           <div className="flex-1">
             <SearchPopup
@@ -47,7 +45,6 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
             />
           </div>
           
-          {/* Controls inline on desktop, below on mobile */}
           <div className={`flex gap-2 ${isMobile ? 'w-full justify-between' : 'shrink-0'}`}>
             <FiltersFloatingButton
               filters={filters}
@@ -56,7 +53,7 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
               isLoading={isLoading}
             />
             <EnhancedLocationButton
-              onLocationDetected={onMyLocationClick}
+              onLocationDetected={(coords) => onMyLocationClick(coords)}
               disabled={isLoading}
               variant="outline"
               size="sm"
@@ -66,7 +63,6 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
         </div>
       </div>
 
-      {/* Active filters indicators */}
       {(filters.category || filters.transport !== 'walking' || filters.distance !== 10) && (
         <div className="mt-3 flex flex-wrap gap-2 max-w-4xl mx-auto">
           {filters.category && (
@@ -92,7 +88,6 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
         </div>
       )}
 
-      {/* Results count indicator */}
       <div className="mt-2 flex justify-center">
         <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-600 shadow-sm">
           {isLoading ? (
