@@ -1,30 +1,36 @@
 
 import React, { useState } from 'react';
-import { Loader2, Navigation, Target, Crosshair } from 'lucide-react';
+import { Loader2, Navigation, Target, Crosshair, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface EnhancedLocationButtonProps {
   onLocationDetected: (coordinates: [number, number]) => void;
   className?: string;
   disabled?: boolean;
+  variant?: 'icon' | 'text';
+  size?: 'sm' | 'default' | 'lg';
 }
 
 const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
   onLocationDetected,
   className = '',
-  disabled = false
+  disabled = false,
+  variant = 'icon',
+  size = 'sm'
 }) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const { toast } = useToast();
+  const { userLocation, setUserLocation } = useGeoSearchStore();
 
   const requestLocation = async () => {
     if (!navigator.geolocation) {
       toast({
-        title: "Géolocalisation non supportée",
-        description: "Votre navigateur ne supporte pas la géolocalisation",
+        title: "Geolocation not supported",
+        description: "Your browser doesn't support geolocation",
         variant: "destructive",
       });
       return;
@@ -33,7 +39,7 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     setIsDetecting(true);
 
     try {
-      // Vérifier les permissions d'abord
+      // Check permissions first
       if ('permissions' in navigator) {
         const permission = await navigator.permissions.query({ name: 'geolocation' });
         setHasPermission(permission.state === 'granted');
@@ -57,37 +63,40 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
       ];
 
       setAccuracy(position.coords.accuracy);
-      console.log('📍 Position détectée:', coordinates, 'Précision:', position.coords.accuracy);
+      console.log('📍 Position detected:', coordinates, 'Accuracy:', position.coords.accuracy);
+      
+      // Update store
+      setUserLocation(coordinates);
       onLocationDetected(coordinates);
 
       toast({
-        title: "Position détectée",
-        description: `Précision: ${Math.round(position.coords.accuracy)}m`,
+        title: "Position detected",
+        description: `Accuracy: ${Math.round(position.coords.accuracy)}m`,
         variant: "default",
       });
 
     } catch (error: any) {
-      console.error('❌ Erreur de géolocalisation:', error);
+      console.error('❌ Geolocation error:', error);
       
-      let errorMessage = "Impossible d'obtenir votre position";
-      let errorTitle = "Erreur de localisation";
+      let errorMessage = "Unable to get your position";
+      let errorTitle = "Location error";
 
       switch (error.code) {
         case 1: // PERMISSION_DENIED
-          errorMessage = "Géolocalisation refusée. Autorisez l'accès dans les paramètres du navigateur.";
-          errorTitle = "Permission refusée";
+          errorMessage = "Geolocation denied. Allow access in browser settings.";
+          errorTitle = "Permission denied";
           setHasPermission(false);
           break;
         case 2: // POSITION_UNAVAILABLE
-          errorMessage = "Position indisponible. Vérifiez votre connexion GPS.";
-          errorTitle = "Position indisponible";
+          errorMessage = "Position unavailable. Check your GPS connection.";
+          errorTitle = "Position unavailable";
           break;
         case 3: // TIMEOUT
-          errorMessage = "Délai d'attente dépassé. Réessayez.";
-          errorTitle = "Délai dépassé";
+          errorMessage = "Timeout exceeded. Try again.";
+          errorTitle = "Timeout";
           break;
         default:
-          errorMessage = "Erreur inconnue lors de la géolocalisation.";
+          errorMessage = "Unknown geolocation error.";
       }
 
       toast({
@@ -110,23 +119,49 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     if (accuracy && accuracy < 50) {
       return <Crosshair className="h-4 w-4 text-green-600" />;
     }
+    if (userLocation) {
+      return <MapPin className="h-4 w-4 text-blue-600" />;
+    }
     return <Target className="h-4 w-4" />;
   };
 
   const getButtonVariant = () => {
     if (accuracy && accuracy < 50) return "default";
     if (hasPermission === false) return "destructive";
+    if (userLocation) return "default";
     return "outline";
   };
+
+  const getButtonText = () => {
+    if (isDetecting) return "Detecting...";
+    if (userLocation) return "Update location";
+    return "My location";
+  };
+
+  if (variant === 'text') {
+    return (
+      <Button
+        onClick={requestLocation}
+        disabled={disabled || isDetecting}
+        variant={getButtonVariant() as any}
+        size={size}
+        className={`${className} bg-white/90 backdrop-blur-sm hover:bg-white transition-all duration-200 shadow-md`}
+        title="Get my location"
+      >
+        {getButtonIcon()}
+        <span className="ml-2">{getButtonText()}</span>
+      </Button>
+    );
+  }
 
   return (
     <Button
       onClick={requestLocation}
       disabled={disabled || isDetecting}
       variant={getButtonVariant() as any}
-      size="sm"
+      size={size}
       className={`w-10 h-10 p-0 bg-white/90 backdrop-blur-sm hover:bg-white transition-all duration-200 shadow-md ${className}`}
-      title="Ma position"
+      title="My location"
     >
       {getButtonIcon()}
     </Button>

@@ -4,6 +4,7 @@ import { GeoSearchFilters } from '@/types/geosearch';
 import SearchPopup from './SearchPopup';
 import FiltersFloatingButton from './FiltersFloatingButton';
 import EnhancedLocationButton from './EnhancedLocationButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FloatingControlsProps {
   filters: GeoSearchFilters;
@@ -24,56 +25,81 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
   onResetFilters,
   isLoading = false
 }) => {
+  const isMobile = useIsMobile();
+
   return (
     <>
-      {/* Contrôles principaux en haut - layout responsive */}
+      {/* Main controls at top - responsive layout */}
       <div className="absolute top-4 left-4 right-4 z-20">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          {/* Barre de recherche */}
-          <div className="flex-1">
-            <SearchPopup
-              filters={filters}
-              onLocationSelect={onLocationSelect}
-              onSearch={onSearch}
-              isLoading={isLoading}
-            />
-          </div>
-          
-          {/* Contrôles - Filtres et Ma Position */}
-          <div className="flex gap-2 justify-end sm:justify-start">
-            <FiltersFloatingButton
-              filters={filters}
-              onChange={onFiltersChange}
-              onReset={onResetFilters}
-              isLoading={isLoading}
-            />
-            <EnhancedLocationButton
-              onLocationDetected={onMyLocationClick}
-              disabled={isLoading}
-            />
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-4xl mx-auto">
+          {/* Search bar with integrated controls */}
+          <div className="flex-1 flex gap-2">
+            <div className="flex-1">
+              <SearchPopup
+                filters={filters}
+                onLocationSelect={onLocationSelect}
+                onSearch={onSearch}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            {/* Controls inline on desktop, below on mobile */}
+            <div className={`flex gap-2 ${isMobile ? 'w-full justify-between' : 'shrink-0'}`}>
+              <FiltersFloatingButton
+                filters={filters}
+                onChange={onFiltersChange}
+                onReset={onResetFilters}
+                isLoading={isLoading}
+              />
+              <EnhancedLocationButton
+                onLocationDetected={onMyLocationClick}
+                disabled={isLoading}
+                variant={isMobile ? 'icon' : 'icon'}
+                size="sm"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Indicateurs de filtres actifs */}
+        {/* Active filters indicators */}
         {(filters.category || filters.transport !== 'walking' || filters.distance !== 10) && (
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2 max-w-4xl mx-auto">
             {filters.category && (
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                {filters.category}
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                📍 {filters.category}
               </span>
             )}
             {filters.transport !== 'walking' && (
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                {filters.transport}
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                🚶 {filters.transport}
               </span>
             )}
             {filters.distance !== 10 && (
-              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-medium">
-                {filters.distance} {filters.unit}
+              <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                📏 {filters.distance} {filters.unit}
+              </span>
+            )}
+            {filters.maxDuration !== 20 && (
+              <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+                ⏱️ {filters.maxDuration} min
               </span>
             )}
           </div>
         )}
+
+        {/* Results count indicator */}
+        <div className="mt-2 flex justify-center">
+          <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-600 shadow-sm">
+            {isLoading ? (
+              <span className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                Searching...
+              </span>
+            ) : (
+              <span>Ready to search</span>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );

@@ -14,7 +14,7 @@ import { usePOIIntegration } from '@/hooks/usePOIIntegration';
 import UniqueMapMarkers from './map/UniqueMapMarkers';
 import MapStatusIndicator from './map/MapStatusIndicator';
 import { MapCluster, EnhancedMapboxDirections } from '@/components/map';
-import { MapPin } from 'lucide-react';
+import { MapPin, Wifi, WifiOff } from 'lucide-react';
 
 interface MapViewProps {
   transport?: TransportMode;
@@ -57,7 +57,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     
     try {
       if (!isMapboxTokenValid()) {
-        setMapError('Token Mapbox invalide - utilisez un token public (pk.)');
+        setMapError('Invalid Mapbox token - use a public token (pk.)');
         return;
       }
 
@@ -75,8 +75,11 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       // Add navigation controls
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
       
+      // Add fullscreen control
+      newMap.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+      
       newMap.on('load', () => {
-        console.log('✅ Carte chargée avec succès');
+        console.log('✅ Map loaded successfully');
         setMapLoaded(true);
         setMapError(null);
       });
@@ -86,8 +89,13 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       });
       
       newMap.on('error', (e) => {
-        console.error('❌ Erreur de carte:', e);
-        setMapError('Erreur de chargement de la carte');
+        console.error('❌ Map error:', e);
+        setMapError('Map loading error');
+      });
+
+      // Add click handler for coordinates
+      newMap.on('click', (e) => {
+        console.log('Map clicked at:', e.lngLat);
       });
       
       map.current = newMap;
@@ -100,8 +108,8 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         setMapLoaded(false);
       };
     } catch (error) {
-      console.error('❌ Erreur d\'initialisation de la carte:', error);
-      setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
+      console.error('❌ Map initialization error:', error);
+      setMapError(error instanceof Error ? error.message : 'Unknown error');
     }
   }, [isMobile, userLocation, isMapboxReady, toast, t, setUserLocation, loadResults]);
 
@@ -121,8 +129,8 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         });
         
         const padding = isMobile 
-          ? { top: 100, bottom: 80, left: 20, right: 20 }
-          : { top: 80, bottom: 60, left: 60, right: 60 };
+          ? { top: 120, bottom: 100, left: 20, right: 20 }
+          : { top: 100, bottom: 80, left: 80, right: 80 };
         
         map.current.fitBounds(mapBounds, {
           padding,
@@ -137,7 +145,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         });
       }
     } catch (error) {
-      console.error('❌ Erreur lors de l\'ajustement des limites:', error);
+      console.error('❌ Error fitting bounds:', error);
     }
   }, 300);
 
@@ -162,16 +170,16 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         const duration = Math.round(directions.duration / 60);
         
         toast({
-          title: "Itinéraire calculé",
+          title: "Route calculated",
           description: `${distance} km • ${duration} min`,
           variant: "default",
         });
       }
     } catch (error) {
-      console.error('❌ Erreur de calcul d\'itinéraire:', error);
+      console.error('❌ Route calculation error:', error);
       toast({
-        title: "Erreur d'itinéraire",
-        description: "Impossible de calculer l'itinéraire",
+        title: "Route error",
+        description: "Unable to calculate route",
         variant: "destructive",
       });
     }
@@ -183,7 +191,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   };
 
   const handleDirectionsClick = (coordinates: [number, number]) => {
-    // Trouver le POI correspondant et déclencher le calcul d'itinéraire
     const poi = pointsOfInterest.find(p => 
       p.coordinates[0] === coordinates[0] && p.coordinates[1] === coordinates[1]
     );
@@ -202,30 +209,50 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     }
   };
 
-  // Enhanced error display
+  // Enhanced error display with network status
   if (mapboxError || !isMapboxReady || mapError) {
     return (
-      <div className="w-full h-full pt-12 pb-16 flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md text-center">
+      <div className="w-full h-full pt-12 pb-16 flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md text-center mx-4">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MapPin className="h-8 w-8 text-red-600" />
+            {networkStatus === 'offline' ? (
+              <WifiOff className="h-8 w-8 text-red-600" />
+            ) : (
+              <MapPin className="h-8 w-8 text-red-600" />
+            )}
           </div>
           <h3 className="text-xl font-semibold text-red-600 mb-4">
-            Problème de configuration
+            {networkStatus === 'offline' ? 'Connection Problem' : 'Configuration Problem'}
           </h3>
           <p className="text-gray-600 mb-6">
-            {mapError || mapboxError || 'Token Mapbox requis pour afficher la carte'}
+            {mapError || mapboxError || 'Mapbox token required to display the map'}
           </p>
-          {networkStatus === 'offline' && (
-            <p className="text-sm text-orange-600 mb-4 flex items-center justify-center gap-2">
-              <span>📶</span> Connexion réseau indisponible
-            </p>
-          )}
+          
+          {/* Network status indicator */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            {networkStatus === 'offline' ? (
+              <>
+                <WifiOff className="h-4 w-4 text-red-500" />
+                <span className="text-sm text-red-600">Offline</span>
+              </>
+            ) : networkStatus === 'slow' ? (
+              <>
+                <Wifi className="h-4 w-4 text-orange-500" />
+                <span className="text-sm text-orange-600">Slow connection</span>
+              </>
+            ) : (
+              <>
+                <Wifi className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-600">Online</span>
+              </>
+            )}
+          </div>
+          
           <button
             onClick={() => window.location.reload()}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
           >
-            Réessayer
+            Retry
           </button>
         </div>
       </div>
@@ -240,11 +267,12 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             <div className="text-center bg-white p-6 rounded-lg shadow-lg">
               <LoadingSpinner />
               <p className="mt-3 text-sm text-gray-600 font-medium">
-                {!mapLoaded ? 'Chargement de la carte...' : 'Recherche en cours...'}
+                {!mapLoaded ? 'Loading map...' : 'Searching...'}
               </p>
               {networkStatus === 'slow' && (
-                <p className="text-xs text-orange-600 mt-2">
-                  Connexion lente détectée...
+                <p className="text-xs text-orange-600 mt-2 flex items-center justify-center gap-1">
+                  <Wifi className="h-3 w-3" />
+                  Slow connection detected...
                 </p>
               )}
             </div>
@@ -253,7 +281,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         
         {mapLoaded && map.current && (
           <>
-            {/* Marqueurs uniques (utilisateur + POI) */}
+            {/* Unique markers (user + POI) */}
             <UniqueMapMarkers
               map={map.current}
               userLocation={userLocation}
@@ -261,7 +289,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
               onRouteRequest={handleRouteRequest}
             />
 
-            {/* Clustering des POI */}
+            {/* POI clustering */}
             {pointsOfInterest.length > 0 && (
               <MapCluster
                 pointsOfInterest={pointsOfInterest}
@@ -276,7 +304,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
               />
             )}
 
-            {/* Directions intégrées */}
+            {/* Integrated directions */}
             {userLocation && (
               <EnhancedMapboxDirections
                 map={map.current}

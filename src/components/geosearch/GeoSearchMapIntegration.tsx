@@ -25,7 +25,7 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
     updateFilters
   } = useGeoSearchStore();
 
-  // Initialiser la carte si nécessaire
+  // Initialize map if needed
   useEffect(() => {
     if (!mapRef.current && userLocation) {
       try {
@@ -44,10 +44,10 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
         });
 
       } catch (error) {
-        console.error('❌ Erreur d\'initialisation de la carte:', error);
+        console.error('❌ Map initialization error:', error);
         toast({
-          title: "Erreur de carte",
-          description: "Impossible d'initialiser la carte intégrée",
+          title: "Map Error",
+          description: "Unable to initialize integrated map",
           variant: "destructive",
         });
       }
@@ -63,7 +63,7 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
     showMultiDirections?: boolean;
     distanceUnit?: 'km' | 'mi';
   }) => {
-    // Convertir les filtres pour le store GeoSearch
+    // Convert filters for GeoSearch store
     updateFilters({
       category: newFilters.category,
       transport: newFilters.transportMode,
@@ -90,7 +90,7 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
     }
   };
 
-  // Convertir les résultats pour MultiRouteDisplay
+  // Convert results for MultiRouteDisplay
   const destinations = results.map(result => ({
     id: result.id,
     coordinates: result.coordinates,
@@ -101,20 +101,20 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
     <div className="relative w-full h-full">
       <div id="geo-map-container" className="w-full h-full" />
       
-      {/* Intégration de la recherche avancée */}
+      {/* Advanced search integration */}
       {map && (
         <div className="absolute top-4 left-4 z-10">
           <EnhancedMapboxSearch
             mapRef={{ current: map }}
             onResult={handleSearchResult}
             proximity={userLocation || undefined}
-            placeholder="Rechercher un lieu..."
+            placeholder="Search for a place..."
             className="w-80"
           />
         </div>
       )}
 
-      {/* Affichage des routes multiples si activé */}
+      {/* Multi-route display if enabled */}
       {map && userLocation && filters.showMultiDirections && destinations.length > 0 && (
         <MultiRouteDisplay
           map={map}
@@ -126,14 +126,16 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
         />
       )}
 
-      {/* Vue catégorie intégrée (masquée mais connectée) */}
+      {/* Hidden integrated category view (connected but hidden) */}
       <div className="hidden">
         <CategoryMapView
           onFiltersChange={handleFiltersChange}
           selectedCategory={filters.category ? { 
             id: filters.category, 
             name: filters.category,
-            color: '#3B82F6'
+            color: '#3B82F6',
+            icon: 'map-pin',
+            subcategories: []
           } : null}
           initialTransportMode={filters.transport}
           initialMaxDistance={filters.distance}

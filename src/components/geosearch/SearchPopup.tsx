@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
-import { Search, MapPin, Loader2 } from 'lucide-react';
+import { Search, MapPin, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface SearchPopupProps {
   filters: GeoSearchFilters;
@@ -27,6 +28,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
   const debouncedQuery = useDebounce(searchQuery, 300);
+  const { userLocation } = useGeoSearchStore();
 
   React.useEffect(() => {
     if (debouncedQuery.length >= 2) {
@@ -42,7 +44,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
     
     setIsSearching(true);
     try {
-      const center: [number, number] = [2.3522, 48.8566];
+      const center: [number, number] = userLocation || [2.3522, 48.8566];
       const results = await enhancedGeocodingService.searchPlaces(query, center, {
         limit: 5,
         radius: 50,
@@ -52,7 +54,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
       setSuggestions(results);
       setShowSuggestions(results.length > 0);
     } catch (error) {
-      console.error('❌ Erreur de recherche:', error);
+      console.error('❌ Search error:', error);
       setSuggestions([]);
     } finally {
       setIsSearching(false);
@@ -77,20 +79,44 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
     setOpen(false);
   };
 
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const getPlaceholder = () => {
+    if (filters.category) {
+      return `Search ${filters.category.toLowerCase()}...`;
+    }
+    return "Search restaurants, hotels, places...";
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="w-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white justify-start text-left"
+          className="w-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white justify-start text-left h-10 transition-all duration-200"
         >
-          <Search className="h-4 w-4 mr-2" />
-          <span className="text-gray-500">Rechercher un lieu...</span>
+          <Search className="h-4 w-4 mr-2 text-gray-400" />
+          <span className="text-gray-500 truncate">
+            {searchQuery || getPlaceholder()}
+          </span>
+          {searchQuery && (
+            <X 
+              className="h-3 w-3 ml-auto text-gray-400 hover:text-gray-600" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearSearch();
+              }}
+            />
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Rechercher un lieu</DialogTitle>
+          <DialogTitle>Search for a place</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <form onSubmit={handleSearch} className="flex gap-2">
@@ -98,18 +124,28 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Restaurant, hôtel, adresse..."
+                placeholder={getPlaceholder()}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 pr-10"
                 disabled={isLoading}
+                autoFocus
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
               {isSearching && (
                 <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
               )}
             </div>
-            <Button type="submit" disabled={isLoading} size="sm">
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "OK"}
+            <Button type="submit" disabled={isLoading || !searchQuery.trim()} size="sm">
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
             </Button>
           </form>
 
@@ -118,7 +154,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3"
+                  className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3 transition-colors"
                   onClick={() => handleSuggestionClick(suggestion)}
                 >
                   <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
@@ -129,9 +165,20 @@ const SearchPopup: React.FC<SearchPopupProps> = ({
                     <div className="text-xs text-gray-500 truncate">
                       {suggestion.address}
                     </div>
+                    {suggestion.distance && (
+                      <div className="text-xs text-blue-600">
+                        {Math.round(suggestion.distance * 10) / 10} km away
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {searchQuery.length >= 2 && suggestions.length === 0 && !isSearching && (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              No suggestions found for "{searchQuery}"
             </div>
           )}
         </div>
