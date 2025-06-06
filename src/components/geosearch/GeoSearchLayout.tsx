@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -75,7 +76,7 @@ const GeoSearchLayout: React.FC = () => {
         <div className="flex-1 relative overflow-hidden">
           <MapView transport={filters.transport} />
           
-          {/* Barre de recherche avec menu burger aligné */}
+          {/* Barre de recherche avec menu burger - Position fixe */}
           <div className="absolute top-3 left-3 right-3 z-[100]">
             <div className="flex items-center gap-2">
               {/* Menu burger avec hauteur exacte de la barre de recherche */}
@@ -105,7 +106,7 @@ const GeoSearchLayout: React.FC = () => {
             </div>
           </div>
 
-          {/* Boutons d'action en bas à droite - responsive */}
+          {/* Boutons d'action en bas à droite */}
           <div className="absolute bottom-20 right-3 z-30 flex flex-col gap-2">
             <MultiMapToggle />
             <PrintButton results={results} />
@@ -129,7 +130,7 @@ const GeoSearchLayout: React.FC = () => {
       <div className="flex-1 relative overflow-hidden">
         <MapView transport={filters.transport} />
         
-        {/* Barre de recherche avec menu burger - Desktop */}
+        {/* Barre de recherche avec menu burger - Desktop - Position fixe */}
         <div className="absolute top-4 left-4 right-4 z-[100]">
           <div className="flex items-start gap-3 max-w-2xl">
             {/* Menu burger aligné avec la barre de recherche */}

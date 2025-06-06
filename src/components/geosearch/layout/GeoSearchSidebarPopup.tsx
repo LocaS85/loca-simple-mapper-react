@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { MapPin, Settings, RotateCcw, Menu, X } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { MapPin, Settings, RotateCcw } from 'lucide-react';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import EnhancedSearchBar from '../../enhanced/EnhancedSearchBar';
 import EnhancedResultsList from '../../enhanced/EnhancedResultsList';
@@ -46,16 +45,6 @@ export const GeoSearchSidebarPopup: React.FC<GeoSearchSidebarPopupProps> = ({
 }) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="absolute top-4 left-4 z-30 bg-white/90 backdrop-blur-sm shadow-md hover:bg-white"
-        >
-          <Menu className="h-4 w-4 mr-2" />
-          Menu
-        </Button>
-      </SheetTrigger>
       <SheetContent side="left" className="w-80 lg:w-96 p-0">
         <div className="flex flex-col h-full">
           {/* Header */}
