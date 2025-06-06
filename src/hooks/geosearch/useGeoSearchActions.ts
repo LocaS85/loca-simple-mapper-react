@@ -1,10 +1,10 @@
 
-import { useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useCallback, useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useToast } from '@/hooks/use-toast';
 import { geoSearchService } from '@/services/geoSearchService';
-import { TransportMode } from '@/lib/data/transportModes';
 import { GeoSearchFilters } from '@/types/geosearch';
+import { TransportMode } from '@/lib/data/transportModes';
 
 interface UseGeoSearchActionsProps {
   userLocation: [number, number] | null;
@@ -30,8 +30,6 @@ export const useGeoSearchActions = ({
   setSearchQuery
 }: UseGeoSearchActionsProps) => {
   const { toast } = useToast();
-
-  // Debounced search query
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   // Main search function
@@ -120,7 +118,7 @@ export const useGeoSearchActions = ({
     });
     
     setTimeout(() => performSearch(location.name), 500);
-  }, [setUserLocation, updateFilters, setSearchQuery, performSearch, toast]);
+  }, [setUserLocation, updateFilters, performSearch, setSearchQuery, toast]);
 
   // Search handler
   const handleSearch = useCallback((query: string) => {

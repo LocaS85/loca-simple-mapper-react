@@ -1,11 +1,14 @@
 
 import React from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin } from 'lucide-react';
-import FloatingControls from '../FloatingControls';
-import EnhancedResultsList from '../../enhanced/EnhancedResultsList';
+import { Button } from '@/components/ui/button';
+import { MapPin, Settings, RotateCcw } from 'lucide-react';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
+import EnhancedSearchBar from '../../enhanced/EnhancedSearchBar';
+import EnhancedResultsList from '../../enhanced/EnhancedResultsList';
+import EnhancedLocationButton from '../EnhancedLocationButton';
 
 interface GeoSearchSidebarProps {
   filters: GeoSearchFilters;
@@ -13,8 +16,9 @@ interface GeoSearchSidebarProps {
   results: SearchResult[];
   isLoading: boolean;
   statusInfo: {
-    hasResults: boolean;
     totalResults: number;
+    hasResults: boolean;
+    isReady: boolean;
   };
   onLocationSelect: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
   onSearch: (query: string) => void;
@@ -36,85 +40,113 @@ export const GeoSearchSidebar: React.FC<GeoSearchSidebarProps> = ({
   onResetFilters
 }) => {
   return (
-    <div className="w-80 lg:w-96 xl:w-[400px] bg-white border-r shadow-sm flex flex-col flex-shrink-0">
-      {/* Search controls */}
-      <Card className="m-3 lg:m-4 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base lg:text-lg flex items-center gap-2">
-            <Search className="h-4 w-4 lg:h-5 lg:w-5 text-blue-500" />
+    <div className="w-80 lg:w-96 bg-white border-r shadow-sm flex flex-col h-full">
+      {/* Header */}
+      <div className="p-4 border-b bg-gray-50">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-lg font-semibold text-gray-900">
             Recherche géographique
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 lg:space-y-4">
-          <FloatingControls
-            filters={filters}
-            onLocationSelect={onLocationSelect}
+          </h1>
+          {userLocation && (
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              Position OK
+            </Badge>
+          )}
+        </div>
+        
+        {/* Search bar */}
+        <div className="space-y-2">
+          <EnhancedSearchBar
+            value={filters.query || ''}
             onSearch={onSearch}
-            onMyLocationClick={onMyLocationClick}
-            onFiltersChange={onFiltersChange}
-            onResetFilters={onResetFilters}
+            onLocationSelect={onLocationSelect}
             isLoading={isLoading}
+            placeholder="Rechercher des lieux..."
           />
           
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <span className="text-muted-foreground truncate">
-                {isLoading ? 'Recherche...' : statusInfo.hasResults ? 
-                  `${statusInfo.totalResults} résultat${statusInfo.totalResults > 1 ? 's' : ''}` : 'Prêt'}
-              </span>
-            </div>
-            {userLocation && (
-              <Badge variant="outline" className="text-xs flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                Position OK
+          <div className="flex gap-2">
+            <EnhancedLocationButton
+              onLocationDetected={onMyLocationClick}
+              disabled={isLoading}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onResetFilters}
+              className="px-3"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Active filters */}
+      {(filters.category || filters.transport !== 'walking' || filters.distance !== 10) && (
+        <div className="p-4 bg-blue-50 border-b">
+          <div className="flex items-center gap-2 mb-2">
+            <Settings className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-900">Filtres actifs</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {filters.category && (
+              <Badge variant="secondary" className="text-xs">
+                📍 {filters.category}
+              </Badge>
+            )}
+            {filters.transport !== 'walking' && (
+              <Badge variant="secondary" className="text-xs">
+                🚶 {filters.transport}
+              </Badge>
+            )}
+            {filters.distance !== 10 && (
+              <Badge variant="secondary" className="text-xs">
+                📏 {filters.distance} {filters.unit}
               </Badge>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
       {/* Results section */}
-      <div className="flex-1 overflow-hidden mx-3 lg:mx-4 mb-3 lg:mb-4">
-        {statusInfo.hasResults ? (
-          <Card className="h-full flex flex-col">
-            <CardHeader className="pb-3 flex-shrink-0">
-              <CardTitle className="text-sm lg:text-base flex items-center justify-between">
-                <span>Résultats de recherche</span>
-                <Badge variant="secondary" className="text-xs">
-                  {statusInfo.totalResults}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 flex-1 overflow-hidden">
-              <div className="h-full">
-                <EnhancedResultsList
-                  results={results}
-                  isLoading={isLoading}
-                  onNavigate={(coords) => {
-                    console.log('Navigate to:', coords);
-                  }}
-                  className="px-4 lg:px-6"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="h-full">
-            <CardContent className="flex items-center justify-center h-full">
-              <div className="text-center p-4 lg:p-8">
-                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="h-6 w-6 lg:h-8 lg:w-8 text-blue-400" />
-                </div>
-                <h3 className="font-medium mb-2 text-gray-900 text-sm lg:text-base">
-                  Prêt à rechercher
-                </h3>
-                <p className="text-xs lg:text-sm text-gray-500 max-w-xs">
-                  Saisissez un terme de recherche ou sélectionnez une catégorie pour commencer
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      <div className="flex-1 overflow-hidden">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-gray-900">
+              Résultats
+            </h3>
+            <Badge variant="outline" className="text-xs">
+              {statusInfo.totalResults}
+            </Badge>
+          </div>
+        </div>
+        
+        <ScrollArea className="flex-1 h-full">
+          <div className="p-4">
+            <EnhancedResultsList
+              results={results}
+              isLoading={isLoading}
+              onNavigate={(coords) => {
+                console.log('Navigate to:', coords);
+              }}
+            />
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* Status footer */}
+      <div className="p-4 border-t bg-gray-50">
+        <div className="text-xs text-gray-600 text-center">
+          {statusInfo.isReady ? (
+            <span className="text-green-600">✓ Prêt pour la recherche</span>
+          ) : (
+            <span className="text-orange-600">⏳ Initialisation...</span>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import SearchPopup from './SearchPopup';
 import FiltersFloatingButton from './FiltersFloatingButton';
 import EnhancedLocationButton from './EnhancedLocationButton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Loader2 } from 'lucide-react';
 
 interface FloatingControlsProps {
   filters: GeoSearchFilters;
@@ -27,6 +28,10 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
 }) => {
   const isMobile = useIsMobile();
 
+  const handleSearch = (query: string) => {
+    onSearch(query);
+  };
+
   return (
     <>
       {/* Main controls at top - responsive layout */}
@@ -38,7 +43,7 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
               <SearchPopup
                 filters={filters}
                 onLocationSelect={onLocationSelect}
-                onSearch={onSearch}
+                onSearch={handleSearch}
                 isLoading={isLoading}
               />
             </div>
@@ -92,11 +97,11 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
           <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-gray-600 shadow-sm">
             {isLoading ? (
               <span className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                Searching...
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Recherche en cours...
               </span>
             ) : (
-              <span>Ready to search</span>
+              <span>Prêt pour la recherche</span>
             )}
           </div>
         </div>
