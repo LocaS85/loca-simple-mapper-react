@@ -5,16 +5,13 @@ import { TransportMode } from '@/lib/data/transportModes';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { useTranslation } from 'react-i18next';
-import { useGeoSearchStore } from '@/store/geoSearchStore';
-import { mapboxApiService } from '@/services/mapboxApiService';
+import { useGeoSearchCoordination } from '@/hooks/useGeoSearchCoordination';
 import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
 import { usePOIIntegration } from '@/hooks/usePOIIntegration';
 import UniqueMapMarkers from './map/UniqueMapMarkers';
-import MapStatusIndicator from './map/MapStatusIndicator';
 import { MapCluster, EnhancedMapboxDirections } from '@/components/map';
 import { MapPin, Wifi, WifiOff } from 'lucide-react';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 interface MapViewProps {
   transport?: TransportMode;
@@ -26,23 +23,18 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [zoom, setZoom] = useState(12);
-  const [selectedPOI, setSelectedPOI] = useState<any>(null);
-  const [showPopup, setShowPopup] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
-  const { t } = useTranslation();
-  const { trackRender, debounce, throttle } = usePerformanceOptimization();
+  const { trackRender, throttle } = usePerformanceOptimization();
   
   const {
     userLocation,
     results,
     isLoading,
     isMapboxReady,
-    mapboxError,
     networkStatus,
-    setUserLocation,
-    loadResults
-  } = useGeoSearchStore();
+    statusInfo
+  } = useGeoSearchCoordination();
 
   const { pointsOfInterest, bounds } = usePOIIntegration();
 
@@ -53,11 +45,11 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
 
   // Initialize map with enhanced error handling
   useEffect(() => {
-    if (!mapContainer.current || !isMapboxReady) return;
+    if (!mapContainer.current || !isMapboxReady || !statusInfo.isReady) return;
     
     try {
       if (!isMapboxTokenValid()) {
-        setMapError('Invalid Mapbox token - use a public token (pk.)');
+        setMapError('Token Mapbox invalide');
         return;
       }
 
@@ -72,14 +64,12 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         attributionControl: false
       });
       
-      // Add navigation controls
+      // Add controls
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
-      // Add fullscreen control
       newMap.addControl(new mapboxgl.FullscreenControl(), 'top-right');
       
       newMap.on('load', () => {
-        console.log('✅ Map loaded successfully');
+        console.log('✅ Carte chargée avec succès');
         setMapLoaded(true);
         setMapError(null);
       });
@@ -89,13 +79,8 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       });
       
       newMap.on('error', (e) => {
-        console.error('❌ Map error:', e);
-        setMapError('Map loading error');
-      });
-
-      // Add click handler for coordinates
-      newMap.on('click', (e) => {
-        console.log('Map clicked at:', e.lngLat);
+        console.error('❌ Erreur de carte:', e);
+        setMapError('Erreur de chargement de la carte');
       });
       
       map.current = newMap;
@@ -108,109 +93,47 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         setMapLoaded(false);
       };
     } catch (error) {
-      console.error('❌ Map initialization error:', error);
-      setMapError(error instanceof Error ? error.message : 'Unknown error');
+      console.error('❌ Erreur d\'initialisation de la carte:', error);
+      setMapError(error instanceof Error ? error.message : 'Erreur inconnue');
     }
-  }, [isMobile, userLocation, isMapboxReady, toast, t, setUserLocation, loadResults]);
+  }, [isMobile, userLocation, isMapboxReady, statusInfo.isReady]);
 
-  // Optimized bounds fitting with enhanced logic
+  // Optimized bounds fitting
   const fitBounds = throttle(() => {
-    if (!map.current || !mapLoaded || !userLocation) return;
+    if (!map.current || !mapLoaded || !userLocation || !statusInfo.hasResults) return;
     
     try {
       const mapBounds = new mapboxgl.LngLatBounds();
       mapBounds.extend(userLocation);
       
-      if (results.length > 0) {
-        results.forEach(place => {
-          if (place.coordinates) {
-            mapBounds.extend(place.coordinates);
-          }
-        });
-        
-        const padding = isMobile 
-          ? { top: 120, bottom: 100, left: 20, right: 20 }
-          : { top: 100, bottom: 80, left: 80, right: 80 };
-        
-        map.current.fitBounds(mapBounds, {
-          padding,
-          maxZoom: isMobile ? 14 : 16,
-          duration: 1200
-        });
-      } else {
-        map.current.easeTo({
-          center: userLocation,
-          zoom: isMobile ? 13 : 15,
-          duration: 1000
-        });
-      }
+      results.forEach(place => {
+        if (place.coordinates) {
+          mapBounds.extend(place.coordinates);
+        }
+      });
+      
+      const padding = isMobile 
+        ? { top: 120, bottom: 100, left: 20, right: 20 }
+        : { top: 100, bottom: 80, left: 80, right: 80 };
+      
+      map.current.fitBounds(mapBounds, {
+        padding,
+        maxZoom: isMobile ? 14 : 16,
+        duration: 1200
+      });
     } catch (error) {
-      console.error('❌ Error fitting bounds:', error);
+      console.error('❌ Erreur lors de l\'ajustement des limites:', error);
     }
   }, 300);
 
   useEffect(() => {
-    fitBounds();
-  }, [results, mapLoaded, userLocation, isMobile]);
-
-  // Enhanced route calculation with better error handling
-  const handleRouteRequest = debounce(async (placeId: string) => {
-    const targetPlace = results.find(p => p.id === placeId);
-    if (!targetPlace || !userLocation || !map.current) return;
-    
-    try {
-      const directions = await mapboxApiService.getDirections(
-        userLocation,
-        targetPlace.coordinates,
-        transport || 'walking'
-      );
-      
-      if (directions.geometry) {
-        const distance = Math.round(directions.distance / 1000 * 10) / 10;
-        const duration = Math.round(directions.duration / 60);
-        
-        toast({
-          title: "Route calculated",
-          description: `${distance} km • ${duration} min`,
-          variant: "default",
-        });
-      }
-    } catch (error) {
-      console.error('❌ Route calculation error:', error);
-      toast({
-        title: "Route error",
-        description: "Unable to calculate route",
-        variant: "destructive",
-      });
+    if (statusInfo.hasResults) {
+      fitBounds();
     }
-  }, 300);
+  }, [results, mapLoaded, userLocation, isMobile, statusInfo.hasResults]);
 
-  const handleMarkerClick = (poi: any) => {
-    setSelectedPOI(poi);
-    setShowPopup(true);
-  };
-
-  const handleDirectionsClick = (coordinates: [number, number]) => {
-    const poi = pointsOfInterest.find(p => 
-      p.coordinates[0] === coordinates[0] && p.coordinates[1] === coordinates[1]
-    );
-    if (poi) {
-      handleRouteRequest(poi.id);
-    }
-  };
-
-  const handleClusterClick = (longitude: number, latitude: number, expansionZoom: number) => {
-    if (map.current) {
-      map.current.easeTo({
-        center: [longitude, latitude],
-        zoom: expansionZoom,
-        duration: 500
-      });
-    }
-  };
-
-  // Enhanced error display with network status
-  if (mapboxError || !isMapboxReady || mapError) {
+  // Enhanced error display
+  if (!statusInfo.isReady || mapError) {
     return (
       <div className="w-full h-full pt-12 pb-16 flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
         <div className="bg-white p-8 rounded-xl shadow-lg max-w-md text-center mx-4">
@@ -222,37 +145,16 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             )}
           </div>
           <h3 className="text-xl font-semibold text-red-600 mb-4">
-            {networkStatus === 'offline' ? 'Connection Problem' : 'Configuration Problem'}
+            {networkStatus === 'offline' ? 'Problème de connexion' : 'Problème de configuration'}
           </h3>
           <p className="text-gray-600 mb-6">
-            {mapError || mapboxError || 'Mapbox token required to display the map'}
+            {mapError || 'Token Mapbox requis pour afficher la carte'}
           </p>
-          
-          {/* Network status indicator */}
-          <div className="flex items-center justify-center gap-2 mb-4">
-            {networkStatus === 'offline' ? (
-              <>
-                <WifiOff className="h-4 w-4 text-red-500" />
-                <span className="text-sm text-red-600">Offline</span>
-              </>
-            ) : networkStatus === 'slow' ? (
-              <>
-                <Wifi className="h-4 w-4 text-orange-500" />
-                <span className="text-sm text-orange-600">Slow connection</span>
-              </>
-            ) : (
-              <>
-                <Wifi className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-600">Online</span>
-              </>
-            )}
-          </div>
-          
           <button
             onClick={() => window.location.reload()}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
           >
-            Retry
+            Réessayer
           </button>
         </div>
       </div>
@@ -267,12 +169,12 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             <div className="text-center bg-white p-6 rounded-lg shadow-lg">
               <LoadingSpinner />
               <p className="mt-3 text-sm text-gray-600 font-medium">
-                {!mapLoaded ? 'Loading map...' : 'Searching...'}
+                {!mapLoaded ? 'Chargement de la carte...' : 'Recherche en cours...'}
               </p>
               {networkStatus === 'slow' && (
                 <p className="text-xs text-orange-600 mt-2 flex items-center justify-center gap-1">
                   <Wifi className="h-3 w-3" />
-                  Slow connection detected...
+                  Connexion lente détectée...
                 </p>
               )}
             </div>
@@ -281,30 +183,47 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         
         {mapLoaded && map.current && (
           <>
-            {/* Unique markers (user + POI) */}
+            {/* Marqueurs uniques */}
             <UniqueMapMarkers
               map={map.current}
               userLocation={userLocation}
               results={results}
-              onRouteRequest={handleRouteRequest}
+              onRouteRequest={(placeId) => {
+                const place = results.find(p => p.id === placeId);
+                if (place) {
+                  toast({
+                    title: "Itinéraire",
+                    description: `Calcul vers ${place.name}`,
+                    variant: "default",
+                  });
+                }
+              }}
             />
 
-            {/* POI clustering */}
+            {/* Clustering POI */}
             {pointsOfInterest.length > 0 && (
               <MapCluster
                 pointsOfInterest={pointsOfInterest}
                 bounds={bounds}
                 zoom={zoom}
-                showPopup={showPopup}
-                selectedPOI={selectedPOI}
-                onMarkerClick={handleMarkerClick}
-                onDirectionsClick={handleDirectionsClick}
-                onClusterClick={handleClusterClick}
-                onPopupClose={() => setShowPopup(false)}
+                showPopup={false}
+                selectedPOI={null}
+                onMarkerClick={() => {}}
+                onDirectionsClick={() => {}}
+                onClusterClick={(lng, lat, expansionZoom) => {
+                  if (map.current) {
+                    map.current.easeTo({
+                      center: [lng, lat],
+                      zoom: expansionZoom,
+                      duration: 500
+                    });
+                  }
+                }}
+                onPopupClose={() => {}}
               />
             )}
 
-            {/* Integrated directions */}
+            {/* Directions intégrées */}
             {userLocation && (
               <EnhancedMapboxDirections
                 map={map.current}
@@ -313,13 +232,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
                 showInstructions={false}
               />
             )}
-            
-            <MapStatusIndicator 
-              resultsCount={results.length} 
-              isLoading={isLoading}
-              error={mapError}
-              networkStatus={networkStatus}
-            />
           </>
         )}
       </div>
