@@ -8,6 +8,7 @@ import { MapboxError } from '@/components/MapboxError';
 import MapboxSetup from '@/components/MapboxSetup';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SearchResult } from '@/types/geosearch';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface MapboxMapProps {
   results?: SearchResult[];
@@ -15,13 +16,15 @@ interface MapboxMapProps {
   radius?: number;
   count?: number;
   category?: string;
+  className?: string;
 }
 
 export default function MapboxMap({ 
   results = [], 
-  transport = "Voiture", 
-  radius = 5,
-  category = ""
+  transport = "walking", 
+  radius = 10,
+  category = "",
+  className = ""
 }: MapboxMapProps) {
   const [viewport, setViewport] = useState({
     longitude: DEFAULT_MAP_CENTER[0],
@@ -33,10 +36,12 @@ export default function MapboxMap({
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [mapError, setMapError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showTokenSetup, setShowTokenSetup] = useState(false);
+  
+  // Use GeoSearch store for better integration
+  const { userLocation, setUserLocation } = useGeoSearchStore();
 
-  // Vérifier le token Mapbox au chargement
+  // Check Mapbox token on mount
   useEffect(() => {
     try {
       const token = getMapboxToken();
@@ -45,26 +50,32 @@ export default function MapboxMap({
         return;
       }
     } catch (error) {
-      console.error('Erreur de configuration Mapbox:', error);
+      console.error('Mapbox configuration error:', error);
       setShowTokenSetup(true);
       return;
     }
   }, []);
 
-  // Obtain the user's position
+  // Get user position with improved error handling
   useEffect(() => {
-    if (showTokenSetup) return;
+    if (showTokenSetup || userLocation) return;
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          setViewport({ ...viewport, latitude: lat, longitude: lng });
-          setUserLocation({ lat, lng });
+          const coordinates: [number, number] = [
+            position.coords.longitude,
+            position.coords.latitude
+          ];
+          setViewport({ 
+            ...viewport, 
+            latitude: coordinates[1], 
+            longitude: coordinates[0] 
+          });
+          setUserLocation(coordinates);
         },
         (err) => {
-          console.error('Erreur géolocalisation :', err);
+          console.error('Geolocation error:', err);
           toast({
             title: "Localisation",
             description: "Impossible d'obtenir votre position, utilisation de Paris par défaut",
@@ -74,28 +85,33 @@ export default function MapboxMap({
         { maximumAge: 10000, timeout: 5000, enableHighAccuracy: true }
       );
     }
-  }, [toast, showTokenSetup]);
+  }, [toast, showTokenSetup, userLocation, setUserLocation]);
 
   // Helper to get color based on category
   const getColorForCategory = (cat: string) => {
-    switch (cat) {
-      case 'Divertissement':
-        return '#8e44ad'; 
-      case 'Santé':
-        return '#27ae60';
-      case 'Alimentation':
+    switch (cat.toLowerCase()) {
+      case 'restaurant':
+      case 'food':
         return '#e67e22';
+      case 'health':
+      case 'santé':
+        return '#27ae60';
+      case 'entertainment':
+      case 'divertissement':
+        return '#8e44ad';
+      case 'shopping':
+        return '#f39c12';
       default:
         return '#3498db';
     }
   };
 
-  // Afficher l'interface de configuration du token
+  // Show token setup interface
   if (showTokenSetup) {
     return <MapboxSetup />;
   }
 
-  // Vérifier que le token est valide avant de rendre la carte
+  // Check token validity before rendering map
   if (!isMapboxTokenValid()) {
     return <MapboxError onRetry={() => window.location.reload()} />;
   }
@@ -103,7 +119,7 @@ export default function MapboxMap({
   const mapboxToken = getMapboxToken();
 
   return (
-    <div className="relative w-full h-full min-h-[300px] rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+    <div className={`relative w-full h-full min-h-[300px] rounded-xl shadow-lg overflow-hidden border border-gray-200 ${className}`}>
       <Map
         ref={mapRef}
         mapboxAccessToken={mapboxToken}
@@ -128,12 +144,12 @@ export default function MapboxMap({
         />
 
         {userLocation && (
-          <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="bottom">
+          <Marker longitude={userLocation[0]} latitude={userLocation[1]} anchor="bottom">
             <div className="flex flex-col items-center">
-              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1">
+              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 animate-pulse">
                 <MapPin className="text-white w-4 h-4" />
               </div>
-              <div className="text-xs font-bold bg-white px-1 rounded shadow-sm">
+              <div className="text-xs font-bold bg-white px-1 rounded shadow-sm mt-1">
                 Vous
               </div>
             </div>
@@ -148,10 +164,15 @@ export default function MapboxMap({
               latitude={result.coordinates[1]} 
               anchor="bottom"
             >
-              <MapPin 
-                className="w-6 h-6" 
-                style={{ color: getColorForCategory(result.category || category) }} 
-              />
+              <div className="flex flex-col items-center">
+                <MapPin 
+                  className="w-6 h-6 drop-shadow-md" 
+                  style={{ color: getColorForCategory(result.category || category) }} 
+                />
+                <div className="text-xs bg-white px-1 rounded shadow-sm max-w-20 truncate">
+                  {result.name}
+                </div>
+              </div>
             </Marker>
           )
         ))}
@@ -162,7 +183,7 @@ export default function MapboxMap({
           <div className="text-center p-4">
             <p className="text-red-600 font-semibold">{mapError}</p>
             <button 
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
               onClick={() => window.location.reload()}
             >
               Recharger la carte
@@ -171,17 +192,23 @@ export default function MapboxMap({
         </div>
       )}
 
-      <button
-        className="absolute bottom-4 right-4 z-10 p-3 rounded-full bg-white shadow-md hover:bg-gray-100 transition"
-        onClick={() => {
-          if (userLocation && mapRef.current) {
-            mapRef.current.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 14 });
-          }
-        }}
-        aria-label="Centrer sur ma position"
-      >
-        <LocateFixed className="w-5 h-5 text-gray-700" />
-      </button>
+      {userLocation && (
+        <button
+          className="absolute bottom-4 right-4 z-10 p-3 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors"
+          onClick={() => {
+            if (mapRef.current) {
+              mapRef.current.flyTo({ 
+                center: [userLocation[0], userLocation[1]], 
+                zoom: 14,
+                duration: 1000 
+              });
+            }
+          }}
+          aria-label="Centrer sur ma position"
+        >
+          <LocateFixed className="w-5 h-5 text-gray-700" />
+        </button>
+      )}
     </div>
   );
 }

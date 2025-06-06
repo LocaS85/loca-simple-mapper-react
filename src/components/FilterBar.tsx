@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -10,9 +11,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useTranslation } from "react-i18next";
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface FilterBarProps {
-  mapRef: React.RefObject<any>;
+  mapRef?: React.RefObject<any>;
   onFiltersChange: (filters: {
     category: string;
     transportMode: TransportMode;
@@ -29,6 +31,7 @@ interface FilterBarProps {
   initialAroundMeCount?: number;
   initialShowMultiDirections?: boolean;
   initialDistanceUnit?: 'km' | 'mi';
+  className?: string;
 }
 
 // Helper function to get the correct icon component
@@ -53,57 +56,40 @@ export function FilterBar({
   mapRef, 
   onFiltersChange, 
   initialCategory, 
-  initialTransportMode = "car",
-  initialMaxDistance = 5,
-  initialMaxDuration = 15,
+  initialTransportMode = "walking",
+  initialMaxDistance = 10,
+  initialMaxDuration = 20,
   initialAroundMeCount = 3,
   initialShowMultiDirections = false,
-  initialDistanceUnit = 'km'
+  initialDistanceUnit = 'km',
+  className = ""
 }: FilterBarProps) {
-  const [category, setCategory] = useState(initialCategory || "food");
-  const [transportMode, setTransportMode] = useState<TransportMode>(initialTransportMode);
-  const [maxDistance, setMaxDistance] = useState(initialMaxDistance);
-  const [maxDuration, setMaxDuration] = useState(initialMaxDuration);
-  const [aroundMeCount, setAroundMeCount] = useState(initialAroundMeCount);
-  const [showMultiDirections, setShowMultiDirections] = useState(initialShowMultiDirections);
-  const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>(initialDistanceUnit);
+  // Use GeoSearch store for better integration
+  const { filters, updateFilters } = useGeoSearchStore();
+  
+  const [category, setCategory] = useState(initialCategory || filters.category || "");
+  const [transportMode, setTransportMode] = useState<TransportMode>(initialTransportMode || filters.transport);
+  const [maxDistance, setMaxDistance] = useState(initialMaxDistance || filters.distance);
+  const [maxDuration, setMaxDuration] = useState(initialMaxDuration || filters.maxDuration);
+  const [aroundMeCount, setAroundMeCount] = useState(initialAroundMeCount || filters.aroundMeCount);
+  const [showMultiDirections, setShowMultiDirections] = useState(initialShowMultiDirections || filters.showMultiDirections);
+  const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>(initialDistanceUnit || filters.unit);
   const { t } = useTranslation();
 
-  // Update category if initialCategory changes
+  // Sync with store when filters change
   useEffect(() => {
-    if (initialCategory) {
-      setCategory(initialCategory);
-    }
-  }, [initialCategory]);
+    setCategory(filters.category || "");
+    setTransportMode(filters.transport);
+    setMaxDistance(filters.distance);
+    setMaxDuration(filters.maxDuration);
+    setAroundMeCount(filters.aroundMeCount);
+    setShowMultiDirections(filters.showMultiDirections);
+    setDistanceUnit(filters.unit);
+  }, [filters]);
 
-  // Update other filters if their initial values change
+  // Update store and notify parent when filters change
   useEffect(() => {
-    setTransportMode(initialTransportMode);
-  }, [initialTransportMode]);
-
-  useEffect(() => {
-    setMaxDistance(initialMaxDistance);
-  }, [initialMaxDistance]);
-
-  useEffect(() => {
-    setMaxDuration(initialMaxDuration);
-  }, [initialMaxDuration]);
-  
-  useEffect(() => {
-    setAroundMeCount(initialAroundMeCount);
-  }, [initialAroundMeCount]);
-  
-  useEffect(() => {
-    setShowMultiDirections(initialShowMultiDirections);
-  }, [initialShowMultiDirections]);
-
-  useEffect(() => {
-    setDistanceUnit(initialDistanceUnit);
-  }, [initialDistanceUnit]);
-
-  // Notify parent component when filters change
-  useEffect(() => {
-    onFiltersChange({ 
+    const newFilters = { 
       category, 
       transportMode, 
       maxDistance, 
@@ -111,8 +97,21 @@ export function FilterBar({
       aroundMeCount,
       showMultiDirections,
       distanceUnit
+    };
+    
+    onFiltersChange(newFilters);
+    
+    // Update store
+    updateFilters({
+      category: category || null,
+      transport: transportMode,
+      distance: maxDistance,
+      maxDuration,
+      aroundMeCount,
+      showMultiDirections,
+      unit: distanceUnit
     });
-  }, [category, transportMode, maxDistance, maxDuration, aroundMeCount, showMultiDirections, distanceUnit, onFiltersChange]);
+  }, [category, transportMode, maxDistance, maxDuration, aroundMeCount, showMultiDirections, distanceUnit, onFiltersChange, updateFilters]);
 
   // Get the appropriate max value for distance slider based on unit
   const getMaxDistanceValue = () => {
@@ -120,7 +119,7 @@ export function FilterBar({
   };
 
   return (
-    <div className="w-full p-4 rounded-2xl shadow-lg bg-white dark:bg-neutral-900">
+    <div className={`w-full p-4 rounded-2xl shadow-lg bg-white dark:bg-neutral-900 ${className}`}>
       <div className="flex flex-col md:flex-row gap-4">
         {/* Catégorie */}
         <div className="w-full md:w-auto flex-shrink-0">
@@ -132,6 +131,7 @@ export function FilterBar({
               <SelectValue placeholder={t("filters.category")} />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="">Toutes catégories</SelectItem>
               {categories.map((cat: CategoryItem) => {
                 const IconComponent = getIconComponent(cat.icon);
                 return (

@@ -1,67 +1,127 @@
 
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Place } from '../types';
-import { Utensils, Coffee, MapPin } from 'lucide-react';
+import { SearchResult } from '@/types/geosearch';
 
 interface MapMarkerProps {
-  place: Place;
+  place: SearchResult;
   map: mapboxgl.Map;
+  onClick?: (place: SearchResult) => void;
+  color?: string;
 }
 
-const MapMarker: React.FC<MapMarkerProps> = ({ place, map }) => {
+const MapMarker: React.FC<MapMarkerProps> = ({ 
+  place, 
+  map, 
+  onClick,
+  color 
+}) => {
   React.useEffect(() => {
-    // Create marker element safely without innerHTML
+    // Create marker element with improved styling
     const el = document.createElement('div');
-    el.className = 'marker cursor-pointer hover:scale-110 transition-transform duration-200';
+    el.className = 'map-marker cursor-pointer hover:scale-110 transition-transform duration-200';
     
-    // Create container div
-    const container = document.createElement('div');
-    container.className = 'flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg';
+    // Determine marker color based on category
+    const markerColor = color || getColorForCategory(place.category || '');
     
-    // Create icon container
-    const iconContainer = document.createElement('div');
-    iconContainer.className = 'h-6 w-6 rounded-full flex items-center justify-center text-white text-xs font-bold';
+    // Create marker content
+    el.innerHTML = `
+      <div class="relative flex h-8 w-8 items-center justify-center">
+        <div class="flex h-8 w-8 items-center justify-center rounded-full shadow-lg hover:shadow-xl transition-shadow" 
+             style="background-color: ${markerColor}">
+          <div class="text-white text-sm font-bold">
+            ${getCategoryIcon(place.category || '')}
+          </div>
+        </div>
+      </div>
+    `;
     
-    // Set background color based on category
-    switch (place.category) {
-      case 'restaurant':
-        iconContainer.className += ' bg-red-500';
-        iconContainer.innerHTML = '🍽️';
-        break;
-      case 'cafe':
-        iconContainer.className += ' bg-purple-500';
-        iconContainer.innerHTML = '☕';
-        break;
-      default:
-        iconContainer.className += ' bg-blue-500';
-        iconContainer.innerHTML = '📍';
-    }
+    // Create detailed popup content
+    const popupContent = `
+      <div class="p-3 min-w-[250px] max-w-[350px]">
+        <h3 class="font-semibold text-base mb-2 line-clamp-2">${place.name}</h3>
+        ${place.address ? `<p class="text-sm text-gray-600 mb-3 line-clamp-2">${place.address}</p>` : ''}
+        <div class="flex items-center justify-between text-sm">
+          ${place.distance ? `<span class="text-blue-600 font-medium">📏 ${place.distance} km</span>` : ''}
+          ${place.duration ? `<span class="text-green-600 font-medium">⏱️ ${place.duration} min</span>` : ''}
+        </div>
+        ${place.category ? `
+          <div class="mt-2 pt-2 border-t border-gray-200">
+            <span class="inline-block px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
+              ${place.category}
+            </span>
+          </div>
+        ` : ''}
+      </div>
+    `;
     
-    container.appendChild(iconContainer);
-    el.appendChild(container);
+    // Add click handler
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (onClick) {
+        onClick(place);
+      }
+    });
     
     const marker = new mapboxgl.Marker(el)
       .setLngLat(place.coordinates)
-      .setPopup(new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`
-          <div class="p-3 min-w-[200px]">
-            <h3 class="font-medium text-sm mb-1">${place.name}</h3>
-            <p class="text-xs text-gray-500 mb-2">${place.address}</p>
-            <div class="flex justify-between text-xs">
-              <span class="text-blue-600">📏 ${place.distance || 'N/A'} km</span>
-              <span class="text-green-600">⏱️ ${place.duration || 'N/A'} min</span>
-            </div>
-          </div>
-        `))
+      .setPopup(new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: '350px'
+      }).setHTML(popupContent))
       .addTo(map);
     
     return () => {
       marker.remove();
     };
-  }, [place, map]);
+  }, [place, map, onClick, color]);
 
   return null;
+};
+
+// Helper functions
+const getColorForCategory = (category: string): string => {
+  switch (category.toLowerCase()) {
+    case 'restaurant':
+    case 'food':
+      return '#e67e22';
+    case 'health':
+    case 'santé':
+      return '#27ae60';
+    case 'entertainment':
+    case 'divertissement':
+      return '#8e44ad';
+    case 'shopping':
+      return '#f39c12';
+    case 'hotel':
+    case 'lodging':
+      return '#3498db';
+    default:
+      return '#3498db';
+  }
+};
+
+const getCategoryIcon = (category: string): string => {
+  switch (category.toLowerCase()) {
+    case 'restaurant':
+    case 'food':
+      return '🍽️';
+    case 'health':
+    case 'santé':
+      return '🏥';
+    case 'entertainment':
+    case 'divertissement':
+      return '🎭';
+    case 'shopping':
+      return '🛍️';
+    case 'hotel':
+    case 'lodging':
+      return '🏨';
+    default:
+      return '📍';
+  }
 };
 
 export default MapMarker;
