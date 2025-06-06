@@ -180,7 +180,7 @@ const GeoSearch: React.FC = () => {
       <SEOHead title={seoTitle} description={seoDescription} />
       
       <div className="relative h-screen w-full overflow-hidden">
-        {/* Carte en arrière-plan */}
+        {/* Carte en arrière-plan avec composants intégrés */}
         <MapView transport={filters.transport} />
         
         {/* Contrôles flottants */}

@@ -10,8 +10,10 @@ import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
+import { usePOIIntegration } from '@/hooks/usePOIIntegration';
 import UniqueMapMarkers from './map/UniqueMapMarkers';
 import MapStatusIndicator from './map/MapStatusIndicator';
+import { MapCluster, EnhancedMapboxDirections } from '@/components/map';
 import { MapPin } from 'lucide-react';
 
 interface MapViewProps {
@@ -21,10 +23,11 @@ interface MapViewProps {
 const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [hasRouteLayer, setHasRouteLayer] = useState(false);
+  const [zoom, setZoom] = useState(12);
+  const [selectedPOI, setSelectedPOI] = useState<any>(null);
+  const [showPopup, setShowPopup] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -40,6 +43,8 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     setUserLocation,
     loadResults
   } = useGeoSearchStore();
+
+  const { pointsOfInterest, bounds } = usePOIIntegration();
 
   // Track render performance
   useEffect(() => {
@@ -74,47 +79,15 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         console.log('✅ Carte chargée avec succès');
         setMapLoaded(true);
         setMapError(null);
-        
-        // Add optimized route layer
-        newMap.addSource('route', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: []
-            }
-          }
-        });
-        
-        newMap.addLayer({
-          id: 'route',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#3b82f6',
-            'line-width': ['interpolate', ['linear'], ['zoom'], 10, 3, 15, 8],
-            'line-opacity': 0.8
-          }
-        });
-        
-        setHasRouteLayer(true);
-        console.log('✅ Couches de route ajoutées');
+      });
+
+      newMap.on('zoom', () => {
+        setZoom(newMap.getZoom());
       });
       
       newMap.on('error', (e) => {
         console.error('❌ Erreur de carte:', e);
         setMapError('Erreur de chargement de la carte');
-      });
-
-      // Attendre que la carte soit complètement prête
-      newMap.on('idle', () => {
-        console.log('✅ Carte prête pour les marqueurs');
       });
       
       map.current = newMap;
@@ -124,9 +97,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
           map.current.remove();
           map.current = null;
         }
-        geolocateControl.current = null;
         setMapLoaded(false);
-        setHasRouteLayer(false);
       };
     } catch (error) {
       console.error('❌ Erreur d\'initialisation de la carte:', error);
@@ -139,13 +110,13 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     if (!map.current || !mapLoaded || !userLocation) return;
     
     try {
-      const bounds = new mapboxgl.LngLatBounds();
-      bounds.extend(userLocation);
+      const mapBounds = new mapboxgl.LngLatBounds();
+      mapBounds.extend(userLocation);
       
       if (results.length > 0) {
         results.forEach(place => {
           if (place.coordinates) {
-            bounds.extend(place.coordinates);
+            mapBounds.extend(place.coordinates);
           }
         });
         
@@ -153,7 +124,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
           ? { top: 100, bottom: 80, left: 20, right: 20 }
           : { top: 80, bottom: 60, left: 60, right: 60 };
         
-        map.current.fitBounds(bounds, {
+        map.current.fitBounds(mapBounds, {
           padding,
           maxZoom: isMobile ? 14 : 16,
           duration: 1200
@@ -186,18 +157,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         transport || 'walking'
       );
       
-      const source = map.current.getSource('route') as mapboxgl.GeoJSONSource;
-      if (source && directions.geometry) {
-        source.setData({
-          type: 'Feature',
-          properties: {
-            name: `Route vers ${targetPlace.name}`,
-            distance: directions.distance,
-            duration: directions.duration
-          },
-          geometry: directions.geometry as GeoJSON.Geometry
-        });
-        
+      if (directions.geometry) {
         const distance = Math.round(directions.distance / 1000 * 10) / 10;
         const duration = Math.round(directions.duration / 60);
         
@@ -216,6 +176,31 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
       });
     }
   }, 300);
+
+  const handleMarkerClick = (poi: any) => {
+    setSelectedPOI(poi);
+    setShowPopup(true);
+  };
+
+  const handleDirectionsClick = (coordinates: [number, number]) => {
+    // Trouver le POI correspondant et déclencher le calcul d'itinéraire
+    const poi = pointsOfInterest.find(p => 
+      p.coordinates[0] === coordinates[0] && p.coordinates[1] === coordinates[1]
+    );
+    if (poi) {
+      handleRouteRequest(poi.id);
+    }
+  };
+
+  const handleClusterClick = (longitude: number, latitude: number, expansionZoom: number) => {
+    if (map.current) {
+      map.current.easeTo({
+        center: [longitude, latitude],
+        zoom: expansionZoom,
+        duration: 500
+      });
+    }
+  };
 
   // Enhanced error display
   if (mapboxError || !isMapboxReady || mapError) {
@@ -268,12 +253,38 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
         
         {mapLoaded && map.current && (
           <>
+            {/* Marqueurs uniques (utilisateur + POI) */}
             <UniqueMapMarkers
               map={map.current}
               userLocation={userLocation}
               results={results}
               onRouteRequest={handleRouteRequest}
             />
+
+            {/* Clustering des POI */}
+            {pointsOfInterest.length > 0 && (
+              <MapCluster
+                pointsOfInterest={pointsOfInterest}
+                bounds={bounds}
+                zoom={zoom}
+                showPopup={showPopup}
+                selectedPOI={selectedPOI}
+                onMarkerClick={handleMarkerClick}
+                onDirectionsClick={handleDirectionsClick}
+                onClusterClick={handleClusterClick}
+                onPopupClose={() => setShowPopup(false)}
+              />
+            )}
+
+            {/* Directions intégrées */}
+            {userLocation && (
+              <EnhancedMapboxDirections
+                map={map.current}
+                transportMode={transport}
+                origin={userLocation}
+                showInstructions={false}
+              />
+            )}
             
             <MapStatusIndicator 
               resultsCount={results.length} 

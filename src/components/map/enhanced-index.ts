@@ -4,4 +4,7 @@
 export { default as EnhancedMapboxSearch } from './EnhancedMapboxSearch';
 export { default as EnhancedMapboxDirections } from './EnhancedMapboxDirections';
 export { default as MultiRouteDisplay } from './MultiRouteDisplay';
-export { default as MapControls } from './MapControls';
+export { default as CategoryMapView } from './CategoryMapView';
+
+// Hook d'intégration
+export { usePOIIntegration } from '../../hooks/usePOIIntegration';
