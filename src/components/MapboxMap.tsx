@@ -156,9 +156,7 @@ export default function MapboxMap({
           console.error("Mapbox error:", e);
           setMapError(e.error?.message || "Error loading map");
         }}
-        aria-label="Carte interactive Mapbox"
-        tabIndex={0}
-        keyboard={true}
+        interactiveLayerIds={[]}
       >
         <NavigationControl 
           position="top-left"
@@ -183,7 +181,6 @@ export default function MapboxMap({
             longitude={userLocation[0]} 
             latitude={userLocation[1]} 
             anchor="bottom"
-            aria-label="Votre position actuelle"
           >
             <div className="flex flex-col items-center">
               <div 
@@ -207,7 +204,6 @@ export default function MapboxMap({
               longitude={result.coordinates[0]} 
               latitude={result.coordinates[1]} 
               anchor="bottom"
-              aria-label={`${result.name} - ${result.address}`}
             >
               <div className="flex flex-col items-center">
                 <MapPin 
