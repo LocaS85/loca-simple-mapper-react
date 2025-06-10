@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, SlidersHorizontal, Loader2, MapPin, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,8 +49,7 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
     
     setIsSearching(true);
     try {
-      // Utiliser la position utilisateur comme centre si disponible
-      const center: [number, number] = [2.3522, 48.8566]; // Paris par défaut
+      const center: [number, number] = [2.3522, 48.8566];
       
       const results = await enhancedGeocodingService.searchPlaces(query, center, {
         limit: 5,
@@ -103,7 +103,7 @@ const FloatingControls: React.FC<FloatingControlsProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            className={`${isMobile ? 'pl-7 pr-2 text-xs' : 'pl-8 pr-3 text-sm'} h-full w-full border-gray-200 rounded-lg`}
+            className={`${isMobile ? 'pl-7 pr-2 text-xs h-8' : 'pl-8 pr-3 text-sm h-9'} w-full border-gray-200 rounded-lg`}
             disabled={isLoading}
           />
           {isSearching && (

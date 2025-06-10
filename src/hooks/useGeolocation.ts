@@ -1,113 +1,52 @@
 
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from 'react-i18next';
+import { useState, useCallback } from 'react';
+import { GeoLocationOptions } from '@/types/geosearch';
 
 interface GeolocationState {
   coordinates: [number, number] | null;
-  isLoading: boolean;
   error: string | null;
-  isSupported: boolean;
+  isLoading: boolean;
 }
 
-interface UseGeolocationOptions {
-  enableHighAccuracy?: boolean;
-  timeout?: number;
-  maximumAge?: number;
-  autoRequest?: boolean;
-}
-
-export const useGeolocation = (options: UseGeolocationOptions = {}) => {
-  const {
-    enableHighAccuracy = true,
-    timeout = 10000,
-    maximumAge = 300000,
-    autoRequest = false
-  } = options;
-
+export const useGeolocation = (options: GeoLocationOptions = {}) => {
   const [state, setState] = useState<GeolocationState>({
     coordinates: null,
-    isLoading: false,
     error: null,
-    isSupported: 'geolocation' in navigator
+    isLoading: false
   });
 
-  const { toast } = useToast();
-  const { t } = useTranslation();
-
-  const requestLocation = () => {
-    if (!state.isSupported) {
-      const errorMsg = t("geosearch.locationNotSupported");
-      setState(prev => ({ ...prev, error: errorMsg }));
-      toast({
-        title: t("geosearch.locationError"),
-        description: errorMsg,
-        variant: "destructive",
-      });
+  const requestLocation = useCallback(async () => {
+    if (!navigator.geolocation) {
+      setState(prev => ({ ...prev, error: 'Geolocation not supported' }));
       return;
     }
 
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
+    const {
+      enableHighAccuracy = true,
+      timeout = 15000,
+      maximumAge = 300000
+    } = options;
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const coordinates: [number, number] = [
-          position.coords.longitude,
-          position.coords.latitude
-        ];
-        
-        setState(prev => ({
-          ...prev,
-          coordinates,
-          isLoading: false,
-          error: null
-        }));
-
-        toast({
-          title: t("geosearch.locationDetected"),
-          description: t("geosearch.positionUpdated"),
+        setState({
+          coordinates: [position.coords.longitude, position.coords.latitude],
+          error: null,
+          isLoading: false
         });
       },
       (error) => {
-        let errorMessage = t("geosearch.locationErrorDesc");
-        
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = t("geosearch.locationPermissionDenied");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = t("geosearch.locationUnavailable");
-            break;
-          case error.TIMEOUT:
-            errorMessage = t("geosearch.locationTimeout");
-            break;
-        }
-
         setState(prev => ({
           ...prev,
-          isLoading: false,
-          error: errorMessage
+          error: error.message,
+          isLoading: false
         }));
-
-        toast({
-          title: t("geosearch.locationError"),
-          description: errorMessage,
-          variant: "destructive",
-        });
       },
-      {
-        enableHighAccuracy,
-        timeout,
-        maximumAge
-      }
+      { enableHighAccuracy, timeout, maximumAge }
     );
-  };
-
-  useEffect(() => {
-    if (autoRequest && state.isSupported && !state.coordinates) {
-      requestLocation();
-    }
-  }, [autoRequest, state.isSupported, state.coordinates]);
+  }, [options]);
 
   return {
     ...state,

@@ -2,175 +2,84 @@
 import { getMapboxToken } from '@/utils/mapboxConfig';
 import { MapboxSearchResult, MapboxSearchOptions } from './types';
 
-export class EnhancedGeocodingService {
-  private baseUrl = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
+class EnhancedGeocodingService {
+  private token: string;
+
+  constructor() {
+    this.token = getMapboxToken();
+  }
 
   async searchPlaces(
     query: string,
     center: [number, number],
     options: MapboxSearchOptions = {}
   ): Promise<MapboxSearchResult[]> {
-    try {
-      const token = getMapboxToken();
-      const {
-        limit = 5,
-        radius = 10,
-        categories,
-        language = 'fr',
-        country = 'fr'
-      } = options;
+    const {
+      limit = 10,
+      radius = 10,
+      language = 'fr',
+      country = 'fr',
+      categories
+    } = options;
 
-      // Construire l'URL avec paramètres optimisés
-      const searchParams = new URLSearchParams({
-        access_token: token,
-        proximity: `${center[0]},${center[1]}`,
-        limit: limit.toString(),
-        country,
-        language,
-        types: 'poi,address',
-        autocomplete: 'true'
-      });
+    const searchParams = new URLSearchParams({
+      access_token: this.token,
+      proximity: center.join(','),
+      limit: limit.toString(),
+      country,
+      language,
+      types: 'poi,address',
+      autocomplete: 'true'
+    });
 
-      // Ajouter la bounding box basée sur le rayon
-      const radiusInDegrees = radius / 111.32; // Approximation 1° ≈ 111.32 km
-      const bbox = [
-        center[0] - radiusInDegrees,
-        center[1] - radiusInDegrees,
-        center[0] + radiusInDegrees,
-        center[1] + radiusInDegrees
-      ];
+    if (radius > 0) {
+      const bbox = this.calculateBbox(center, radius);
       searchParams.append('bbox', bbox.join(','));
+    }
 
-      // Ajouter les catégories si spécifiées
-      if (categories && categories.length > 0) {
-        searchParams.append('category', categories.join(','));
-      }
+    if (categories && categories.length > 0) {
+      searchParams.append('category', categories.join(','));
+    }
 
-      const url = `${this.baseUrl}/${encodeURIComponent(query)}.json?${searchParams}`;
-      
-      console.log('🔍 Recherche Mapbox:', { query, center, options, url: url.substring(0, 100) + '...' });
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${searchParams}`;
 
+    try {
       const response = await fetch(url);
       
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Token Mapbox invalide ou expiré');
-        } else if (response.status === 429) {
-          throw new Error('Limite de taux API dépassée');
-        }
-        throw new Error(`Erreur API Mapbox: ${response.status}`);
+        throw new Error(`Mapbox API error: ${response.status}`);
       }
 
       const data = await response.json();
       
-      console.log('📍 Résultats bruts Mapbox:', data.features?.length || 0);
-
-      if (!data.features || data.features.length === 0) {
-        console.log('⚠️ Aucun résultat trouvé, tentative avec recherche élargie');
-        return this.fallbackSearch(query, center, options);
-      }
-
-      // Convertir et filtrer les résultats avec calcul de distance
-      const results = data.features
-        .filter((feature: any) => feature.geometry?.coordinates)
-        .map((feature: any): MapboxSearchResult => {
-          const coords = feature.geometry.coordinates;
-          const distance = this.calculateDistance(center, coords);
-          
-          return {
-            id: feature.id || `place-${Date.now()}-${Math.random()}`,
-            name: feature.text || feature.properties?.name || 'Lieu sans nom',
-            address: feature.place_name || feature.properties?.address || '',
-            coordinates: [coords[0], coords[1]] as [number, number],
-            category: this.extractCategory(feature),
-            distance: Math.round(distance * 10) / 10, // Distance maintenant incluse dans l'interface
-            properties: feature.properties || {}
-          };
-        })
-        .filter(result => (result.distance || 0) <= radius) // Filtrer par rayon avec vérification null
-        .sort((a, b) => (a.distance || 0) - (b.distance || 0)) // Trier par distance avec vérification null
-        .slice(0, limit); // Limiter les résultats
-
-      console.log('✅ Résultats traités:', results.length);
-      return results;
-
+      return data.features?.map((feature: any, index: number) => ({
+        id: feature.id || `result-${index}`,
+        name: feature.text || feature.place_name,
+        address: feature.place_name,
+        coordinates: feature.center as [number, number],
+        category: this.determineCategory(feature),
+        distance: this.calculateDistance(center, feature.center),
+        relevance: feature.relevance,
+        properties: feature.properties || {}
+      })) || [];
     } catch (error) {
-      console.error('❌ Erreur service de géocodage:', error);
+      console.error('Enhanced geocoding error:', error);
       throw error;
     }
   }
 
-  private async fallbackSearch(
-    query: string,
-    center: [number, number],
-    options: MapboxSearchOptions
-  ): Promise<MapboxSearchResult[]> {
-    try {
-      // Recherche sans catégorie spécifique
-      const fallbackOptions = { ...options, categories: undefined };
-      const token = getMapboxToken();
-      
-      const searchParams = new URLSearchParams({
-        access_token: token,
-        proximity: `${center[0]},${center[1]}`,
-        limit: (options.limit || 5).toString(),
-        country: 'fr',
-        language: 'fr',
-        types: 'poi,address,place'
-      });
-
-      const url = `${this.baseUrl}/${encodeURIComponent(query)}.json?${searchParams}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        return [];
-      }
-
-      const data = await response.json();
-      
-      return (data.features || [])
-        .filter((feature: any) => feature.geometry?.coordinates)
-        .slice(0, options.limit || 5)
-        .map((feature: any): MapboxSearchResult => ({
-          id: feature.id || `fallback-${Date.now()}-${Math.random()}`,
-          name: feature.text || 'Lieu',
-          address: feature.place_name || '',
-          coordinates: feature.geometry.coordinates as [number, number],
-          category: 'general',
-          distance: this.calculateDistance(center, feature.geometry.coordinates), // Distance calculée pour fallback
-          properties: feature.properties || {}
-        }));
-
-    } catch (error) {
-      console.error('❌ Erreur recherche fallback:', error);
-      return [];
-    }
-  }
-
-  private extractCategory(feature: any): string {
-    if (feature.properties?.category) {
-      return feature.properties.category;
-    }
-    
-    const categories = feature.properties?.categories || [];
-    if (categories.length > 0) {
-      return categories[0];
-    }
-    
-    // Déduire la catégorie du type de lieu
-    const placeType = feature.place_type?.[0];
-    switch (placeType) {
-      case 'poi':
-        return 'point_of_interest';
-      case 'address':
-        return 'address';
-      default:
-        return 'general';
-    }
+  private calculateBbox(center: [number, number], radiusKm: number): [number, number, number, number] {
+    const radiusInDegrees = radiusKm / 111.32;
+    return [
+      center[0] - radiusInDegrees,
+      center[1] - radiusInDegrees,
+      center[0] + radiusInDegrees,
+      center[1] + radiusInDegrees
+    ];
   }
 
   private calculateDistance(point1: [number, number], point2: [number, number]): number {
-    const R = 6371; // Rayon de la Terre en km
+    const R = 6371;
     const dLat = (point2[1] - point1[1]) * Math.PI / 180;
     const dLon = (point2[0] - point1[0]) * Math.PI / 180;
     const a = 
@@ -179,6 +88,21 @@ export class EnhancedGeocodingService {
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+  }
+
+  private determineCategory(feature: any): string {
+    if (feature.properties?.category) {
+      return feature.properties.category;
+    }
+    
+    const placeType = feature.place_type?.[0];
+    const categoryMap: Record<string, string> = {
+      'poi': 'Point d\'intérêt',
+      'address': 'Adresse',
+      'place': 'Lieu'
+    };
+    
+    return categoryMap[placeType] || 'Lieu';
   }
 }
 

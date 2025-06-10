@@ -154,14 +154,13 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     <div className="w-full h-full relative">
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {/* Boutons filtres et position - Alignés en colonne sous les contrôles de navigation */}
+      {/* Boutons filtres et position */}
       <div className={`absolute ${
         isMobile 
-          ? 'top-[112px] right-[16px]' 
-          : 'top-[120px] right-[16px]'
+          ? 'top-[80px] right-[12px]' 
+          : 'top-[80px] right-[12px]'
       } z-40`}>
         <div className="flex flex-col gap-1">
-          {/* Bouton Filtres - Style identique aux contrôles Mapbox */}
           <FiltersFloatingButton
             filters={filters}
             onChange={updateFilters}
@@ -169,7 +168,6 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             isLoading={isLoading}
           />
           
-          {/* Bouton Position - Style identique aux contrôles Mapbox */}
           <EnhancedLocationButton
             onLocationDetected={(coords) => {
               useGeoSearchStore.getState().setUserLocation(coords);

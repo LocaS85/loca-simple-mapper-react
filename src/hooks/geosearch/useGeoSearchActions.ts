@@ -1,16 +1,15 @@
 
-import { useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useToast } from '@/hooks/use-toast';
-import { geoSearchService } from '@/services/geoSearchService';
-import { GeoSearchFilters } from '@/types/geosearch';
+import { unifiedSearchService } from '@/services/unifiedApiService';
+import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import { TransportMode } from '@/lib/data/transportModes';
 
 interface UseGeoSearchActionsProps {
   userLocation: [number, number] | null;
   filters: GeoSearchFilters;
   isMapboxReady: boolean;
-  setResults: (results: any[]) => void;
+  setResults: (results: SearchResult[]) => void;
   setIsLoading: (loading: boolean) => void;
   updateFilters: (filters: Partial<GeoSearchFilters>) => void;
   setUserLocation: (location: [number, number]) => void;
@@ -29,133 +28,79 @@ export const useGeoSearchActions = ({
   searchQuery,
   setSearchQuery
 }: UseGeoSearchActionsProps) => {
-  const { toast } = useToast();
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Main search function
   const performSearch = useCallback(async (query?: string) => {
     if (!userLocation || !isMapboxReady) {
-      console.log('❌ Conditions non remplies pour la recherche:', { userLocation, isMapboxReady });
-      if (!userLocation) {
-        toast({
-          title: "Position requise",
-          description: "Veuillez autoriser la géolocalisation ou sélectionner une position",
-          variant: "destructive",
-        });
-      }
+      console.log('⚠️ Search skipped: missing location or Mapbox not ready');
+      return;
+    }
+
+    const searchTerm = query || filters.query || debouncedSearchQuery;
+    if (!searchTerm && !filters.category) {
+      console.log('⚠️ Search skipped: no query or category');
       return;
     }
 
     setIsLoading(true);
+    
     try {
-      let searchResults;
+      console.log('🔍 Performing unified search:', { searchTerm, filters, userLocation });
       
-      if (query && query.trim()) {
-        console.log('🔍 Recherche par requête:', query);
-        searchResults = await geoSearchService.searchByQuery(query, userLocation, filters);
-      } else {
-        console.log('🔍 Recherche à proximité');
-        searchResults = await geoSearchService.searchNearby(userLocation, filters);
-      }
-      
-      console.log('✅ Résultats de recherche:', searchResults);
-      setResults(searchResults || []);
-      
-      if (!searchResults || searchResults.length === 0) {
-        toast({
-          title: "Aucun résultat",
-          description: "Aucun lieu trouvé pour votre recherche. Essayez d'élargir votre zone de recherche.",
-          variant: "default",
-        });
-      } else {
-        toast({
-          title: "Recherche terminée",
-          description: `${searchResults.length} lieu${searchResults.length > 1 ? 'x' : ''} trouvé${searchResults.length > 1 ? 's' : ''}`,
-          variant: "default",
-        });
-      }
-      
-    } catch (error) {
-      console.error('❌ Erreur de recherche:', error);
-      toast({
-        title: "Erreur de recherche",
-        description: "Impossible d'effectuer la recherche. Vérifiez votre connexion et réessayez.",
-        variant: "destructive",
+      const searchResults = await unifiedSearchService.searchPlaces({
+        query: searchTerm,
+        category: filters.category || undefined,
+        subcategory: filters.subcategory || undefined,
+        transport: filters.transport,
+        distance: filters.distance,
+        unit: filters.unit,
+        aroundMeCount: filters.aroundMeCount,
+        showMultiDirections: filters.showMultiDirections,
+        maxDuration: filters.maxDuration,
+        center: userLocation
       });
+
+      console.log('✅ Search results received:', searchResults.length);
+      setResults(searchResults);
+    } catch (error) {
+      console.error('❌ Search error:', error);
       setResults([]);
     } finally {
       setIsLoading(false);
     }
-  }, [userLocation, filters, isMapboxReady, setIsLoading, setResults, toast]);
+  }, [userLocation, filters, isMapboxReady, debouncedSearchQuery, setIsLoading, setResults]);
 
-  // Enhanced filters update
   const updateFiltersWithSearch = useCallback((newFilters: Partial<GeoSearchFilters>) => {
-    if (!newFilters || typeof newFilters !== 'object') {
-      console.warn('❌ Filtres invalides:', newFilters);
-      return;
-    }
-
-    console.log('🔄 Mise à jour des filtres:', newFilters);
     updateFilters(newFilters);
     
-    // Auto-trigger search for important filter changes
-    const criticalFilters = ['category', 'transport', 'distance', 'maxDuration'];
-    const shouldAutoSearch = Object.keys(newFilters).some(key => 
-      criticalFilters.includes(key)
-    );
-    
-    if (shouldAutoSearch && userLocation && isMapboxReady) {
-      console.log('🔄 Auto-recherche déclenchée par changement de filtres');
-      setTimeout(() => performSearch(searchQuery), 500);
+    // Trigger search if we have location and relevant filters
+    if (userLocation && isMapboxReady) {
+      setTimeout(() => performSearch(), 100);
     }
-  }, [updateFilters, userLocation, isMapboxReady, performSearch, searchQuery]);
+  }, [updateFilters, userLocation, isMapboxReady, performSearch]);
 
-  // Location selection handler
-  const handleLocationSelect = useCallback((location: {
-    name: string;
-    coordinates: [number, number];
-    placeName: string;
+  const handleLocationSelect = useCallback((location: { 
+    name: string; 
+    coordinates: [number, number]; 
+    placeName: string 
   }) => {
-    if (!location?.coordinates || !Array.isArray(location.coordinates) || location.coordinates.length !== 2) {
-      console.error('❌ Données de lieu invalides:', location);
-      toast({
-        title: "Erreur de lieu",
-        description: "Les données de localisation sont invalides",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    console.log('📍 Sélection de lieu:', location);
+    console.log('📍 Location selected:', location);
     setUserLocation(location.coordinates);
-    updateFilters({ query: location.name || '' });
-    setSearchQuery(location.name || '');
     
-    toast({
-      title: "Lieu sélectionné",
-      description: `Recherche autour de ${location.placeName || location.name}`,
-      variant: "default",
-    });
-    
-    setTimeout(() => performSearch(location.name), 800);
-  }, [setUserLocation, updateFilters, performSearch, setSearchQuery, toast]);
-
-  // Search handler
-  const handleSearch = useCallback((query: string) => {
-    if (typeof query !== 'string') {
-      console.log('❌ Requête de recherche invalide:', query);
-      return;
+    // Update search query if needed
+    if (location.name !== searchQuery) {
+      setSearchQuery(location.name);
     }
-    console.log('🔍 Déclenchement de recherche:', query);
-    setSearchQuery(query);
-    
-    // Immediate search for non-empty queries
-    if (query.trim() && userLocation && isMapboxReady) {
-      setTimeout(() => performSearch(query), 300);
-    }
-  }, [setSearchQuery, userLocation, isMapboxReady, performSearch]);
+  }, [setUserLocation, searchQuery, setSearchQuery]);
 
-  // Transport change handler
+  const handleSearch = useCallback((query?: string) => {
+    const searchTerm = query || searchQuery;
+    if (searchTerm) {
+      updateFilters({ query: searchTerm });
+      performSearch(searchTerm);
+    }
+  }, [searchQuery, updateFilters, performSearch]);
+
   const handleTransportChange = useCallback((transport: TransportMode) => {
     updateFiltersWithSearch({ transport });
   }, [updateFiltersWithSearch]);
