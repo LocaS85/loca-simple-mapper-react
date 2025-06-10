@@ -1,3 +1,4 @@
+
 import { getMapboxToken } from '@/utils/mapboxConfig';
 import { mapboxErrorHandler, MapboxErrorContext } from './errorHandler';
 import { offlineCacheService } from '../offlineCache';
@@ -276,5 +277,3 @@ export class EnhancedMapboxService {
 }
 
 export const enhancedMapboxService = new EnhancedMapboxService();
-
-}
