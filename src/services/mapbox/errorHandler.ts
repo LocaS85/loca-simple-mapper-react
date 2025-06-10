@@ -1,4 +1,3 @@
-
 import { captureMapboxError } from '../monitoring';
 
 export interface MapboxErrorContext {
@@ -44,8 +43,15 @@ export class MapboxErrorHandler {
   handleError(error: any, context: MapboxErrorContext): MapboxError {
     const enhancedError = this.createEnhancedError(error, context);
     
+    // Adapter le contexte pour la fonction de monitoring
+    const monitoringContext = {
+      apiCall: context.operation,
+      params: context.params,
+      userLocation: context.userLocation
+    };
+    
     // Capturer l'erreur pour le monitoring
-    captureMapboxError(enhancedError, context);
+    captureMapboxError(enhancedError, monitoringContext);
     
     console.error(`❌ Erreur Mapbox [${context.operation}]:`, enhancedError);
     
