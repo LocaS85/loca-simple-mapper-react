@@ -1,7 +1,6 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { unifiedSearchService } from '@/services/unifiedApiService';
+import { enhancedMapboxService } from '@/services/mapbox/enhancedMapboxService';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import { TransportMode } from '@/lib/data/transportModes';
 import { transformSearchPlacesToResults } from '@/services/searchResultTransformer';
@@ -46,29 +45,24 @@ export const useGeoSearchActions = ({
     setIsLoading(true);
     
     try {
-      console.log('🔍 Performing unified search:', { searchTerm, filters, userLocation });
+      console.log('🔍 Performing enhanced search:', { searchTerm, filters, userLocation });
       
-      const searchResults = await unifiedSearchService.searchPlaces({
-        query: searchTerm,
-        category: filters.category || undefined,
-        subcategory: filters.subcategory || undefined,
-        transport: filters.transport,
-        distance: filters.distance,
-        unit: filters.unit,
-        aroundMeCount: filters.aroundMeCount,
-        showMultiDirections: filters.showMultiDirections,
-        maxDuration: filters.maxDuration,
-        center: userLocation
+      // Utiliser le service Mapbox amélioré avec gestion d'erreurs
+      const searchResults = await enhancedMapboxService.searchPlaces(searchTerm, userLocation, {
+        limit: filters.aroundMeCount || 5,
+        radius: filters.distance,
+        categories: filters.category ? [filters.category] : undefined
       });
 
-      console.log('✅ Search results received:', searchResults.length);
+      console.log('✅ Enhanced search results received:', searchResults.length);
       
       // Utiliser la fonction de transformation pour convertir les résultats
       const transformedResults = transformSearchPlacesToResults(searchResults, userLocation);
       
       setResults(transformedResults);
     } catch (error) {
-      console.error('❌ Search error:', error);
+      console.error('❌ Enhanced search error:', error);
+      // Le service Enhanced gère déjà les fallbacks, donc on définit un tableau vide en cas d'échec total
       setResults([]);
     } finally {
       setIsLoading(false);
