@@ -18,7 +18,7 @@ export interface SearchResult {
   name: string;
   address: string;
   coordinates: [number, number];
-  type: string;
+  type: string; // Propriété requise pour identifier le type de lieu
   category: string;
   distance: number;
   duration: number;

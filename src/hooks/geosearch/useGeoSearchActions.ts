@@ -1,9 +1,9 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { unifiedSearchService } from '@/services/unifiedApiService';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import { TransportMode } from '@/lib/data/transportModes';
+import { transformSearchPlacesToResults } from '@/services/searchResultTransformer';
 
 interface UseGeoSearchActionsProps {
   userLocation: [number, number] | null;
@@ -61,7 +61,14 @@ export const useGeoSearchActions = ({
       });
 
       console.log('✅ Search results received:', searchResults.length);
-      setResults(searchResults);
+      
+      // Transformer les résultats pour s'assurer qu'ils correspondent au type SearchResult
+      const transformedResults = searchResults.map(result => ({
+        ...result,
+        type: result.type || result.category || 'point_of_interest' // Assurer que le type existe
+      }));
+      
+      setResults(transformedResults);
     } catch (error) {
       console.error('❌ Search error:', error);
       setResults([]);
