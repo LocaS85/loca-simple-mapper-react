@@ -157,7 +157,6 @@ export default function MapboxMap({
           setMapError(e.error?.message || "Error loading map");
         }}
         aria-label="Carte interactive Mapbox"
-        role="img"
         tabIndex={0}
         keyboard={true}
       >

@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
         initialIsOpen: false,
       },
       eslint: {
-        lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
+        lintCommand: 'eslint "./src/**/*.{ts,tsx}" --max-warnings 0',
         dev: {
           logLevel: ['error']
         }
