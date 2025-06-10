@@ -1,6 +1,6 @@
-
 import { getMapboxToken } from '@/utils/mapboxConfig';
 import { mapboxErrorHandler, MapboxErrorContext } from './errorHandler';
+import { offlineCacheService } from '../offlineCache';
 import { TransportMode } from '@/lib/data/transportModes';
 import { MapboxSearchResult, MapboxDirectionsResult } from './types';
 
@@ -45,6 +45,14 @@ export class EnhancedMapboxService {
       await this.initialize();
     }
 
+    // Vérifier d'abord le cache
+    const cacheKey = `search_${query}_${center.join(',')}_${JSON.stringify(options)}`;
+    const cachedResults = offlineCacheService.get<MapboxSearchResult[]>(cacheKey);
+    if (cachedResults) {
+      console.log('📦 Résultats de recherche trouvés en cache');
+      return cachedResults;
+    }
+
     // Sauvegarder la position pour les fallbacks
     mapboxErrorHandler.setLastKnownLocation(center);
 
@@ -55,9 +63,17 @@ export class EnhancedMapboxService {
       context,
       3,
       1000
-    ).catch(error => {
+    ).then(results => {
+      // Mettre en cache les résultats réussis
+      offlineCacheService.set(cacheKey, results, {
+        maxAge: 15 * 60 * 1000, // 15 minutes
+        priority: 'high'
+      });
+      return results;
+    }).catch(error => {
       console.warn('🔄 Utilisation du fallback hors-ligne pour la recherche');
-      return mapboxErrorHandler.getOfflineFallback('geocoding') || [];
+      const fallbackResults = mapboxErrorHandler.getOfflineFallback('geocoding', { query, center, options }) || [];
+      return fallbackResults;
     });
   }
 
@@ -151,6 +167,13 @@ export class EnhancedMapboxService {
       await this.initialize();
     }
 
+    // Vérifier le cache pour les directions
+    const cachedDirections = offlineCacheService.getCachedDirections(origin, destination);
+    if (cachedDirections) {
+      console.log('📦 Directions trouvées en cache');
+      return cachedDirections;
+    }
+
     return mapboxErrorHandler.retryWithBackoff(
       async () => {
         return this.performDirections(origin, destination, transportMode);
@@ -158,7 +181,13 @@ export class EnhancedMapboxService {
       context,
       2,
       1500
-    ).catch(error => {
+    ).then(directions => {
+      // Mettre en cache les directions réussies
+      if (directions) {
+        offlineCacheService.cacheDirections(origin, destination, directions);
+      }
+      return directions;
+    }).catch(error => {
       console.warn('🔄 Utilisation du fallback hors-ligne pour les directions');
       return mapboxErrorHandler.getOfflineFallback('directions');
     });
@@ -247,3 +276,5 @@ export class EnhancedMapboxService {
 }
 
 export const enhancedMapboxService = new EnhancedMapboxService();
+
+}

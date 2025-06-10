@@ -1,3 +1,4 @@
+
 import { captureMapboxError } from '../monitoring';
 
 export interface MapboxErrorContext {
@@ -23,6 +24,7 @@ export class MapboxErrorHandler {
   private static instance: MapboxErrorHandler;
   private offlineMode = false;
   private lastKnownLocation: [number, number] | null = null;
+  private fallbackData: Map<string, any> = new Map();
 
   static getInstance(): MapboxErrorHandler {
     if (!MapboxErrorHandler.instance) {
@@ -38,6 +40,8 @@ export class MapboxErrorHandler {
 
   setLastKnownLocation(location: [number, number]): void {
     this.lastKnownLocation = location;
+    // Stocker la localisation dans le cache de fallback
+    this.fallbackData.set('lastLocation', location);
   }
 
   handleError(error: any, context: MapboxErrorContext): MapboxError {
@@ -54,6 +58,11 @@ export class MapboxErrorHandler {
     captureMapboxError(enhancedError, monitoringContext);
     
     console.error(`❌ Erreur Mapbox [${context.operation}]:`, enhancedError);
+    
+    // Activer le mode hors-ligne si nécessaire
+    if (this.isNetworkError(error)) {
+      this.setOfflineMode(true);
+    }
     
     return enhancedError;
   }
@@ -90,17 +99,23 @@ export class MapboxErrorHandler {
           message = `Erreur serveur Mapbox (${statusCode})`;
           code = 'SERVER_ERROR';
       }
-    } else if (error?.message?.includes('fetch') || error?.message?.includes('network')) {
+    } else if (this.isNetworkError(error)) {
       message = 'Problème de connexion réseau';
       code = 'NETWORK_ERROR';
       statusCode = 0;
-      this.setOfflineMode(true);
     } else if (error?.message) {
       message = error.message;
       code = 'API_ERROR';
     }
 
     return new MapboxError(message, code, statusCode, context);
+  }
+
+  private isNetworkError(error: any): boolean {
+    return error?.message?.includes('fetch') || 
+           error?.message?.includes('network') ||
+           error?.message?.includes('timeout') ||
+           error?.name === 'AbortError';
   }
 
   async retryWithBackoff<T>(
@@ -125,13 +140,13 @@ export class MapboxErrorHandler {
           break;
         }
 
-        // Ne pas retry si c'est une erreur de token
+        // Ne pas retry si c'est une erreur de token ou d'autorisation
         if (lastError.code === 'INVALID_TOKEN' || lastError.code === 'ACCESS_DENIED') {
           break;
         }
 
-        // Attendre avant le prochain essai (backoff exponentiel)
-        const delay = baseDelay * Math.pow(2, attempt);
+        // Attendre avant le prochain essai (backoff exponentiel avec jitter)
+        const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
         await this.sleep(delay);
       }
     }
@@ -143,19 +158,24 @@ export class MapboxErrorHandler {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Fallback pour mode hors-ligne
-  getOfflineFallback(operation: string): any {
+  // Fallbacks améliorés pour mode hors-ligne
+  getOfflineFallback(operation: string, params?: any): any {
     switch (operation) {
       case 'geocoding':
-        return this.getOfflineGeocodingFallback();
+        return this.getOfflineGeocodingFallback(params);
       case 'directions':
         return this.getOfflineDirectionsFallback();
+      case 'search':
+        return this.getOfflineSearchFallback(params);
       default:
         return null;
     }
   }
 
-  private getOfflineGeocodingFallback() {
+  private getOfflineGeocodingFallback(params?: any) {
+    const cached = this.fallbackData.get('geocoding_' + JSON.stringify(params));
+    if (cached) return cached;
+
     if (this.lastKnownLocation) {
       return [{
         id: 'offline-location',
@@ -176,6 +196,42 @@ export class MapboxErrorHandler {
       duration: 0,
       steps: []
     };
+  }
+
+  private getOfflineSearchFallback(params?: any) {
+    const cached = this.fallbackData.get('search_' + JSON.stringify(params));
+    if (cached) return cached;
+
+    // Retourner des résultats génériques basés sur la dernière position connue
+    if (this.lastKnownLocation) {
+      return [
+        {
+          id: 'offline-poi-1',
+          name: 'Point d\'intérêt local',
+          address: 'Près de votre position',
+          coordinates: this.lastKnownLocation,
+          category: 'general',
+          distance: 0.1
+        }
+      ];
+    }
+    return [];
+  }
+
+  // Méthode pour stocker des données de fallback
+  cacheFallbackData(key: string, data: any): void {
+    this.fallbackData.set(key, data);
+    
+    // Limiter la taille du cache
+    if (this.fallbackData.size > 50) {
+      const firstKey = this.fallbackData.keys().next().value;
+      this.fallbackData.delete(firstKey);
+    }
+  }
+
+  // Nettoyer le cache
+  clearFallbackCache(): void {
+    this.fallbackData.clear();
   }
 }
 

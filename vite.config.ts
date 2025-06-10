@@ -21,6 +21,12 @@ export default defineConfig(({ mode }) => ({
       typescript: true,
       overlay: {
         initialIsOpen: false,
+      },
+      eslint: {
+        lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
+        dev: {
+          logLevel: ['error']
+        }
       }
     }),
   ].filter(Boolean),
@@ -30,7 +36,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    include: ['react-map-gl', 'mapbox-gl'],
+    include: ['react-map-gl', 'mapbox-gl', '@mapbox/mapbox-sdk'],
     esbuildOptions: {
       define: {
         global: 'globalThis',
@@ -38,17 +44,29 @@ export default defineConfig(({ mode }) => ({
     }
   },
   build: {
-    sourcemap: true,
+    sourcemap: mode === 'development',
+    minify: mode === 'production' ? 'esbuild' : false,
     rollupOptions: {
       onwarn(warning, defaultHandler) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || warning.code === 'CIRCULAR_DEPENDENCY') {
           return;
         }
         defaultHandler(warning);
+      },
+      output: {
+        manualChunks: {
+          'mapbox-vendor': ['mapbox-gl', 'react-map-gl', '@mapbox/mapbox-sdk'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-select']
+        }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1000
   },
   define: {
     global: 'globalThis',
+    __DEV__: mode === 'development'
+  },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   }
 }));

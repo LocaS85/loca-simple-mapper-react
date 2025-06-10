@@ -37,6 +37,7 @@ export default function MapboxMap({
   const isMobile = useIsMobile();
   const [mapError, setMapError] = useState<string | null>(null);
   const [showTokenSetup, setShowTokenSetup] = useState(false);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
   
   // Use GeoSearch store for better integration
   const { userLocation, setUserLocation } = useGeoSearchStore();
@@ -119,7 +120,24 @@ export default function MapboxMap({
   const mapboxToken = getMapboxToken();
 
   return (
-    <div className={`relative w-full h-full min-h-[300px] rounded-xl shadow-lg overflow-hidden border border-gray-200 ${className}`}>
+    <div 
+      className={`relative w-full h-full min-h-[300px] rounded-xl shadow-lg overflow-hidden border border-gray-200 ${className}`}
+      role="application"
+      aria-label={`Carte interactive affichant ${results.length} résultat${results.length > 1 ? 's' : ''} pour ${category || 'votre recherche'}`}
+    >
+      {/* Status live region for screen readers */}
+      <div 
+        aria-live="polite" 
+        aria-atomic="true" 
+        className="sr-only"
+        id="map-status"
+      >
+        {isMapLoaded ? 
+          `Carte chargée. ${results.length} résultat${results.length > 1 ? 's' : ''} affiché${results.length > 1 ? 's' : ''}.` :
+          'Chargement de la carte...'
+        }
+      </div>
+
       <Map
         ref={mapRef}
         mapboxAccessToken={mapboxToken}
@@ -130,23 +148,50 @@ export default function MapboxMap({
         mapStyle="mapbox://styles/mapbox/streets-v12"
         style={{ width: '100%', height: '100%' }}
         onMove={(evt) => setViewport(evt.viewState)}
+        onLoad={() => {
+          setIsMapLoaded(true);
+          console.log('🗺️ Carte Mapbox chargée');
+        }}
         onError={(e) => {
           console.error("Mapbox error:", e);
           setMapError(e.error?.message || "Error loading map");
         }}
+        aria-label="Carte interactive Mapbox"
+        role="img"
+        tabIndex={0}
+        keyboard={true}
       >
-        <NavigationControl position="top-left" />
+        <NavigationControl 
+          position="top-left"
+          showCompass={true}
+          showZoom={true}
+          visualizePitch={true}
+        />
         
         <GeolocateControl
           position="top-left"
           trackUserLocation
           showAccuracyCircle={false}
+          showUserHeading={true}
+          positionOptions={{
+            enableHighAccuracy: true,
+            timeout: 6000
+          }}
         />
 
         {userLocation && (
-          <Marker longitude={userLocation[0]} latitude={userLocation[1]} anchor="bottom">
+          <Marker 
+            longitude={userLocation[0]} 
+            latitude={userLocation[1]} 
+            anchor="bottom"
+            aria-label="Votre position actuelle"
+          >
             <div className="flex flex-col items-center">
-              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 animate-pulse">
+              <div 
+                className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 animate-pulse"
+                role="img"
+                aria-label="Marqueur de votre position"
+              >
                 <MapPin className="text-white w-4 h-4" />
               </div>
               <div className="text-xs font-bold bg-white px-1 rounded shadow-sm mt-1">
@@ -163,13 +208,19 @@ export default function MapboxMap({
               longitude={result.coordinates[0]} 
               latitude={result.coordinates[1]} 
               anchor="bottom"
+              aria-label={`${result.name} - ${result.address}`}
             >
               <div className="flex flex-col items-center">
                 <MapPin 
                   className="w-6 h-6 drop-shadow-md" 
                   style={{ color: getColorForCategory(result.category || category) }} 
+                  role="img"
+                  aria-label={`Marqueur pour ${result.name}`}
                 />
-                <div className="text-xs bg-white px-1 rounded shadow-sm max-w-20 truncate">
+                <div 
+                  className="text-xs bg-white px-1 rounded shadow-sm max-w-20 truncate"
+                  title={result.name}
+                >
                   {result.name}
                 </div>
               </div>
@@ -179,12 +230,19 @@ export default function MapboxMap({
       </Map>
 
       {mapError && (
-        <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center">
+        <div 
+          className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center"
+          role="alert"
+          aria-live="assertive"
+        >
           <div className="text-center p-4">
-            <p className="text-red-600 font-semibold">{mapError}</p>
+            <p className="text-red-600 font-semibold" id="map-error-message">
+              {mapError}
+            </p>
             <button 
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               onClick={() => window.location.reload()}
+              aria-describedby="map-error-message"
             >
               Recharger la carte
             </button>
@@ -194,7 +252,7 @@ export default function MapboxMap({
 
       {userLocation && (
         <button
-          className="absolute bottom-4 right-4 z-10 p-3 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors"
+          className="absolute bottom-4 right-4 z-10 p-3 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           onClick={() => {
             if (mapRef.current) {
               mapRef.current.flyTo({ 
@@ -204,7 +262,9 @@ export default function MapboxMap({
               });
             }
           }}
-          aria-label="Centrer sur ma position"
+          aria-label="Centrer la carte sur ma position"
+          title="Centrer sur ma position"
+          type="button"
         >
           <LocateFixed className="w-5 h-5 text-gray-700" />
         </button>
