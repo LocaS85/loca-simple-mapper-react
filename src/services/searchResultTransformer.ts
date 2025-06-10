@@ -18,16 +18,21 @@ export const transformSearchPlacesToResults = (
   places: SearchPlace[],
   userLocation: [number, number]
 ): SearchResult[] => {
-  return places.map((place) => ({
-    id: place.id,
-    name: place.name,
-    address: place.address,
-    coordinates: place.coordinates,
-    type: place.category || 'point_of_interest', // Ajout du type requis
-    category: place.category,
-    distance: place.distance || calculateDistance(userLocation, place.coordinates),
-    duration: place.duration || estimateDuration(place.distance || 0, 'walking')
-  }));
+  return places.map((place) => {
+    const distance = place.distance || calculateDistance(userLocation, place.coordinates);
+    const duration = place.duration || estimateDuration(distance, 'walking');
+    
+    return {
+      id: place.id,
+      name: place.name,
+      address: place.address,
+      coordinates: place.coordinates,
+      type: place.category || 'point_of_interest',
+      category: place.category,
+      distance: Math.round(distance * 10) / 10,
+      duration: Math.round(duration)
+    };
+  });
 };
 
 export const transformMapboxToSearchResult = (

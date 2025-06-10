@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { unifiedSearchService } from '@/services/unifiedApiService';
@@ -62,11 +63,8 @@ export const useGeoSearchActions = ({
 
       console.log('✅ Search results received:', searchResults.length);
       
-      // Transformer les résultats pour s'assurer qu'ils correspondent au type SearchResult
-      const transformedResults = searchResults.map(result => ({
-        ...result,
-        type: result.type || result.category || 'point_of_interest' // Assurer que le type existe
-      }));
+      // Utiliser la fonction de transformation pour convertir les résultats
+      const transformedResults = transformSearchPlacesToResults(searchResults, userLocation);
       
       setResults(transformedResults);
     } catch (error) {
