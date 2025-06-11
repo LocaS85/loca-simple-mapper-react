@@ -1,60 +1,52 @@
 
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 
-export const usePerformanceOptimization = () => {
-  const renderCountRef = useRef(0);
-  const lastRenderTimeRef = useRef(Date.now());
+interface PerformanceConfig {
+  enableVirtualization?: boolean;
+  debounceMs?: number;
+  throttleMs?: number;
+  enableMemoization?: boolean;
+}
 
-  const trackRender = useCallback((componentName: string) => {
-    renderCountRef.current++;
-    const now = Date.now();
-    const timeSinceLastRender = now - lastRenderTimeRef.current;
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🎭 ${componentName} render #${renderCountRef.current} (+${timeSinceLastRender}ms)`);
-    }
-    
-    lastRenderTimeRef.current = now;
+export const usePerformanceOptimization = (config: PerformanceConfig = {}) => {
+  const {
+    enableVirtualization = true,
+    debounceMs = 300,
+    throttleMs = 100,
+    enableMemoization = true
+  } = config;
+
+  const optimizedConfig = useMemo(() => ({
+    isProduction: import.meta.env.PROD,
+    enableVirtualization,
+    debounceMs,
+    throttleMs,
+    enableMemoization
+  }), [enableVirtualization, debounceMs, throttleMs, enableMemoization]);
+
+  const createDebounce = useCallback((func: (...args: any[]) => void, delay: number) => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
   }, []);
 
-  const debounce = useCallback(<T extends (...args: any[]) => any>(
-    func: T,
-    delay: number
-  ): T => {
-    const timeoutRef = useRef<NodeJS.Timeout>();
-    
-    return ((...args: Parameters<T>) => {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => func(...args), delay);
-    }) as T;
-  }, []);
-
-  const throttle = useCallback(<T extends (...args: any[]) => any>(
-    func: T,
-    limit: number
-  ): T => {
-    const inThrottle = useRef(false);
-    
-    return ((...args: Parameters<T>) => {
-      if (!inThrottle.current) {
-        func(...args);
-        inThrottle.current = true;
-        setTimeout(() => {
-          inThrottle.current = false;
-        }, limit);
+  const createThrottle = useCallback((func: (...args: any[]) => void, delay: number) => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    return (...args: any[]) => {
+      if (!timeoutId) {
+        timeoutId = setTimeout(() => {
+          func.apply(null, args);
+          timeoutId = null;
+        }, delay);
       }
-    }) as T;
+    };
   }, []);
-
-  const memoizedValue = useMemo;
-  const memoizedCallback = useCallback;
 
   return {
-    trackRender,
-    debounce,
-    throttle,
-    memoizedValue,
-    memoizedCallback,
-    renderCount: renderCountRef.current
+    config: optimizedConfig,
+    debounce: createDebounce,
+    throttle: createThrottle
   };
 };

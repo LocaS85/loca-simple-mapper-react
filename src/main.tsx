@@ -1,45 +1,18 @@
 
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.tsx';
-import { AppProvider } from '@/components/core/AppProvider';
-import GlobalLayout from '@/components/layout/GlobalLayout';
-import '@/i18n';
-import './index.css';
-import '@/utils/mapboxPreload';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
 
-// Initialisation des métriques de performance avec gestion d'erreurs améliorée
-if (process.env.NODE_ENV === 'development') {
-  console.log('LocaSimple - Mode développement activé');
-  
-  // Observer les métriques Web Vitals avec la nouvelle API (v4+)
-  import('web-vitals').then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
-    try {
-      onCLS(console.log);
-      onFCP(console.log);
-      onLCP(console.log);
-      onTTFB(console.log);
-      // onINP remplace onFID dans web-vitals v4+
-      if (onINP) {
-        onINP(console.log);
-      }
-    } catch (error) {
-      console.warn('Erreur lors de l\'initialisation des métriques:', error);
-    }
-  }).catch(err => {
-    console.warn('Web vitals non disponibles:', err);
-  });
+// Désactiver les logs de développement en production
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.debug = () => {};
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AppProvider>
-        <GlobalLayout>
-          <App />
-        </GlobalLayout>
-      </AppProvider>
-    </BrowserRouter>
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
 );

@@ -1,150 +1,503 @@
-
-import { 
-  Utensils, ShoppingBag, HeartPulse, Film, Hotel, MapPin, Home, 
-  Briefcase, Users, School, CircleUser, Coffee, Beer, Cake, 
-  ShoppingCart, Package, Smartphone, Book, Gamepad, Pill, 
-  Glasses, Dumbbell, Flower, Scissors, Car, BadgePercent,
-  Building, CircleDollarSign, HeartCrack, Stethoscope, 
-  Eye, FileImage, Brain, PawPrint, Clapperboard, Theater, Landmark,
-  Ticket, Music, PartyPopper, Trees, Blocks, Timer, Infinity, Waves,
-  Building2, Tent, BedDouble, Mailbox, Sunrise
-} from "lucide-react";
-import { ComponentType } from "react";
-
-export interface SubcategoryGroup {
-  name: string;
-  subcategories: string[];
-}
-
 export interface FullSubcategory {
   id: string;
   name: string;
-  icon: ComponentType;
   description?: string;
+  icon: string;
+  mapboxCategory?: string;
+  keywords?: string[];
+  maxDistance?: number;
 }
 
 export interface FullCategory {
   id: string;
   name: string;
-  icon: ComponentType;
+  icon: string;
   color: string;
   subcategories: FullSubcategory[];
+  maxDistance?: number;
 }
 
-export const fullCategoriesData: FullCategory[] = [
+export const fullCategories: FullCategory[] = [
   {
-    id: 'quotidien',
-    name: 'Quotidien',
-    icon: MapPin,
-    color: '#3498db',
+    id: 'restaurant',
+    name: 'Restaurants',
+    icon: 'utensils',
+    color: '#ef4444',
+    maxDistance: Number.POSITIVE_INFINITY, // Utilise Number.POSITIVE_INFINITY au lieu de Infinity
     subcategories: [
-      { id: 'maison', name: 'Adresse principale', icon: Home, description: 'Votre domicile principal' },
-      { id: 'famille', name: 'Famille', icon: Users, description: 'Adresses de membres de votre famille' },
-      { id: 'amis', name: 'Amis', icon: CircleUser, description: 'Adresses de vos amis' },
-      { id: 'travail', name: 'Travail', icon: Briefcase, description: 'Adresse de votre lieu de travail' },
-      { id: 'ecole', name: 'École', icon: School, description: 'Établissements scolaires' },
-      { id: 'autre', name: 'Autre', icon: MapPin, description: 'Autres adresses fréquentes' }
+      {
+        id: 'italian',
+        name: 'Italien',
+        icon: 'pizza-slice',
+        mapboxCategory: 'restaurant.italian',
+        keywords: ['pizza', 'pasta', 'risotto'],
+        maxDistance: 5
+      },
+      {
+        id: 'french',
+        name: 'Français',
+        icon: 'croissant',
+        mapboxCategory: 'restaurant.french',
+        keywords: ['bistro', 'wine', 'steak'],
+        maxDistance: 5
+      },
+      {
+        id: 'japanese',
+        name: 'Japonais',
+        icon: 'sushi',
+        mapboxCategory: 'restaurant.japanese',
+        keywords: ['sushi', 'ramen', 'sake'],
+        maxDistance: 5
+      },
+      {
+        id: 'chinese',
+        name: 'Chinois',
+        icon: 'noodles',
+        mapboxCategory: 'restaurant.chinese',
+        keywords: ['dumplings', 'noodles', 'tea'],
+        maxDistance: 5
+      },
+      {
+        id: 'indian',
+        name: 'Indien',
+        icon: 'curry',
+        mapboxCategory: 'restaurant.indian',
+        keywords: ['curry', 'naan', 'tandoori'],
+        maxDistance: 5
+      },
+      {
+        id: 'burger',
+        name: 'Burger',
+        icon: 'hamburger',
+        mapboxCategory: 'restaurant.burger',
+        keywords: ['burger', 'fries', 'milkshake'],
+        maxDistance: 3
+      },
+      {
+        id: 'pizza',
+        name: 'Pizza',
+        icon: 'pizza-slice',
+        mapboxCategory: 'restaurant.pizza',
+        keywords: ['pizza', 'pasta', 'italian'],
+        maxDistance: 3
+      },
+      {
+        id: 'vegetarian',
+        name: 'Végétarien',
+        icon: 'leaf',
+        mapboxCategory: 'restaurant.vegetarian',
+        keywords: ['vegetarian', 'vegan', 'salad'],
+        maxDistance: 5
+      },
+      {
+        id: 'fast_food',
+        name: 'Fast Food',
+        icon: 'hotdog',
+        mapboxCategory: 'restaurant.fast_food',
+        keywords: ['fast food', 'takeaway', 'drive-through'],
+        maxDistance: 2
+      },
+      {
+        id: 'seafood',
+        name: 'Fruits de mer',
+        icon: 'fish',
+        mapboxCategory: 'restaurant.seafood',
+        keywords: ['seafood', 'fish', 'oysters'],
+        maxDistance: 5
+      }
     ]
   },
   {
-    id: 'alimentation',
-    name: 'Alimentation',
-    icon: Utensils,
-    color: '#e67e22',
+    id: 'hotel',
+    name: 'Hôtels',
+    icon: 'hotel',
+    color: '#3b82f6',
+    maxDistance: 20,
     subcategories: [
-      { id: 'restaurants', name: 'Restaurants', icon: Utensils, description: 'Gastronomie, rapide, végétariens, etc.' },
-      { id: 'bars', name: 'Bars', icon: Beer, description: 'Bars à vin, pubs, bars à cocktails' },
-      { id: 'cafes', name: 'Cafés et Salons de thé', icon: Coffee, description: 'Cafés, salons de thé' },
-      { id: 'boulangeries', name: 'Boulangeries', icon: Cake, description: 'Boulangeries et pâtisseries' },
-      { id: 'supermarches', name: 'Supermarchés', icon: ShoppingCart, description: 'Grandes surfaces et épiceries' },
-      { id: 'emporter', name: 'Vente à emporter', icon: Package, description: 'Plats à emporter' },
-      { id: 'livraison', name: 'Livraison', icon: Package, description: 'Services de livraison de repas' }
+      {
+        id: 'hotel',
+        name: 'Hôtel',
+        icon: 'bed',
+        mapboxCategory: 'accommodation.hotel',
+        keywords: ['hotel', 'room', 'bed'],
+        maxDistance: 10
+      },
+      {
+        id: 'motel',
+        name: 'Motel',
+        icon: 'car',
+        mapboxCategory: 'accommodation.motel',
+        keywords: ['motel', 'roadside', 'parking'],
+        maxDistance: 10
+      },
+      {
+        id: 'hostel',
+        name: 'Auberge',
+        icon: 'users',
+        mapboxCategory: 'accommodation.hostel',
+        keywords: ['hostel', 'dorm', 'backpackers'],
+        maxDistance: 10
+      },
+      {
+        id: 'resort',
+        name: 'Complexe hôtelier',
+        icon: 'sun',
+        mapboxCategory: 'accommodation.resort',
+        keywords: ['resort', 'pool', 'beach'],
+        maxDistance: 20
+      },
+      {
+        id: 'bed_and_breakfast',
+        name: 'Chambre d\'hôtes',
+        icon: 'coffee',
+        mapboxCategory: 'accommodation.bed_and_breakfast',
+        keywords: ['bed and breakfast', 'bnb', 'breakfast'],
+        maxDistance: 10
+      }
     ]
   },
   {
-    id: 'achats',
-    name: 'Achats',
-    icon: ShoppingBag,
-    color: '#2ecc71',
+    id: 'cafe',
+    name: 'Cafés',
+    icon: 'coffee',
+    color: '#f59e0b',
+    maxDistance: 5,
     subcategories: [
-      { id: 'vetements', name: 'Magasins de vêtements', icon: ShoppingBag, description: 'Prêt-à-porter, boutiques de luxe' },
-      { id: 'electronique', name: 'Magasins d\'électronique', icon: Smartphone, description: 'Téléphonie, informatique' },
-      { id: 'bibliotheques', name: 'Bibliothèques', icon: Book, description: 'Généralistes, spécialisées' },
-      { id: 'jouets', name: 'Magasins de jouets', icon: Gamepad, description: 'Jouets et jeux' },
-      { id: 'pharmacies', name: 'Pharmacies', icon: Pill, description: 'Pharmacies' },
-      { id: 'parfumeries', name: 'Parfumeries', icon: Package, description: 'Parfumeries et cosmétiques' },
-      { id: 'bijouteries', name: 'Bijouteries', icon: Timer, description: 'Bijoux et accessoires' },
-      { id: 'opticiens', name: 'Opticiens', icon: Glasses, description: 'Lunettes et optique' },
-      { id: 'sport', name: 'Magasins de sport', icon: Dumbbell, description: 'Articles de sport' },
-      { id: 'fleuristes', name: 'Fleuristes', icon: Flower, description: 'Fleurs et plantes' },
-      { id: 'coiffeurs', name: 'Coiffeurs', icon: Scissors, description: 'Salons de coiffure et barbiers' },
-      { id: 'beaute', name: 'Beauté', icon: Timer, description: 'Salons de beauté, spa, esthétique' },
-      { id: 'automobile', name: 'Automobile', icon: Car, description: 'Garages, parking, stations-service' },
-      { id: 'banques', name: 'Banques et DAB', icon: CircleDollarSign, description: 'Services bancaires, distributeurs' }
+      {
+        id: 'cafe',
+        name: 'Café',
+        icon: 'mug-hot',
+        mapboxCategory: 'cafe',
+        keywords: ['coffee', 'tea', 'pastries'],
+        maxDistance: 3
+      },
+      {
+        id: 'tea_house',
+        name: 'Salon de thé',
+        icon: 'tea',
+        mapboxCategory: 'cafe.tea_house',
+        keywords: ['tea', 'cakes', 'sandwiches'],
+        maxDistance: 3
+      },
+      {
+        id: 'internet_cafe',
+        name: 'Cybercafé',
+        icon: 'wifi',
+        mapboxCategory: 'cafe.internet_cafe',
+        keywords: ['internet', 'computers', 'coffee'],
+        maxDistance: 2
+      },
+      {
+        id: 'juice_bar',
+        name: 'Bar à jus',
+        icon: 'lemon',
+        mapboxCategory: 'cafe.juice_bar',
+        keywords: ['juice', 'smoothies', 'healthy'],
+        maxDistance: 3
+      }
     ]
   },
   {
-    id: 'services',
-    name: 'Services',
-    icon: BadgePercent,
-    color: '#f1c40f',
+    id: 'bar',
+    name: 'Bars',
+    icon: 'beer',
+    color: '#10b981',
+    maxDistance: 3,
     subcategories: [
-      { id: 'pressing', name: 'Pressing', icon: Scissors, description: 'Nettoyage et repassage' },
-      { id: 'banque', name: 'Banques', icon: Building, description: 'Services bancaires' },
-      { id: 'administration', name: 'Administration', icon: Building2, description: 'Services administratifs' },
-      { id: 'poste', name: 'Bureaux de poste', icon: Mailbox, description: 'Services postaux' },
-      { id: 'assurances', name: 'Assurances', icon: CircleDollarSign, description: 'Agences d\'assurance' }
+      {
+        id: 'bar',
+        name: 'Bar',
+        icon: 'glass-cheers',
+        mapboxCategory: 'bar',
+        keywords: ['drinks', 'cocktails', 'beer'],
+        maxDistance: 2
+      },
+      {
+        id: 'pub',
+        name: 'Pub',
+        icon: 'beer',
+        mapboxCategory: 'bar.pub',
+        keywords: ['beer', 'ale', 'snacks'],
+        maxDistance: 2
+      },
+      {
+        id: 'sports_bar',
+        name: 'Bar des sports',
+        icon: 'football',
+        mapboxCategory: 'bar.sports_bar',
+        keywords: ['sports', 'tv', 'beer'],
+        maxDistance: 2
+      },
+      {
+        id: 'nightclub',
+        name: 'Discothèque',
+        icon: 'music',
+        mapboxCategory: 'bar.nightclub',
+        keywords: ['dance', 'music', 'dj'],
+        maxDistance: 2
+      },
+      {
+        id: 'wine_bar',
+        name: 'Bar à vin',
+        icon: 'wine-glass',
+        mapboxCategory: 'bar.wine_bar',
+        keywords: ['wine', 'cheese', 'tapas'],
+        maxDistance: 2
+      }
     ]
   },
   {
-    id: 'sante',
-    name: 'Santé',
-    icon: HeartPulse,
-    color: '#27ae60',
+    id: 'store',
+    name: 'Magasins',
+    icon: 'shopping-bag',
+    color: '#8b5cf6',
+    maxDistance: 10,
     subcategories: [
-      { id: 'hopitaux', name: 'Hôpitaux', icon: HeartCrack, description: 'Centres hospitaliers' },
-      { id: 'cliniques', name: 'Cliniques', icon: Building, description: 'Établissements de santé privés' },
-      { id: 'dentistes', name: 'Dentistes', icon: Stethoscope, description: 'Cabinets dentaires' },
-      { id: 'medecins', name: 'Médecins généralistes', icon: Stethoscope, description: 'Cabinets médicaux' },
-      { id: 'pharmacies_sante', name: 'Pharmacies', icon: Pill, description: 'Pharmacies et parapharmacies' },
-      { id: 'laboratoires', name: 'Laboratoires d\'analyses', icon: Timer, description: 'Laboratoires médicaux' },
-      { id: 'opticiens_sante', name: 'Opticiens', icon: Eye, description: 'Magasins d\'optique' },
-      { id: 'radiologie', name: 'Centres de radiologie', icon: FileImage, description: 'Imagerie médicale' },
-      { id: 'psychologues', name: 'Psychologues', icon: Brain, description: 'Cabinets de psychologues' },
-      { id: 'veterinaires', name: 'Vétérinaires', icon: PawPrint, description: 'Cliniques vétérinaires' }
+      {
+        id: 'supermarket',
+        name: 'Supermarché',
+        icon: 'shopping-cart',
+        mapboxCategory: 'store.supermarket',
+        keywords: ['groceries', 'food', 'household'],
+        maxDistance: 5
+      },
+      {
+        id: 'convenience',
+        name: 'Épicerie',
+        icon: 'basket',
+        mapboxCategory: 'store.convenience',
+        keywords: ['snacks', 'drinks', 'essentials'],
+        maxDistance: 3
+      },
+      {
+        id: 'bookstore',
+        name: 'Librairie',
+        icon: 'book',
+        mapboxCategory: 'store.bookstore',
+        keywords: ['books', 'magazines', 'stationery'],
+        maxDistance: 5
+      },
+      {
+        id: 'clothing',
+        name: 'Vêtements',
+        icon: 't-shirt',
+        mapboxCategory: 'store.clothing',
+        keywords: ['clothes', 'fashion', 'apparel'],
+        maxDistance: 5
+      },
+      {
+        id: 'electronics',
+        name: 'Électronique',
+        icon: 'tv',
+        mapboxCategory: 'store.electronics',
+        keywords: ['electronics', 'gadgets', 'devices'],
+        maxDistance: 5
+      }
     ]
   },
   {
-    id: 'divertissement',
-    name: 'Divertissement',
-    icon: Film,
-    color: '#9b59b6',
+    id: 'bank',
+    name: 'Banques',
+    icon: 'bank',
+    color: '#06b6d4',
+    maxDistance: 5,
     subcategories: [
-      { id: 'cinemas', name: 'Cinémas', icon: Clapperboard, description: 'Salles de cinéma' },
-      { id: 'theatres', name: 'Théâtres', icon: Theater, description: 'Salles de spectacle' },
-      { id: 'musees', name: 'Musées', icon: Landmark, description: 'Musées et expositions' },
-      { id: 'parcs_attractions', name: 'Parcs d\'attractions', icon: Ticket, description: 'Parcs à thème' },
-      { id: 'concerts', name: 'Salles de concert', icon: Music, description: 'Lieux de musique live' },
-      { id: 'clubs', name: 'Clubs et discothèques', icon: PartyPopper, description: 'Boîtes de nuit' },
-      { id: 'parcs', name: 'Parcs et jardins', icon: Trees, description: 'Espaces verts' },
-      { id: 'loisirs', name: 'Centres de loisirs', icon: Blocks, description: 'Activités récréatives' },
-      { id: 'bowling', name: 'Bowling', icon: Timer, description: 'Salles de bowling' },
-      { id: 'patinoires', name: 'Patinoires', icon: Infinity, description: 'Patinage sur glace' },
-      { id: 'piscines', name: 'Piscines', icon: Waves, description: 'Piscines publiques' },
-      { id: 'plages', name: 'Plages', icon: Sunrise, description: 'Plages et bords de mer' }
+      {
+        id: 'bank',
+        name: 'Banque',
+        icon: 'dollar-sign',
+        mapboxCategory: 'bank',
+        keywords: ['money', 'atm', 'loans'],
+        maxDistance: 3
+      },
+      {
+        id: 'atm',
+        name: 'Distributeur',
+        icon: 'money',
+        mapboxCategory: 'bank.atm',
+        keywords: ['cash', 'withdrawal', 'deposit'],
+        maxDistance: 2
+      },
+      {
+        id: 'currency_exchange',
+        name: 'Bureau de change',
+        icon: 'exchange',
+        mapboxCategory: 'bank.currency_exchange',
+        keywords: ['currency', 'exchange', 'foreign'],
+        maxDistance: 3
+      }
     ]
   },
   {
-    id: 'hebergement',
-    name: 'Hébergement',
-    icon: Hotel,
-    color: '#34495e',
+    id: 'hospital',
+    name: 'Hôpitaux',
+    icon: 'hospital',
+    color: '#dc2626',
+    maxDistance: 15,
     subcategories: [
-      { id: 'hotels', name: 'Hôtels', icon: Building, description: 'Établissements hôteliers' },
-      { id: 'auberges', name: 'Auberges', icon: Building2, description: 'Auberges de jeunesse' },
-      { id: 'chambres', name: 'Chambres d\'hôtes', icon: BedDouble, description: 'Chambres chez l\'habitant' },
-      { id: 'camping', name: 'Camping', icon: Tent, description: 'Terrains de camping' },
-      { id: 'locations', name: 'Locations de vacances', icon: Home, description: 'Locations saisonnières' }
+      {
+        id: 'hospital',
+        name: 'Hôpital',
+        icon: 'plus-square',
+        mapboxCategory: 'hospital',
+        keywords: ['emergency', 'medical', 'care'],
+        maxDistance: 10
+      },
+      {
+        id: 'clinic',
+        name: 'Clinique',
+        icon: 'stethoscope',
+        mapboxCategory: 'hospital.clinic',
+        keywords: ['doctor', 'appointment', 'checkup'],
+        maxDistance: 5
+      },
+      {
+        id: 'pharmacy',
+        name: 'Pharmacie',
+        icon: 'pills',
+        mapboxCategory: 'hospital.pharmacy',
+        keywords: ['medication', 'prescription', 'drugs'],
+        maxDistance: 3
+      },
+      {
+        id: 'dentist',
+        name: 'Dentiste',
+        icon: 'tooth',
+        mapboxCategory: 'hospital.dentist',
+        keywords: ['teeth', 'cleaning', 'checkup'],
+        maxDistance: 5
+      }
+    ]
+  },
+  {
+    id: 'school',
+    name: 'Écoles',
+    icon: 'school',
+    color: '#6b7280',
+    maxDistance: 10,
+    subcategories: [
+      {
+        id: 'primary',
+        name: 'Primaire',
+        icon: 'graduation-cap',
+        mapboxCategory: 'school.primary',
+        keywords: ['education', 'children', 'learning'],
+        maxDistance: 5
+      },
+      {
+        id: 'secondary',
+        name: 'Secondaire',
+        icon: 'book-open',
+        mapboxCategory: 'school.secondary',
+        keywords: ['high school', 'teens', 'studies'],
+        maxDistance: 5
+      },
+      {
+        id: 'university',
+        name: 'Université',
+        icon: 'book',
+        mapboxCategory: 'school.university',
+        keywords: ['college', 'higher education', 'degrees'],
+        maxDistance: 10
+      },
+      {
+        id: 'library',
+        name: 'Bibliothèque',
+        icon: 'library',
+        mapboxCategory: 'school.library',
+        keywords: ['books', 'reading', 'research'],
+        maxDistance: 5
+      }
+    ]
+  },
+  {
+    id: 'park',
+    name: 'Parcs',
+    icon: 'tree',
+    color: '#16a34a',
+    maxDistance: 5,
+    subcategories: [
+      {
+        id: 'park',
+        name: 'Parc',
+        icon: 'tree-deciduous',
+        mapboxCategory: 'park',
+        keywords: ['nature', 'outdoors', 'recreation'],
+        maxDistance: 3
+      },
+      {
+        id: 'playground',
+        name: 'Aire de jeux',
+        icon: 'sliders',
+        mapboxCategory: 'park.playground',
+        keywords: ['kids', 'play', 'equipment'],
+        maxDistance: 2
+      },
+      {
+        id: 'garden',
+        name: 'Jardin',
+        icon: 'flower',
+        mapboxCategory: 'park.garden',
+        keywords: ['plants', 'flowers', 'peaceful'],
+        maxDistance: 3
+      },
+      {
+        id: 'dog_park',
+        name: 'Parc à chiens',
+        icon: 'dog',
+        mapboxCategory: 'park.dog_park',
+        keywords: ['dogs', 'pets', 'exercise'],
+        maxDistance: 3
+      }
+    ]
+  },
+  {
+    id: 'tourism',
+    name: 'Tourisme',
+    icon: 'camera',
+    color: '#9ca3af',
+    maxDistance: 20,
+    subcategories: [
+      {
+        id: 'museum',
+        name: 'Musée',
+        icon: 'landmark',
+        mapboxCategory: 'tourism.museum',
+        keywords: ['art', 'history', 'culture'],
+        maxDistance: 10
+      },
+      {
+        id: 'attraction',
+        name: 'Attraction',
+        icon: 'star',
+        mapboxCategory: 'tourism.attraction',
+        keywords: ['sightseeing', 'landmark', 'interest'],
+        maxDistance: 10
+      },
+      {
+        id: 'gallery',
+        name: 'Galerie',
+        icon: 'image',
+        mapboxCategory: 'tourism.gallery',
+        keywords: ['art', 'exhibition', 'paintings'],
+        maxDistance: 5
+      },
+      {
+        id: 'zoo',
+        name: 'Zoo',
+        icon: 'paw',
+        mapboxCategory: 'tourism.zoo',
+        keywords: ['animals', 'wildlife', 'conservation'],
+        maxDistance: 15
+      },
+      {
+        id: 'aquarium',
+        name: 'Aquarium',
+        icon: 'water',
+        mapboxCategory: 'tourism.aquarium',
+        keywords: ['fish', 'marine life', 'exhibits'],
+        maxDistance: 15
+      }
     ]
   }
 ];

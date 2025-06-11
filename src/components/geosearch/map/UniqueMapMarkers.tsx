@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { SearchResult } from '@/types/geosearch';
 import { mapboxApiService } from '@/services/mapboxApiService';
@@ -22,7 +21,7 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
   const routeSourceAdded = useRef(false);
 
   // Nettoyer les marqueurs existants
-  const clearMarkers = () => {
+  const clearMarkers = useCallback(() => {
     markersRef.current.forEach(marker => {
       try {
         marker.remove();
@@ -40,12 +39,12 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
         console.warn('Erreur lors de la suppression du marqueur utilisateur:', error);
       }
     }
-  };
+  }, []);
 
   // Vérifier si la carte est prête
-  const isMapReady = () => {
+  const isMapReady = useCallback(() => {
     return map && map.isStyleLoaded && map.isStyleLoaded() && map.getContainer();
-  };
+  }, [map]);
 
   // Initialiser la source et le layer de route
   useEffect(() => {
@@ -85,7 +84,7 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     } catch (error) {
       console.error('Erreur lors de l\'initialisation de la source de route:', error);
     }
-  }, [map]);
+  }, [map, isMapReady]);
 
   // Créer le marqueur utilisateur avec géolocalisation visible
   useEffect(() => {
@@ -207,7 +206,7 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     } catch (error) {
       console.error('❌ Erreur lors de l\'ajout du marqueur de géolocalisation:', error);
     }
-  }, [map, userLocation]);
+  }, [map, userLocation, isMapReady]);
 
   // Créer les marqueurs pour les POI
   useEffect(() => {
@@ -329,10 +328,10 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     });
 
     console.log('🎯 Marqueurs POI ajoutés:', results.length);
-  }, [map, results, userLocation, onRouteRequest]);
+  }, [map, results, userLocation, onRouteRequest, isMapReady]);
 
   // Fonction pour dessiner la route
-  const drawRoute = async (start: [number, number] | null, end: [number, number]) => {
+  const drawRoute = useCallback(async (start: [number, number] | null, end: [number, number]) => {
     if (!isMapReady() || !start) return;
 
     try {
@@ -351,14 +350,14 @@ const UniqueMapMarkers: React.FC<UniqueMapMarkersProps> = ({
     } catch (error) {
       console.error('❌ Erreur lors du tracé de la route:', error);
     }
-  };
+  }, [map, isMapReady]);
 
   // Nettoyer lors du démontage
   useEffect(() => {
     return () => {
       clearMarkers();
     };
-  }, []);
+  }, [clearMarkers]);
 
   return null;
 };

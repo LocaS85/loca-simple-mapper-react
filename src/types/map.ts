@@ -1,4 +1,6 @@
 
+import type { Map as MapboxMap } from 'mapbox-gl';
+
 /**
  * Point d'intérêt (POI) pour l'affichage sur la carte
  */
@@ -20,5 +22,5 @@ export interface POI {
  * Type pour la référence à la carte Mapbox
  */
 export interface MapRef {
-  getMap: () => mapboxgl.Map;
+  getMap: () => MapboxMap;
 }

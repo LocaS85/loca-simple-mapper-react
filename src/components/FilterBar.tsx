@@ -1,4 +1,4 @@
-
+import React, { useState, useCallback } from 'react';
 import { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -52,7 +52,7 @@ const getIconComponent = (iconName: string) => {
   }
 };
 
-export function FilterBar({ 
+const FilterBar: React.FC<FilterBarProps> = ({
   mapRef, 
   onFiltersChange, 
   initialCategory, 
@@ -63,7 +63,7 @@ export function FilterBar({
   initialShowMultiDirections = false,
   initialDistanceUnit = 'km',
   className = ""
-}: FilterBarProps) {
+}: FilterBarProps) => {
   // Use GeoSearch store for better integration
   const { filters, updateFilters } = useGeoSearchStore();
   
@@ -275,4 +275,6 @@ export function FilterBar({
       </div>
     </div>
   );
-}
+};
+
+export default FilterBar;

@@ -1,65 +1,60 @@
 
-// Types personnalisés pour Mapbox GL JS
-declare module 'mapbox-gl' {
-  export = mapboxgl;
-}
+import type { Map, Marker, Popup } from 'mapbox-gl';
 
-declare module '@mapbox/mapbox-gl-geocoder' {
-  import mapboxgl from 'mapbox-gl';
-  
-  namespace MapboxGeocoder {
-    interface Options {
-      accessToken: string;
-      mapboxgl?: typeof mapboxgl;
-      marker?: boolean | object;
-      proximity?: { longitude: number; latitude: number };
-      placeholder?: string;
-      language?: string;
-      countries?: string;
-      bbox?: [number, number, number, number];
-      types?: string;
-      minLength?: number;
-      limit?: number;
-      filter?: (feature: any) => boolean;
-      localGeocoder?: (query: string) => any[];
-      [key: string]: any;
-    }
-  }
-  
-  class MapboxGeocoder implements mapboxgl.IControl {
-    constructor(options: MapboxGeocoder.Options);
-    onAdd(map: mapboxgl.Map): HTMLElement;
-    onRemove(map: mapboxgl.Map): void;
-    addTo(container: HTMLElement | mapboxgl.Map): this;
-    on(event: string, callback: Function): this;
-    clear(): this;
-    setInput(value: string): this;
-  }
-  
-  export = MapboxGeocoder;
-}
-
-declare module '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions' {
-  import mapboxgl from 'mapbox-gl';
-  
-  class MapboxDirections implements mapboxgl.IControl {
-    constructor(options: any);
-    onAdd(map: mapboxgl.Map): HTMLElement;
-    onRemove(map: mapboxgl.Map): void;
-    on(event: string, callback: (e?: any) => void): void;
-    setProfile(profile: string): void;
-    setOrigin(origin: [number, number]): void;
-    setDestination(destination: [number, number]): void;
-  }
-  
-  export = MapboxDirections;
-}
-
-// Extensions pour l'environnement global
 declare global {
   interface Window {
-    showRouteToPlace?: (placeId: string) => void;
+    mapboxgl: typeof import('mapbox-gl');
   }
 }
 
-export {};
+export interface MapboxSearchResult {
+  id: string;
+  place_name: string;
+  center: [number, number];
+  geometry: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
+  properties: {
+    address?: string;
+    category?: string;
+    tel?: string;
+    website?: string;
+  };
+  context: Array<{
+    id: string;
+    text: string;
+    short_code?: string;
+  }>;
+}
+
+export interface MapboxGeocodingOptions {
+  proximity?: [number, number];
+  bbox?: [number, number, number, number];
+  country?: string;
+  types?: string[];
+  limit?: number;
+  language?: string;
+  autocomplete?: boolean;
+  fuzzyMatch?: boolean;
+}
+
+export interface MapboxDirectionsResponse {
+  routes: Array<{
+    geometry: object;
+    distance: number;
+    duration: number;
+    legs: Array<{
+      distance: number;
+      duration: number;
+      steps: Array<{
+        geometry: object;
+        distance: number;
+        duration: number;
+        instruction: string;
+      }>;
+    }>;
+  }>;
+}
+
+export type MapboxEventHandler = (...args: any[]) => void;

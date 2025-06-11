@@ -1,102 +1,42 @@
-
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
 
 interface SEOHeadProps {
   title?: string;
   description?: string;
   keywords?: string;
-  ogImage?: string;
-  canonical?: string;
+  image?: string;
+  url?: string;
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = "LocaSimple - Trouvez facilement les lieux autour de vous",
-  description = "Application de cartographie française pour découvrir restaurants, services et points d'intérêt près de chez vous. Recherche avancée, filtres intelligents, cartes interactives.",
-  keywords = "cartographie, france, restaurants, services, lieux, carte interactive, géolocalisation, recherche locale",
-  ogImage = "https://locasimple.fr/og-image.jpg",
-  canonical
+  title,
+  description,
+  keywords,
+  image,
+  url
 }) => {
-  const location = useLocation();
-  const currentUrl = `https://locasimple.fr${location.pathname}`;
-  const canonicalUrl = canonical || currentUrl;
+  return (
+    <Helmet>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta name="keywords" content={keywords || "locasimple, cartographie, recherche locale"} />
 
-  useEffect(() => {
-    // Titre de la page
-    document.title = title;
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={url || "https://locasimple.com/"} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:image" content={image || "/logo.png"} />
 
-    // Métadonnées de base
-    updateMetaTag('name', 'description', description);
-    updateMetaTag('name', 'keywords', keywords);
-    updateMetaTag('name', 'author', 'LocaSimple');
-    updateMetaTag('name', 'viewport', 'width=device-width, initial-scale=1.0');
-    updateMetaTag('name', 'robots', 'index, follow');
-
-    // Open Graph
-    updateMetaTag('property', 'og:title', title);
-    updateMetaTag('property', 'og:description', description);
-    updateMetaTag('property', 'og:type', 'website');
-    updateMetaTag('property', 'og:url', currentUrl);
-    updateMetaTag('property', 'og:image', ogImage);
-    updateMetaTag('property', 'og:locale', 'fr_FR');
-    updateMetaTag('property', 'og:site_name', 'LocaSimple');
-
-    // Twitter Card
-    updateMetaTag('name', 'twitter:card', 'summary_large_image');
-    updateMetaTag('name', 'twitter:title', title);
-    updateMetaTag('name', 'twitter:description', description);
-    updateMetaTag('name', 'twitter:image', ogImage);
-
-    // Canonical URL
-    let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
-    if (!canonicalLink) {
-      canonicalLink = document.createElement('link');
-      canonicalLink.rel = 'canonical';
-      document.head.appendChild(canonicalLink);
-    }
-    canonicalLink.href = canonicalUrl;
-
-    // JSON-LD Schema - Corriger l'erreur TypeScript
-    let jsonLdScript = document.querySelector('#json-ld') as HTMLScriptElement;
-    if (!jsonLdScript) {
-      jsonLdScript = document.createElement('script');
-      jsonLdScript.id = 'json-ld';
-      jsonLdScript.type = 'application/ld+json';
-      document.head.appendChild(jsonLdScript);
-    }
-    
-    jsonLdScript.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "LocaSimple",
-      "description": description,
-      "url": "https://locasimple.fr",
-      "applicationCategory": "MapApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "EUR"
-      },
-      "creator": {
-        "@type": "Organization",
-        "name": "LocaSimple"
-      }
-    });
-
-  }, [title, description, keywords, ogImage, currentUrl, canonicalUrl]);
-
-  const updateMetaTag = (attribute: string, value: string, content: string) => {
-    let tag = document.querySelector(`meta[${attribute}="${value}"]`) as HTMLMetaElement;
-    if (!tag) {
-      tag = document.createElement('meta');
-      tag.setAttribute(attribute, value);
-      document.head.appendChild(tag);
-    }
-    tag.content = content;
-  };
-
-  return null;
+      {/* Twitter */}
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:url" content={url || "https://locasimple.com/"} />
+      <meta property="twitter:title" content={title} />
+      <meta property="twitter:description" content={description} />
+      <meta property="twitter:image" content={image || "/logo.png"} />
+    </Helmet>
+  );
 };
 
 export default SEOHead;
