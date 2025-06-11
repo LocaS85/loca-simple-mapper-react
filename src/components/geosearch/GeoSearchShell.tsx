@@ -19,7 +19,7 @@ const GeoSearchShell = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
-  const { filters, updateFilters, networkStatus } = useGeoSearchManager();
+  const { filters, updateFiltersWithSearch, networkStatus } = useGeoSearchManager();
 
   // Synchronisation des filtres avec les paramètres URL
   useEffect(() => {
@@ -36,12 +36,12 @@ const GeoSearchShell = () => {
 
       // Mise à jour des filtres si des paramètres sont présents
       if (Object.keys(filtersFromUrl).length > 0) {
-        updateFilters(filtersFromUrl);
+        updateFiltersWithSearch(filtersFromUrl);
       }
     } catch (err) {
       console.error('Erreur lors de la synchronisation des paramètres URL:', err);
     }
-  }, [searchParams, updateFilters]);
+  }, [searchParams, updateFiltersWithSearch]);
 
   // Vérification du token Mapbox au montage
   useEffect(() => {
