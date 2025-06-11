@@ -1,6 +1,7 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { FilterBar } from '@/components/FilterBar';
+import FilterBar from '@/components/FilterBar';
 import { TransportMode } from '@/lib/data/transportModes';
 import { useToast } from '@/hooks/use-toast';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';

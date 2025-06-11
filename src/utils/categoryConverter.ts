@@ -1,28 +1,38 @@
 
 import { Category } from '@/types';
-import { FullCategory, FullSubcategory } from '@/data/fullCategories';
+import { CategoryData, fullCategories } from '@/data/fullCategories';
 
-/**
- * Converts the FullCategory type to Category type
- */
-export function convertToCategory(item: FullCategory): Category {
+interface FullCategory extends CategoryData {
+  // Propriétés supplémentaires pour les catégories complètes
+}
+
+interface FullSubcategory {
+  id: string;
+  name: string;
+  parentId: string;
+}
+
+export const convertCategoryToFull = (category: Category): FullCategory => {
+  const fullCategory = fullCategories.find(fc => fc.id === category.id);
+  
+  if (!fullCategory) {
+    return {
+      id: category.id,
+      name: category.name,
+      icon: category.icon || '📍',
+      subcategories: []
+    };
+  }
+  
+  return fullCategory;
+};
+
+export const convertFullCategoryToCategory = (fullCategory: FullCategory): Category => {
   return {
-    id: item.id,
-    name: item.name,
-    icon: item.icon,
-    color: item.color,
-    subcategories: item.subcategories.map(sub => ({
-      id: sub.id,
-      name: sub.name,
-      icon: sub.icon,
-      description: sub.description || `${item.name} - ${sub.name}`
-    }))
+    id: fullCategory.id,
+    name: fullCategory.name,
+    icon: fullCategory.icon,
+    color: '#3B82F6', // Couleur par défaut
+    subcategories: fullCategory.subcategories || []
   };
-}
-
-/**
- * Converts an array of FullCategory to an array of Category
- */
-export function convertCategories(categories: FullCategory[]): Category[] {
-  return categories.map(category => convertToCategory(category));
-}
+};

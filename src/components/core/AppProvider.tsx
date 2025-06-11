@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/hooks/theme-provider';
@@ -6,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { ErrorBoundary } from 'react-error-boundary';
 import { errorService } from '@/services/errorService';
 import { performanceService } from '@/services/performanceService';
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
 
 // Configuration optimisée du QueryClient avec gestion d'erreurs
 const queryClient = new QueryClient({
@@ -25,10 +25,7 @@ const queryClient = new QueryClient({
     mutations: {
       retry: 1,
       onError: (error: any) => {
-        errorService.captureError(error, {
-          component: 'QueryClient',
-          action: 'mutation-error'
-        });
+        errorService.captureError(error, 'QueryClient mutation error');
         performanceService.incrementErrors();
       }
     }
@@ -37,10 +34,7 @@ const queryClient = new QueryClient({
 
 // Gestionnaire global d'erreurs pour les queries
 queryClient.getQueryCache().config.onError = (error: any) => {
-  errorService.captureError(error, {
-    component: 'QueryClient',
-    action: 'query-error'
-  });
+  errorService.captureError(error, 'QueryClient query error');
   performanceService.incrementErrors();
 };
 
@@ -70,6 +64,7 @@ interface AppProviderProps {
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const handleGlobalError = (error: Error, errorInfo: any) => {
     console.error('Erreur globale capturée:', error, errorInfo);
+    errorService.captureError(error, 'Global error boundary');
     performanceService.incrementErrors();
   };
 
@@ -80,20 +75,24 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     >
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          {children}
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px'
-              }
-            }}
-          />
+          <FavoritesProvider>
+            {children}
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px'
+                }
+              }}
+            />
+          </FavoritesProvider>
         </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
 };
+
+}
