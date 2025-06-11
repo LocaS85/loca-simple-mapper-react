@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useGeoSearchCoordination } from '@/hooks/useGeoSearchCoordination';
+import { useSearchIntegration } from '@/hooks/geosearch/useSearchIntegration';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
@@ -15,6 +16,20 @@ const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) =
     networkStatus,
     statusInfo
   } = useGeoSearchCoordination();
+
+  const {
+    onSearchSelect,
+    onDirectSearch,
+    onLocationChange
+  } = useSearchIntegration();
+
+  // Provide search integration context to children
+  const contextValue = {
+    onSearchSelect,
+    onDirectSearch,
+    onLocationChange,
+    isReady: statusInfo.isReady
+  };
 
   // Show loading state while initializing
   if (!isMapboxReady) {
@@ -65,9 +80,31 @@ const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) =
 
   return (
     <div className="geo-search-controller" data-ready={statusInfo.isReady}>
-      {children}
+      <SearchIntegrationProvider value={contextValue}>
+        {children}
+      </SearchIntegrationProvider>
     </div>
   );
+};
+
+// Context for search integration
+const SearchIntegrationContext = React.createContext<any>(null);
+
+const SearchIntegrationProvider: React.FC<{ value: any; children: React.ReactNode }> = ({ 
+  value, 
+  children 
+}) => (
+  <SearchIntegrationContext.Provider value={value}>
+    {children}
+  </SearchIntegrationContext.Provider>
+);
+
+export const useSearchIntegrationContext = () => {
+  const context = React.useContext(SearchIntegrationContext);
+  if (!context) {
+    throw new Error('useSearchIntegrationContext must be used within SearchIntegrationProvider');
+  }
+  return context;
 };
 
 export default GeoSearchController;

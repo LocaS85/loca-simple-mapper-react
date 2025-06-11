@@ -8,7 +8,7 @@ import { useGeoSearchLocation } from './useGeoSearchLocation';
 
 export const useGeoSearchManager = () => {
   const { toast } = useToast();
-  const { initializeMapbox } = useGeoSearchStore();
+  const { initializeMapbox, updateFilters } = useGeoSearchStore();
 
   const {
     searchQuery,
@@ -21,7 +21,7 @@ export const useGeoSearchManager = () => {
     networkStatus,
     statusInfo,
     setUserLocation,
-    updateFilters,
+    updateFilters: storeUpdateFilters,
     setResults,
     setIsLoading,
     clearCache
@@ -40,7 +40,7 @@ export const useGeoSearchManager = () => {
     isMapboxReady,
     setResults,
     setIsLoading,
-    updateFilters,
+    updateFilters: storeUpdateFilters,
     setUserLocation,
     searchQuery,
     setSearchQuery
@@ -51,6 +51,23 @@ export const useGeoSearchManager = () => {
     setUserLocation,
     performSearch
   });
+
+  // Method to set filters from URL params
+  const setFiltersFromParams = (params: Record<string, string>) => {
+    const newFilters: any = {};
+    
+    if (params.q) newFilters.query = params.q;
+    if (params.category) newFilters.category = params.category;
+    if (params.subcategory) newFilters.subcategory = params.subcategory;
+    if (params.transport) newFilters.transport = params.transport;
+    if (params.distance) newFilters.distance = parseFloat(params.distance);
+    if (params.maxDuration) newFilters.maxDuration = parseInt(params.maxDuration);
+    if (params.aroundMeCount) newFilters.aroundMeCount = parseInt(params.aroundMeCount);
+    
+    if (Object.keys(newFilters).length > 0) {
+      updateFilters(newFilters);
+    }
+  };
 
   // Initialize Mapbox on mount
   useEffect(() => {
@@ -98,6 +115,7 @@ export const useGeoSearchManager = () => {
     handleTransportChange,
     handleMyLocationClick,
     performSearch,
-    clearCache
+    clearCache,
+    setFiltersFromParams
   };
 };

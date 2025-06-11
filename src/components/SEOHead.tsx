@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 
 interface SEOHeadProps {
   title?: string;
@@ -16,27 +16,25 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   image,
   url
 }) => {
-  return (
-    <Helmet>
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <meta name="keywords" content={keywords || "locasimple, cartographie, recherche locale"} />
+  React.useEffect(() => {
+    if (title) {
+      document.title = title;
+    }
+    
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription && description) {
+      metaDescription.setAttribute('content', description);
+    }
+    
+    // Update meta keywords
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords && keywords) {
+      metaKeywords.setAttribute('content', keywords);
+    }
+  }, [title, description, keywords]);
 
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content="website" />
-      <meta property="og:url" content={url || "https://locasimple.com/"} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={image || "/logo.png"} />
-
-      {/* Twitter */}
-      <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:url" content={url || "https://locasimple.com/"} />
-      <meta property="twitter:title" content={title} />
-      <meta property="twitter:description" content={description} />
-      <meta property="twitter:image" content={image || "/logo.png"} />
-    </Helmet>
-  );
+  return null;
 };
 
 export default SEOHead;
