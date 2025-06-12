@@ -1,4 +1,6 @@
 
+import { DistanceUnit } from './map';
+
 export interface Category {
   id: string;
   name: string;

@@ -1,7 +1,8 @@
 
 import type { Map as MapboxMap } from 'mapbox-gl';
 
-export type TransportMode = 'car' | 'walking' | 'cycling' | 'bus' | 'train' | 'driving' | 'transit';
+export type TransportMode = 'driving' | 'walking' | 'cycling' | 'bus' | 'train' | 'transit';
+export type DistanceUnit = 'km' | 'miles';
 
 export interface POI {
   id: string;

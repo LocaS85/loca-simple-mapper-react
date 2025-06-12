@@ -1,5 +1,5 @@
 
-import { TransportMode } from './map';
+import { TransportMode, DistanceUnit } from './map';
 
 export interface SearchResult {
   id: string;
@@ -21,8 +21,8 @@ export interface GeoSearchFilters {
   distance: number;
   maxDuration?: number;
   aroundMeCount?: number;
-  distanceUnit?: 'km' | 'mi';
-  unit?: 'km' | 'mi';
+  distanceUnit?: DistanceUnit;
+  unit?: DistanceUnit;
   showMultiDirections?: boolean;
 }
 

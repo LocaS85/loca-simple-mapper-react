@@ -2,6 +2,8 @@
 import React from 'react';
 import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
 import { Button } from '@/components/ui/button';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const ExternalNavigationAndExportPDF = () => {
   const { filters, userLocation, results } = useGeoSearchManager();
@@ -22,12 +24,6 @@ const ExternalNavigationAndExportPDF = () => {
 
   const downloadPDF = async () => {
     try {
-      // Dynamically import jsPDF and html2canvas
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-        import('jspdf'),
-        import('html2canvas')
-      ]);
-
       const element = document.getElementById('geo-map-container');
       if (!element) {
         console.warn('Élément carte non trouvé pour l\'export PDF');

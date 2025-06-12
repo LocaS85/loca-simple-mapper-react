@@ -1,15 +1,15 @@
 
 import { useState, useCallback } from 'react';
-import { TransportMode } from '@/types/map';
+import { TransportMode, DistanceUnit } from '@/types/map';
 
 export const useCategoryManagement = () => {
   const [mapZoom, setMapZoom] = useState(13);
   const [mapCenter, setMapCenter] = useState<[number, number]>([2.3522, 48.8566]);
-  const [transportMode, setTransportMode] = useState<TransportMode>('car');
+  const [transportMode, setTransportMode] = useState<TransportMode>('driving');
   const [maxDistance, setMaxDistance] = useState(10);
   const [maxDuration, setMaxDuration] = useState(60);
   const [aroundMeCount, setAroundMeCount] = useState(5);
-  const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>('km');
+  const [distanceUnit, setDistanceUnit] = useState<DistanceUnit>('km');
   const [showMultiDirections, setShowMultiDirections] = useState(false);
 
   const updateMapZoom = useCallback((zoom: number) => {
@@ -45,7 +45,7 @@ export const useCategoryManagement = () => {
   }, [selectCategory]);
 
   const resetFilters = useCallback(() => {
-    setTransportMode('car');
+    setTransportMode('driving');
     setMaxDistance(10);
     setMaxDuration(60);
     setAroundMeCount(5);

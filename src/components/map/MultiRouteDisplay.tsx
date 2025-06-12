@@ -8,27 +8,26 @@ import { TransportMode } from '@/types/map';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWF6Z3A1Ym4waXN6MmtzYzh4bWZ2YWIxIn0.tbWmkuCSJw4h_Ol1Q6ed0A';
 
 const modeColors: Record<TransportMode, string> = {
-  car: '#1976D2',
+  driving: '#1976D2',
   walking: '#43A047',
   cycling: '#FB8C00',
   bus: '#8E24AA',
   train: '#EF4444',
-  driving: '#1976D2',
   transit: '#8E24AA'
 };
 
 // Service pour obtenir les routes pour tous les modes de transport
 const getRoutesForAllModes = async (start: LngLatLike, end: LngLatLike) => {
-  const modes: TransportMode[] = ['car', 'walking', 'cycling'];
+  const modes: TransportMode[] = ['driving', 'walking', 'cycling'];
   const routes = [];
 
   for (const mode of modes) {
     try {
-      const profile = mode === 'car' ? 'driving' : mode;
+      const profile = mode === 'driving' ? 'driving' : mode;
       
       // Normaliser les coordonnées en format lng,lat
-      const startCoords = Array.isArray(start) ? start : [start.lng || (start as any).lon, start.lat];
-      const endCoords = Array.isArray(end) ? end : [end.lng || (end as any).lon, end.lat];
+      const startCoords = normalizeCoordinates(start);
+      const endCoords = normalizeCoordinates(end);
       
       const response = await fetch(
         `https://api.mapbox.com/directions/v5/mapbox/${profile}/${startCoords.join(',')};${endCoords.join(',')}?geometries=geojson&access_token=${MAPBOX_TOKEN}`
@@ -56,6 +55,24 @@ const getRoutesForAllModes = async (start: LngLatLike, end: LngLatLike) => {
   }
 
   return routes;
+};
+
+// Fonction pour normaliser les coordonnées
+const normalizeCoordinates = (coords: LngLatLike): [number, number] => {
+  if (Array.isArray(coords)) {
+    return coords as [number, number];
+  }
+  
+  if ('lng' in coords) {
+    return [coords.lng, coords.lat];
+  }
+  
+  if ('lon' in coords) {
+    return [coords.lon, coords.lat];
+  }
+  
+  // Fallback pour mapboxgl.LngLat
+  return [coords.lng || 0, coords.lat || 0];
 };
 
 const MultiRouteDisplay: React.FC = () => {
@@ -176,7 +193,7 @@ const MultiRouteDisplay: React.FC = () => {
                 style={{ backgroundColor: modeColors[mode] }}
               />
               <span className="capitalize">
-                {mode === 'car' ? 'Voiture' : mode === 'walking' ? 'Marche' : 'Vélo'}
+                {mode === 'driving' ? 'Voiture' : mode === 'walking' ? 'Marche' : 'Vélo'}
               </span>
             </div>
           ))}

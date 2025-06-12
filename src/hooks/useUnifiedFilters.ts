@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode, DistanceUnit } from '@/types/map';
 import { useTranslation } from 'react-i18next';
 import { trackFilterChange, trackSearchEvent } from '@/services/analytics';
 
@@ -10,7 +10,7 @@ export interface UnifiedFilters {
   subcategory: string | null;
   transport: TransportMode;
   distance: number;
-  unit: 'km' | 'mi';
+  unit: DistanceUnit;
   query: string;
   aroundMeCount: number;
   showMultiDirections: boolean;
