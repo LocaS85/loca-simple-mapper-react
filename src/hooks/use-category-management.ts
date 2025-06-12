@@ -21,15 +21,15 @@ export const useCategoryManagement = () => {
   }, []);
 
   const categories = [
-    { id: 'restaurant', name: 'Restaurants', icon: '🍽️', color: '#e67e22' },
-    { id: 'shopping', name: 'Shopping', icon: '🛍️', color: '#f39c12' },
-    { id: 'health', name: 'Santé', icon: '🏥', color: '#27ae60' }
+    { id: 'restaurant', name: 'Restaurants', icon: '🍽️', color: '#e67e22', subcategories: [] },
+    { id: 'shopping', name: 'Shopping', icon: '🛍️', color: '#f39c12', subcategories: [] },
+    { id: 'health', name: 'Santé', icon: '🏥', color: '#27ae60', subcategories: [] }
   ];
 
   const selectedCategory = categories[0];
 
-  const selectCategory = useCallback((categoryId: string) => {
-    console.log('Sélection de la catégorie:', categoryId);
+  const selectCategory = useCallback((category: any) => {
+    console.log('Sélection de la catégorie:', category);
   }, []);
 
   const clearSelection = useCallback(() => {
@@ -40,8 +40,8 @@ export const useCategoryManagement = () => {
     console.log('Changement de filtres:', newFilters);
   }, []);
 
-  const handleSelectCategory = useCallback((categoryId: string) => {
-    selectCategory(categoryId);
+  const handleSelectCategory = useCallback((category: any) => {
+    selectCategory(category);
   }, [selectCategory]);
 
   const resetFilters = useCallback(() => {

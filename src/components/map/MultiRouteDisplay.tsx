@@ -12,7 +12,9 @@ const modeColors: Record<TransportMode, string> = {
   walking: '#43A047',
   cycling: '#FB8C00',
   bus: '#8E24AA',
-  train: '#EF4444'
+  train: '#EF4444',
+  driving: '#1976D2',
+  transit: '#8E24AA'
 };
 
 // Service pour obtenir les routes pour tous les modes de transport

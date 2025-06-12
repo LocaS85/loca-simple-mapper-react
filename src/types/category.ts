@@ -54,4 +54,6 @@ export interface DailyAddressData {
   category: string;
   subcategory?: string;
   transportMode?: string;
+  date?: string;
+  isDaily?: boolean;
 }
