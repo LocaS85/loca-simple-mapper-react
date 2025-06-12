@@ -1,9 +1,16 @@
 
 import { useState, useCallback } from 'react';
+import { TransportMode } from '@/types/map';
 
 export const useCategoryManagement = () => {
   const [mapZoom, setMapZoom] = useState(13);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([2.3522, 48.8566]); // Paris par défaut
+  const [mapCenter, setMapCenter] = useState<[number, number]>([2.3522, 48.8566]);
+  const [transportMode, setTransportMode] = useState<TransportMode>('car');
+  const [maxDistance, setMaxDistance] = useState(10);
+  const [maxDuration, setMaxDuration] = useState(60);
+  const [aroundMeCount, setAroundMeCount] = useState(5);
+  const [distanceUnit, setDistanceUnit] = useState<'km' | 'mi'>('km');
+  const [showMultiDirections, setShowMultiDirections] = useState(false);
 
   const updateMapZoom = useCallback((zoom: number) => {
     setMapZoom(zoom);
@@ -13,11 +20,10 @@ export const useCategoryManagement = () => {
     setMapCenter(center);
   }, []);
 
-  // Mock data pour les catégories
   const categories = [
-    { id: 'restaurant', name: 'Restaurants', icon: '🍽️' },
-    { id: 'shopping', name: 'Shopping', icon: '🛍️' },
-    { id: 'health', name: 'Santé', icon: '🏥' }
+    { id: 'restaurant', name: 'Restaurants', icon: '🍽️', color: '#e67e22' },
+    { id: 'shopping', name: 'Shopping', icon: '🛍️', color: '#f39c12' },
+    { id: 'health', name: 'Santé', icon: '🏥', color: '#27ae60' }
   ];
 
   const selectedCategory = categories[0];
@@ -30,6 +36,23 @@ export const useCategoryManagement = () => {
     console.log('Effacer la sélection');
   }, []);
 
+  const handleFiltersChange = useCallback((newFilters: any) => {
+    console.log('Changement de filtres:', newFilters);
+  }, []);
+
+  const handleSelectCategory = useCallback((categoryId: string) => {
+    selectCategory(categoryId);
+  }, [selectCategory]);
+
+  const resetFilters = useCallback(() => {
+    setTransportMode('car');
+    setMaxDistance(10);
+    setMaxDuration(60);
+    setAroundMeCount(5);
+    setDistanceUnit('km');
+    setShowMultiDirections(false);
+  }, []);
+
   return {
     mapZoom,
     setMapZoom: updateMapZoom,
@@ -39,17 +62,22 @@ export const useCategoryManagement = () => {
     selectedCategory,
     selectCategory,
     clearSelection,
-    // Propriétés manquantes ajoutées avec des valeurs par défaut
     convertedCategories: categories,
     isLoading: false,
-    transportMode: 'car' as const,
-    maxDistance: 10,
-    setMaxDistance: (distance: number) => console.log('Distance:', distance),
-    maxDuration: 60,
-    setMaxDuration: (duration: number) => console.log('Durée:', duration),
-    aroundMeCount: 5,
-    setAroundMeCount: (count: number) => console.log('Nombre:', count),
-    distanceUnit: 'km' as const,
-    setDistanceUnit: (unit: 'km' | 'miles') => console.log('Unité:', unit)
+    transportMode,
+    setTransportMode,
+    maxDistance,
+    setMaxDistance,
+    maxDuration,
+    setMaxDuration,
+    aroundMeCount,
+    setAroundMeCount,
+    distanceUnit,
+    setDistanceUnit,
+    showMultiDirections,
+    setShowMultiDirections,
+    handleFiltersChange,
+    handleSelectCategory,
+    resetFilters
   };
 };

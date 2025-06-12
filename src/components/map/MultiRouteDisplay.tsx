@@ -8,14 +8,14 @@ import { TransportMode } from '@/types/map';
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWF6Z3A1Ym4waXN6MmtzYzh4bWZ2YWIxIn0.tbWmkuCSJw4h_Ol1Q6ed0A';
 
 const modeColors: Record<TransportMode, string> = {
-  car: '#1976D2',      // bleu
-  walking: '#43A047',   // vert
-  cycling: '#FB8C00',   // orange
-  bus: '#8E24AA',       // violet
-  train: '#EF4444'      // rouge
+  car: '#1976D2',
+  walking: '#43A047',
+  cycling: '#FB8C00',
+  bus: '#8E24AA',
+  train: '#EF4444'
 };
 
-// Service simple pour obtenir les routes
+// Service pour obtenir les routes pour tous les modes de transport
 const getRoutesForAllModes = async (start: LngLatLike, end: LngLatLike) => {
   const modes: TransportMode[] = ['car', 'walking', 'cycling'];
   const routes = [];
@@ -23,8 +23,13 @@ const getRoutesForAllModes = async (start: LngLatLike, end: LngLatLike) => {
   for (const mode of modes) {
     try {
       const profile = mode === 'car' ? 'driving' : mode;
+      
+      // Normaliser les coordonnées en format lng,lat
+      const startCoords = Array.isArray(start) ? start : [start.lng || (start as any).lon, start.lat];
+      const endCoords = Array.isArray(end) ? end : [end.lng || (end as any).lon, end.lat];
+      
       const response = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/${profile}/${Array.isArray(start) ? start.join(',') : `${start.lng},${start.lat}`};${Array.isArray(end) ? end.join(',') : `${end.lng},${end.lat}`}?geometries=geojson&access_token=${MAPBOX_TOKEN}`
+        `https://api.mapbox.com/directions/v5/mapbox/${profile}/${startCoords.join(',')};${endCoords.join(',')}?geometries=geojson&access_token=${MAPBOX_TOKEN}`
       );
       
       if (response.ok) {
@@ -57,7 +62,6 @@ const MultiRouteDisplay: React.FC = () => {
   const { filters, results } = useGeoSearchManager();
   const [routes, setRoutes] = useState<any[]>([]);
 
-  // Utiliser la position utilisateur et le premier résultat comme destination
   const start = filters.coordinates as LngLatLike;
   const end = results.length > 0 ? results[0].coordinates as LngLatLike : null;
 
@@ -90,7 +94,6 @@ const MultiRouteDisplay: React.FC = () => {
 
     mapRef.current = map;
 
-    // Ajouter des marqueurs pour le début et la fin
     if (start) {
       new mapboxgl.Marker({ color: '#4CAF50' })
         .setLngLat(start)
@@ -114,43 +117,34 @@ const MultiRouteDisplay: React.FC = () => {
 
     const map = mapRef.current;
 
-    // Nettoyer les anciennes routes
-    routes.forEach(({ mode }) => {
-      const routeId = `route-${mode}`;
-      if (map.getLayer(routeId)) {
-        map.removeLayer(routeId);
-      }
-      if (map.getSource(routeId)) {
-        map.removeSource(routeId);
-      }
-    });
-
-    // Ajouter les nouvelles routes
     routes.forEach(({ mode, route }) => {
       const routeId = `route-${mode}`;
 
-      map.addSource(routeId, {
-        type: 'geojson',
-        data: route,
-      });
+      if (map.getSource(routeId)) {
+        (map.getSource(routeId) as mapboxgl.GeoJSONSource).setData(route);
+      } else {
+        map.addSource(routeId, {
+          type: 'geojson',
+          data: route,
+        });
 
-      map.addLayer({
-        id: routeId,
-        type: 'line',
-        source: routeId,
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': modeColors[mode] || '#000000',
-          'line-width': 4,
-          'line-opacity': 0.8,
-        },
-      });
+        map.addLayer({
+          id: routeId,
+          type: 'line',
+          source: routeId,
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          paint: {
+            'line-color': modeColors[mode] || '#000000',
+            'line-width': 4,
+            'line-opacity': 0.8,
+          },
+        });
+      }
     });
 
-    // Ajuster la vue pour inclure toutes les routes
     if (start && end) {
       const bounds = new mapboxgl.LngLatBounds();
       bounds.extend(start);
@@ -168,7 +162,7 @@ const MultiRouteDisplay: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-[60vh] rounded-xl shadow-md overflow-hidden">
+    <div className="w-full h-[60vh] rounded-xl shadow-md overflow-hidden" id="geo-map-container">
       <div ref={containerRef} className="w-full h-full" />
       {routes.length > 0 && (
         <div className="absolute top-2 left-2 bg-white p-2 rounded shadow-md">
@@ -179,7 +173,9 @@ const MultiRouteDisplay: React.FC = () => {
                 className="w-3 h-1 rounded"
                 style={{ backgroundColor: modeColors[mode] }}
               />
-              <span className="capitalize">{mode === 'car' ? 'Voiture' : mode === 'walking' ? 'Marche' : 'Vélo'}</span>
+              <span className="capitalize">
+                {mode === 'car' ? 'Voiture' : mode === 'walking' ? 'Marche' : 'Vélo'}
+              </span>
             </div>
           ))}
         </div>

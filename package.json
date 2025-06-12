@@ -61,6 +61,7 @@
     "embla-carousel-react": "^8.3.0",
     "focus-trap-react": "^11.0.4",
     "framer-motion": "^12.11.0",
+    "html2canvas": "^1.4.1",
     "i18next": "^23.4.4",
     "i18next-browser-languagedetector": "^8.1.0",
     "input-otp": "^1.2.4",
