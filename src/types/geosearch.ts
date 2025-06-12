@@ -22,6 +22,9 @@ export interface GeoSearchFilters {
   maxDuration?: number;
   aroundMeCount?: number;
   distanceUnit?: 'km' | 'miles';
+  // Propriétés manquantes ajoutées
+  unit?: 'km' | 'miles';
+  showMultiDirections?: boolean;
 }
 
 export interface GeoSearchState {
@@ -33,4 +36,11 @@ export interface GeoSearchState {
   networkStatus: 'online' | 'offline' | 'slow';
   statusInfo?: string;
   searchQuery: string;
+}
+
+// Types manquants ajoutés
+export interface GeoLocationOptions {
+  enableHighAccuracy?: boolean;
+  timeout?: number;
+  maximumAge?: number;
 }
