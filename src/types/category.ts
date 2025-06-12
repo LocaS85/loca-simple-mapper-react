@@ -1,39 +1,18 @@
 
-import { DistanceUnit } from './map';
+import { TransportMode, DistanceUnit } from './map';
 
 export interface Category {
   id: string;
   name: string;
   icon: string;
-  description?: string;
-  color?: string;
-  subcategories?: Category[];
+  color: string;
+  subcategories: Subcategory[];
 }
 
-export interface ConvertedCategory {
+export interface Subcategory {
   id: string;
   name: string;
-  icon: string;
-  description?: string;
-  color?: string;
-}
-
-export interface CategoryItem {
-  id: string;
-  name: string;
-  icon: string;
-  description?: string;
-  color?: string;
-  subcategories?: SubcategoryItem[];
-}
-
-export interface SubcategoryItem {
-  id: string;
-  name: string;
-  icon: string;
-  description?: string;
   parentId: string;
-  color?: string;
 }
 
 export interface DailyAddressItem {
@@ -41,21 +20,36 @@ export interface DailyAddressItem {
   name: string;
   address: string;
   coordinates: [number, number];
-  category: string;
+  category?: string;
   subcategory?: string;
-  date: string;
   isDaily: boolean;
-  transportMode?: string;
+  date: string;
+  transport?: TransportMode;
+  distance?: number;
+  duration?: number;
+  unit?: DistanceUnit;
 }
 
 export interface DailyAddressData {
-  id: string;
+  id?: string;
   name: string;
   address: string;
   coordinates: [number, number];
-  category: string;
+  category?: string;
   subcategory?: string;
-  transportMode?: string;
-  date?: string;
   isDaily?: boolean;
+  date?: string;
+  transport?: TransportMode;
+  distance?: number;
+  duration?: number;
+  unit?: DistanceUnit;
+}
+
+export interface CategorySearchFilters {
+  transportMode: TransportMode;
+  maxDistance: number;
+  maxDuration: number;
+  aroundMeCount: number;
+  showMultiDirections: boolean;
+  distanceUnit: DistanceUnit;
 }

@@ -1,94 +1,31 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Loader2, Navigation } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { MapPin, Loader2 } from 'lucide-react';
 
 interface EnhancedLocationButtonProps {
-  onLocationDetected: (coordinates: [number, number]) => void;
+  onLocationDetected: () => void;
   disabled?: boolean;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon";
+  variant?: 'default' | 'outline' | 'ghost';
+  size?: 'default' | 'sm' | 'lg';
   className?: string;
-  isIconOnly?: boolean;
 }
 
-export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
+const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
   onLocationDetected,
   disabled = false,
-  variant = "outline",
-  size = "icon",
-  className = "",
-  isIconOnly = true
+  variant = 'default',
+  size = 'default',
+  className = ''
 }) => {
-  const [isDetecting, setIsDetecting] = useState(false);
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLocationClick = async () => {
-    if (!navigator.geolocation) {
-      toast({
-        title: "Géolocalisation non supportée",
-        description: "Votre navigateur ne supporte pas la géolocalisation",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsDetecting(true);
-    
+  const handleClick = async () => {
+    setIsLoading(true);
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 300000
-          }
-        );
-      });
-
-      const coordinates: [number, number] = [
-        position.coords.longitude,
-        position.coords.latitude
-      ];
-
-      onLocationDetected(coordinates);
-      
-      toast({
-        title: "Position détectée",
-        description: "Votre localisation a été mise à jour avec succès",
-        variant: "default",
-      });
-      
-    } catch (error) {
-      console.error('❌ Erreur de géolocalisation:', error);
-      
-      let errorMessage = "Impossible d'obtenir votre position";
-      if (error instanceof GeolocationPositionError) {
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = "Permission de géolocalisation refusée";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = "Position non disponible";
-            break;
-          case error.TIMEOUT:
-            errorMessage = "Délai de géolocalisation dépassé";
-            break;
-        }
-      }
-      
-      toast({
-        title: "Erreur de localisation",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      onLocationDetected();
     } finally {
-      setIsDetecting(false);
+      setTimeout(() => setIsLoading(false), 1000);
     }
   };
 
@@ -96,16 +33,16 @@ export const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     <Button
       variant={variant}
       size={size}
-      onClick={handleLocationClick}
-      disabled={disabled || isDetecting}
-      className={className}
-      title="Détecter ma position"
+      onClick={handleClick}
+      disabled={disabled || isLoading}
+      className={`flex items-center gap-2 ${className}`}
     >
-      {isDetecting ? (
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <Navigation className="h-3.5 w-3.5" />
+        <MapPin className="h-4 w-4" />
       )}
+      Ma position
     </Button>
   );
 };

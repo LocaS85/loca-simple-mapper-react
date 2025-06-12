@@ -1,6 +1,7 @@
 
 import { create } from 'zustand';
 import { TransportMode, DistanceUnit } from '@/types/map';
+import { GeoSearchFilters } from '@/types/geosearch';
 
 interface FilterSyncState {
   transportMode: TransportMode;
@@ -23,3 +24,18 @@ export const useFilterSync = create<FilterSyncState>((set) => ({
   setUnit: (unit) => set({ unit }),
   setCategory: (category) => set({ category }),
 }));
+
+// Service de synchronisation des filtres
+export const filterSyncService = {
+  validateFilters: (filters: Partial<GeoSearchFilters>): boolean => {
+    return true; // Validation basique
+  },
+  
+  convertToMapboxFilters: (filters: GeoSearchFilters) => {
+    return {
+      categories: filters.category ? [filters.category] : undefined,
+      radius: filters.distance,
+      limit: filters.aroundMeCount || 5
+    };
+  }
+};
