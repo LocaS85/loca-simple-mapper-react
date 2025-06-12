@@ -46,7 +46,10 @@ const EnhancedGeoSearchController: React.FC<EnhancedGeoSearchControllerProps> = 
       const inputContainer = document.getElementById('geocoder-container');
       if (inputContainer) {
         inputContainer.innerHTML = '';
-        inputContainer.appendChild(geocoder.onAdd());
+        inputContainer.appendChild(geocoder.onAdd(new mapboxgl.Map({
+          container: document.createElement('div'),
+          style: 'mapbox://styles/mapbox/light-v11'
+        })));
       }
 
       // Gérer la sélection de résultat
@@ -59,7 +62,7 @@ const EnhancedGeoSearchController: React.FC<EnhancedGeoSearchControllerProps> = 
         // Mettre à jour les filtres avec les nouvelles coordonnées et la requête
         updateFiltersWithSearch({
           query,
-          userLocation: coords
+          location: coords
         });
       });
 
@@ -70,8 +73,7 @@ const EnhancedGeoSearchController: React.FC<EnhancedGeoSearchControllerProps> = 
 
       return () => {
         if (geocoderRef.current) {
-          geocoderRef.current.off('result');
-          geocoderRef.current.off('error');
+          geocoderRef.current.clear();
         }
       };
 

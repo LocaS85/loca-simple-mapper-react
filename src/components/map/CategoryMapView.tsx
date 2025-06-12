@@ -1,421 +1,179 @@
-
-import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import React, { useState, useEffect, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { Category } from '@/types/category';
+import { TransportMode } from '@/types/map';
+import { useCategoryManagement } from '@/hooks/use-category-management';
+import { useMapSettings } from '@/hooks/use-map-settings';
+import { useDebounce } from '@/hooks/useDebounce';
+import { getCategoryById } from '@/utils/categoryConverter';
 import FilterBar from '@/components/FilterBar';
-import { TransportMode } from '@/lib/data/transportModes';
-import { useToast } from '@/hooks/use-toast';
-import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
-import { Category } from '@/types';
+
+// Define custom marker icon
+const customMarkerIcon = new L.Icon({
+  iconUrl: '/images/marker-icon.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
 
 interface CategoryMapViewProps {
-  onFiltersChange?: (filters: {
-    category: string;
-    transportMode: TransportMode;
-    maxDistance: number;
-    maxDuration: number;
-    aroundMeCount?: number;
-    showMultiDirections?: boolean;
-    distanceUnit?: 'km' | 'mi';
-  }) => void;
-  selectedCategory?: Category | null;
+  initialCategory?: string;
   initialTransportMode?: TransportMode;
-  initialMaxDistance?: number; 
+  initialMaxDistance?: number;
   initialMaxDuration?: number;
   initialAroundMeCount?: number;
-  initialShowMultiDirections?: boolean;
-  initialDistanceUnit?: 'km' | 'mi';
+  initialDistanceUnit?: 'km' | 'miles';
 }
 
-const CategoryMapView: React.FC<CategoryMapViewProps> = ({ 
-  onFiltersChange,
-  selectedCategory,
-  initialTransportMode = 'car',
-  initialMaxDistance = 5,
-  initialMaxDuration = 15,
-  initialAroundMeCount = 3,
-  initialShowMultiDirections = false,
-  initialDistanceUnit = 'km'
+const CategoryMapView: React.FC<CategoryMapViewProps> = ({
+  initialCategory,
+  initialTransportMode,
+  initialMaxDistance,
+  initialMaxDuration,
+  initialAroundMeCount,
+  initialDistanceUnit
 }) => {
-  const [map, setMap] = useState<mapboxgl.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{lng: number, lat: number} | null>(null);
-
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState({
-    category: selectedCategory?.id || 'food',
-    transportMode: initialTransportMode,
-    maxDistance: initialMaxDistance,
-    maxDuration: initialMaxDuration,
-    aroundMeCount: initialAroundMeCount,
-    showMultiDirections: initialShowMultiDirections,
-    distanceUnit: initialDistanceUnit
+    category: initialCategory || '',
+    transportMode: initialTransportMode || 'driving',
+    maxDistance: initialMaxDistance || 10,
+    maxDuration: initialMaxDuration || 60,
+    aroundMeCount: initialAroundMeCount || 5,
+    showMultiDirections: false,
+    distanceUnit: initialDistanceUnit || 'km'
   });
 
-  // Update filters when props change (from the CategoryFiltersSheet)
-  useEffect(() => {
-    setFilters(prev => ({
-      ...prev,
-      transportMode: initialTransportMode,
-      maxDistance: initialMaxDistance,
-      maxDuration: initialMaxDuration,
-      aroundMeCount: initialAroundMeCount,
-      showMultiDirections: initialShowMultiDirections,
-      distanceUnit: initialDistanceUnit
-    }));
-  }, [initialTransportMode, initialMaxDistance, initialMaxDuration, initialAroundMeCount, initialShowMultiDirections, initialDistanceUnit]);
+  // Category Management Hook
+  const { categories, selectedCategory, selectCategory, clearSelection } = useCategoryManagement();
 
-  // Get user location
+  // Map Settings Hook
+  const { mapZoom, setMapZoom, mapCenter, setMapCenter } = useMapSettings();
+
+  // Debounce for location changes
+  const debouncedLocation = useDebounce(currentLocation, 500);
+
+  // Function to update URL parameters
+  const updateUrlParams = useCallback(() => {
+    const params = new URLSearchParams(searchParams);
+    params.set('category', filters.category || '');
+    params.set('transportMode', filters.transportMode || 'driving');
+    params.set('maxDistance', String(filters.maxDistance || 10));
+    params.set('maxDuration', String(filters.maxDuration || 60));
+    params.set('aroundMeCount', String(filters.aroundMeCount || 5));
+    router.push(`/?${params.toString()}`);
+  }, [filters, router, searchParams]);
+
+  // Load initial category from URL
   useEffect(() => {
+    if (initialCategory) {
+      selectCategory(initialCategory);
+    }
+  }, [initialCategory, selectCategory]);
+
+  // Update URL parameters on filter changes
+  useEffect(() => {
+    updateUrlParams();
+  }, [filters, updateUrlParams]);
+
+  // Handle filter changes
+  const onFiltersChange = (newFilters: any) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  };
+
+  // Get current location
+  useEffect(() => {
+    setIsLoading(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const lng = position.coords.longitude;
-        const lat = position.coords.latitude;
-        setUserLocation({ lng, lat });
-        
-        // Center map on user location if available
-        if (map) {
-          map.flyTo({
-            center: [lng, lat],
-            zoom: 13
-          });
-          
-          // Add user location marker
-          const el = document.createElement('div');
-          el.className = 'user-marker';
-          el.style.width = '20px';
-          el.style.height = '20px';
-          el.style.borderRadius = '50%';
-          el.style.backgroundColor = '#3b82f6';
-          el.style.border = '2px solid white';
-          
-          new mapboxgl.Marker(el)
-            .setLngLat([lng, lat])
-            .addTo(map);
-            
-          // Add search radius circle
-          if (map.getSource('radius')) {
-            const source = map.getSource('radius') as mapboxgl.GeoJSONSource;
-            source.setData({
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Point',
-                coordinates: [lng, lat]
-              }
-            });
-          } else {
-            map.addSource('radius', {
-              type: 'geojson',
-              data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Point',
-                  coordinates: [lng, lat]
-                }
-              }
-            });
-            
-            map.addLayer({
-              id: 'radius-circle',
-              type: 'circle',
-              source: 'radius',
-              paint: {
-                'circle-radius': ['interpolate', ['linear'], ['zoom'],
-                  10, getDistanceInMeters(filters.maxDistance, filters.distanceUnit) / (40075000 / 360 * Math.cos(lat * Math.PI / 180)),
-                  15, getDistanceInMeters(filters.maxDistance, filters.distanceUnit) / (40075000 / 360 * Math.cos(lat * Math.PI / 180) / 2)
-                ],
-                'circle-color': selectedCategory?.color || '#3b82f6',
-                'circle-opacity': 0.2,
-                'circle-stroke-width': 2,
-                'circle-stroke-color': selectedCategory?.color || '#3b82f6',
-                'circle-stroke-opacity': 0.5
-              }
-            });
-          }
-        }
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation([latitude, longitude]);
+        setUserLocation([latitude, longitude]);
+        setIsLoading(false);
       },
       (error) => {
-        console.error('Error getting location:', error);
-        toast({
-          title: "Localisation",
-          description: "Impossible d'obtenir votre position actuelle",
-          variant: "destructive"
-        });
+        console.error("Error getting location:", error);
+        setIsLoading(false);
       }
     );
-  }, [map, selectedCategory?.color, toast, filters.maxDistance, filters.distanceUnit]);
+  }, []);
 
-  // Helper function to convert distance to meters based on unit
-  const getDistanceInMeters = (distance: number, unit: 'km' | 'mi'): number => {
-    return unit === 'km' ? distance * 1000 : distance * 1609.34;
-  };
-
-  // Initialize map with error handling
+  // Update map center when debounced location changes
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    try {
-      const token = getMapboxToken();
-      setIsLoading(true);
-      
-      if (!token) {
-        console.error('Mapbox token not found');
-        setError('Token Mapbox manquant');
-        toast({
-          title: "Erreur de carte",
-          description: "Token Mapbox non trouvé. Veuillez configurer votre token Mapbox.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      mapboxgl.accessToken = token;
-      
-      const initMap = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [2.3522, 48.8566], // Paris par défaut
-        zoom: 12
-      });
-
-      initMap.on('load', () => {
-        console.log('Map loaded successfully');
-        setIsLoading(false);
-      });
-
-      initMap.on('error', (e) => {
-        console.error('Map error:', e);
-        setError('Erreur de chargement de la carte');
-        toast({
-          title: "Erreur de carte",
-          description: "Une erreur est survenue lors du chargement de la carte",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-      });
-
-      initMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
-      setMap(initMap);
-      
-      // Créer un adaptateur compatible avec MapRef
-      mapRef.current = {
-        getMap: () => initMap
-      };
-
-      return () => {
-        initMap.remove();
-        setMap(null);
-        mapRef.current = null;
-      };
-    } catch (error) {
-      console.error('Error initializing map:', error);
-      setError('Erreur d\'initialisation de la carte');
-      toast({
-        title: "Erreur de carte",
-        description: "Impossible d'initialiser la carte Mapbox",
-        variant: "destructive"
-      });
-      setIsLoading(false);
+    if (debouncedLocation) {
+      setMapCenter(debouncedLocation);
     }
-  }, [toast]);
-
-  // Generate sample POIs based on user location and aroundMeCount
-  const generateSamplePOIs = (userLoc: {lng: number, lat: number}, count: number) => {
-    const pois = [];
-    
-    // Generate sample POIs around the user location
-    for (let i = 0; i < count; i++) {
-      // Create random points within maxDistance km/mi
-      const angle = Math.random() * Math.PI * 2;
-      const distance = Math.random() * filters.maxDistance * 0.8; // 80% of max distance for better visibility
-      
-      // Convert distance from km/mi to lat/lng offset (approx 111 km per degree of latitude)
-      const distanceInKm = filters.distanceUnit === 'km' ? distance : distance * 1.60934;
-      const latOffset = distanceInKm / 111; 
-      const lngOffset = distanceInKm / (111 * Math.cos(userLoc.lat * Math.PI / 180)); // account for longitude distortion
-      
-      // Calculate coordinates
-      const lng = userLoc.lng + lngOffset * Math.cos(angle);
-      const lat = userLoc.lat + latOffset * Math.sin(angle);
-      
-      pois.push({
-        name: `${selectedCategory?.name || 'POI'} ${i+1}`,
-        coordinates: [lng, lat]
-      });
-    }
-    
-    return pois;
-  };
-
-  // Draw multi-directional routes when enabled
-  useEffect(() => {
-    if (!map || !userLocation || !filters.showMultiDirections) return;
-    
-    // Remove existing routes and markers
-    if (map.getSource('routes')) {
-      map.removeLayer('routes-line');
-      map.removeSource('routes');
-    }
-    
-    // Find and remove existing POI markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
-    
-    // Generate POIs based on aroundMeCount
-    const pois = generateSamplePOIs(userLocation, filters.aroundMeCount);
-    
-    // Add POI markers
-    pois.forEach((poi, index) => {
-      const el = document.createElement('div');
-      el.className = `poi-marker poi-marker-${index}`;
-      el.style.width = '15px';
-      el.style.height = '15px';
-      el.style.borderRadius = '50%';
-      el.style.backgroundColor = '#ef4444';
-      el.style.border = '2px solid white';
-      
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat(poi.coordinates as [number, number])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(poi.name))
-        .addTo(map);
-      
-      markersRef.current.push(marker);
-    });
-    
-    // Create routes data
-    const routesData = {
-      type: 'FeatureCollection',
-      features: pois.map(poi => ({
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: [
-            [userLocation.lng, userLocation.lat],
-            poi.coordinates
-          ]
-        }
-      }))
-    };
-    
-    // Add routes to map
-    map.addSource('routes', {
-      type: 'geojson',
-      data: routesData as any
-    });
-    
-    map.addLayer({
-      id: 'routes-line',
-      type: 'line',
-      source: 'routes',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': selectedCategory?.color || '#3b82f6',
-        'line-width': 3,
-        'line-opacity': 0.8,
-        'line-dasharray': [1, 1]
-      }
-    });
-    
-  }, [filters.showMultiDirections, filters.aroundMeCount, map, userLocation, selectedCategory?.color, selectedCategory?.name, filters.maxDistance, filters.distanceUnit]);
-
-  const handleFiltersChange = (newFilters: {
-    category: string;
-    transportMode: TransportMode;
-    maxDistance: number;
-    maxDuration: number;
-    aroundMeCount?: number;
-    showMultiDirections?: boolean;
-    distanceUnit?: 'km' | 'mi';
-  }) => {
-    // Assurer que les propriétés optionnelles ont des valeurs par défaut
-    const updatedFilters = {
-      ...newFilters,
-      // Utiliser les valeurs actuelles comme fallback pour les valeurs optionnelles
-      aroundMeCount: newFilters.aroundMeCount ?? filters.aroundMeCount,
-      showMultiDirections: newFilters.showMultiDirections ?? filters.showMultiDirections,
-      distanceUnit: newFilters.distanceUnit ?? filters.distanceUnit
-    };
-    
-    setFilters(updatedFilters);
-    console.log("Filters updated:", updatedFilters);
-    
-    // Apply filters to the map if available
-    if (map && userLocation) {
-      // If there's a selectedCategory, use its color for visual feedback
-      const categoryColor = selectedCategory?.color || '#3b82f6';
-      
-      // Update radius circle if it exists
-      if (map.getSource('radius')) {
-        // Update circle radius based on the max distance value and unit
-        map.setPaintProperty('radius-circle', 'circle-radius', 
-          ['interpolate', ['linear'], ['zoom'],
-            10, getDistanceInMeters(updatedFilters.maxDistance, updatedFilters.distanceUnit) / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180)),
-            15, getDistanceInMeters(updatedFilters.maxDistance, updatedFilters.distanceUnit) / (40075000 / 360 * Math.cos(userLocation.lat * Math.PI / 180) / 2)
-          ]
-        );
-      }
-      
-      // Provide visual feedback about applied filters
-      const distanceDisplay = `${updatedFilters.maxDistance}${updatedFilters.distanceUnit}`;
-      toast({
-        title: "Filtres appliqués",
-        description: `Catégorie: ${updatedFilters.category}, Transport: ${updatedFilters.transportMode}, Distance: ${distanceDisplay}, Durée: ${updatedFilters.maxDuration}min, POIs: ${updatedFilters.aroundMeCount}`
-      });
-    }
-    
-    // Call the parent handler to sync with the CategoryFiltersSheet
-    if (onFiltersChange) {
-      onFiltersChange(updatedFilters);
-    }
-  };
+  }, [debouncedLocation, setMapCenter]);
 
   return (
-    <div className="flex flex-col space-y-4">
-      {/* We're hiding the FilterBar since we now use a Sheet for filters */}
-      <div className="hidden">
-        <FilterBar 
-          mapRef={mapRef} 
-          onFiltersChange={handleFiltersChange} 
-          initialCategory={selectedCategory?.id}
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b p-4 flex-shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold">
+            {selectedCategory ? `Carte des ${selectedCategory.name}` : 'Carte interactive'}
+          </h1>
+          {/* Add any additional header content here */}
+        </div>
+
+        <FilterBar
+          onFiltersChange={onFiltersChange}
+          filters={{
+            category: filters.category,
+            transportMode: filters.transportMode,
+            maxDistance: filters.maxDistance,
+            maxDuration: filters.maxDuration,
+            aroundMeCount: filters.aroundMeCount,
+            showMultiDirections: filters.showMultiDirections,
+            distanceUnit: filters.distanceUnit
+          }}
+          userLocation={userLocation}
+          isLoading={isLoading}
+          currentLocation={currentLocation}
+          initialCategory={initialCategory}
           initialTransportMode={initialTransportMode}
           initialMaxDistance={initialMaxDistance}
           initialMaxDuration={initialMaxDuration}
           initialAroundMeCount={initialAroundMeCount}
-          initialShowMultiDirections={initialShowMultiDirections}
           initialDistanceUnit={initialDistanceUnit}
         />
       </div>
-      
-      <div className="h-[70vh] bg-gray-100 rounded-lg overflow-hidden relative">
-        <div ref={mapContainerRef} className="w-full h-full" />
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80 z-10">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-700">Chargement de la carte...</p>
-            </div>
-          </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-80 z-10">
-            <div className="text-center bg-white p-4 rounded-lg shadow-md max-w-md">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <p className="text-lg font-semibold text-red-700">{error}</p>
-              <p className="text-gray-600 mt-2">Veuillez vérifier votre token Mapbox ou réessayer plus tard.</p>
-            </div>
+
+      {/* Map */}
+      <div className="flex-grow relative">
+        {currentLocation ? (
+          <MapContainer
+            center={mapCenter}
+            zoom={mapZoom}
+            style={{ height: '100%', width: '100%' }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <Marker position={currentLocation} icon={customMarkerIcon}>
+              <Popup>
+                Vous êtes ici.
+              </Popup>
+            </Marker>
+            {/* Add more markers and popups as needed */}
+          </MapContainer>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            {isLoading ? (
+              <p>Chargement de votre position...</p>
+            ) : (
+              <p>Veuillez activer la géolocalisation pour afficher la carte.</p>
+            )}
           </div>
         )}
       </div>

@@ -1,38 +1,46 @@
 
-import { Category } from '@/types';
-import { CategoryData, fullCategories } from '@/data/fullCategories';
+import { Category } from '@/types/category';
+import { TransportMode } from '@/types/map';
+import { fullCategories } from '@/data/fullCategories';
 
-interface FullCategory extends CategoryData {
-  // Propriétés supplémentaires pour les catégories complètes
-}
-
-interface FullSubcategory {
+export interface ConvertedCategory {
   id: string;
   name: string;
-  parentId: string;
+  icon: string;
+  description?: string;
 }
 
-export const convertCategoryToFull = (category: Category): FullCategory => {
-  const fullCategory = fullCategories.find(fc => fc.id === category.id);
-  
-  if (!fullCategory) {
-    return {
-      id: category.id,
-      name: category.name,
-      icon: category.icon || '📍',
-      subcategories: []
-    };
-  }
-  
-  return fullCategory;
+export const convertCategories = (categories: any[]): ConvertedCategory[] => {
+  return categories.map(category => ({
+    id: category.id || category.value,
+    name: category.name || category.label,
+    icon: typeof category.icon === 'string' ? category.icon : '📍',
+    description: category.description
+  }));
 };
 
-export const convertFullCategoryToCategory = (fullCategory: FullCategory): Category => {
+export const convertToCategory = (item: any): Category => {
   return {
-    id: fullCategory.id,
-    name: fullCategory.name,
-    icon: fullCategory.icon,
-    color: '#3B82F6', // Couleur par défaut
-    subcategories: fullCategory.subcategories || []
+    id: item.id || item.value || item.name,
+    name: item.name || item.label,
+    icon: typeof item.icon === 'string' ? item.icon : '📍',
+    description: item.description,
+    subcategories: Array.isArray(item.subcategories) 
+      ? item.subcategories.map((sub: any) => ({
+          id: sub.id || sub.value || sub.name,
+          name: sub.name || sub.label,
+          icon: typeof sub.icon === 'string' ? sub.icon : '📍',
+          description: sub.description
+        }))
+      : []
   };
+};
+
+export const getAvailableCategories = (): ConvertedCategory[] => {
+  return convertCategories(fullCategories);
+};
+
+export const getCategoryById = (id: string): ConvertedCategory | undefined => {
+  const categories = getAvailableCategories();
+  return categories.find(cat => cat.id === id);
 };

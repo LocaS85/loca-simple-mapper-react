@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Clock, Navigation, Star, ExternalLink, Heart } from 'lucide-react';
 import { SearchResult } from '@/types/geosearch';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import ExternalNavigation from './ExternalNavigation';
 
 interface EnhancedResultCardProps {
   result: SearchResult;
@@ -22,7 +21,7 @@ const EnhancedResultCard: React.FC<EnhancedResultCardProps> = ({
   className = ''
 }) => {
   const { favorites, toggleFavorite } = useFavorites();
-  const isFavorite = favorites.includes(result.id);
+  const isFavorite = favorites.some(fav => fav.id === result.id);
 
   const handleNavigate = () => {
     if (onNavigate && result.coordinates) {
@@ -38,7 +37,13 @@ const EnhancedResultCard: React.FC<EnhancedResultCardProps> = ({
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleFavorite(result.id);
+    toggleFavorite({
+      id: result.id,
+      name: result.name,
+      address: result.address || '',
+      coordinates: result.coordinates,
+      category: result.category
+    });
   };
 
   // URLs de navigation externe
