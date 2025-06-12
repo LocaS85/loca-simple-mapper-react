@@ -83,7 +83,7 @@ const GeoSearchLayout: React.FC = () => {
         <div className="flex-1 relative overflow-hidden">
           <MapView transport={filters.transport} />
           
-          {/* Interface mobile avec recherche et contrôles */}
+          {/* Interface mobile avec recherche et contrôles repositionnés */}
           <div className="absolute top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
             <div className="p-3 space-y-3">
               {/* Ligne 1: Menu burger */}
@@ -106,7 +106,18 @@ const GeoSearchLayout: React.FC = () => {
                 <div className="w-10 h-10" /> {/* Spacer */}
               </div>
               
-              {/* Ligne 2: Barre de recherche */}
+              {/* Ligne 2: Ma position */}
+              <div className="flex justify-center">
+                <EnhancedLocationButton
+                  onLocationDetected={handleMyLocationClick}
+                  disabled={isLoading}
+                  variant="outline"
+                  size="sm"
+                  className="w-auto px-4"
+                />
+              </div>
+              
+              {/* Ligne 3: Barre de recherche repositionnée en dessous */}
               <EnhancedSearchBar
                 value={filters.query || ''}
                 onSearch={handleSearch}
@@ -116,16 +127,8 @@ const GeoSearchLayout: React.FC = () => {
                 className="w-full"
               />
               
-              {/* Ligne 3: Contrôles */}
-              <div className="flex items-center gap-2">
-                <EnhancedLocationButton
-                  onLocationDetected={handleMyLocationClick}
-                  disabled={isLoading}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                />
-                
+              {/* Ligne 4: Contrôles filtres et navigation repositionnés */}
+              <div className="flex items-center justify-center gap-2">
                 <FiltersFloatingButton
                   filters={filters}
                   onChange={updateFilters}
@@ -141,13 +144,10 @@ const GeoSearchLayout: React.FC = () => {
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
+                
+                <PrintButton results={results} />
               </div>
             </div>
-          </div>
-
-          {/* Boutons d'action en bas à droite */}
-          <div className="absolute bottom-20 right-3 z-30">
-            <PrintButton results={results} />
           </div>
 
           <GeoSearchMobileResults
@@ -168,7 +168,7 @@ const GeoSearchLayout: React.FC = () => {
       <div className="flex-1 relative overflow-hidden">
         <MapView transport={filters.transport} />
         
-        {/* Interface desktop avec recherche en haut */}
+        {/* Interface desktop avec recherche repositionnée */}
         <div className="absolute top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
           <div className="p-4 max-w-4xl mx-auto space-y-3">
             {/* Ligne 1: Menu et titre */}
@@ -195,8 +195,19 @@ const GeoSearchLayout: React.FC = () => {
               </div>
             </div>
             
-            {/* Ligne 2: Barre de recherche principale */}
-            <div className="max-w-2xl">
+            {/* Ligne 2: Ma position repositionné */}
+            <div className="flex justify-center">
+              <EnhancedLocationButton
+                onLocationDetected={handleMyLocationClick}
+                disabled={isLoading}
+                variant="outline"
+                size="sm"
+                className="w-auto px-6"
+              />
+            </div>
+            
+            {/* Ligne 3: Barre de recherche principale repositionnée en dessous */}
+            <div className="max-w-2xl mx-auto">
               <EnhancedSearchBar
                 value={filters.query || ''}
                 onSearch={handleSearch}
@@ -207,15 +218,8 @@ const GeoSearchLayout: React.FC = () => {
               />
             </div>
             
-            {/* Ligne 3: Contrôles */}
-            <div className="flex items-center gap-3">
-              <EnhancedLocationButton
-                onLocationDetected={handleMyLocationClick}
-                disabled={isLoading}
-                variant="outline"
-                size="sm"
-              />
-              
+            {/* Ligne 4: Contrôles repositionnés */}
+            <div className="flex items-center justify-center gap-3">
               <FiltersFloatingButton
                 filters={filters}
                 onChange={updateFilters}
@@ -231,8 +235,6 @@ const GeoSearchLayout: React.FC = () => {
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
-              
-              <div className="flex-1" />
               
               <PrintButton results={results} />
             </div>
