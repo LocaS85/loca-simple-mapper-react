@@ -1,6 +1,8 @@
 
 import type { Map as MapboxMap } from 'mapbox-gl';
 
+export type TransportMode = 'car' | 'walking' | 'cycling' | 'bus' | 'train';
+
 /**
  * Point d'intérêt (POI) pour l'affichage sur la carte
  */

@@ -1,27 +1,15 @@
 
-import { ComponentType, ReactNode } from 'react';
-
-export interface CategoryItem {
+export interface Category {
   id: string;
   name: string;
-  color: string;
   icon: string;
-  subcategories: SubcategoryItem[];
+  description?: string;
+  subcategories?: Category[];
 }
 
-export interface SubcategoryItem {
+export interface ConvertedCategory {
   id: string;
   name: string;
-  description: string;
   icon: string;
-}
-
-export interface DailyAddressItem {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: [number, number];
-  category: string;
-  subcategory: string;
-  transportMode?: string;
+  description?: string;
 }

@@ -1,9 +1,8 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
 import { Category } from '@/types/category';
 import { TransportMode } from '@/types/map';
 import { useCategoryManagement } from '@/hooks/use-category-management';
@@ -38,14 +37,12 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
   initialAroundMeCount,
   initialDistanceUnit
 }) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState({
     category: initialCategory || '',
-    transportMode: initialTransportMode || 'driving',
+    transportMode: initialTransportMode || 'car',
     maxDistance: initialMaxDistance || 10,
     maxDuration: initialMaxDuration || 60,
     aroundMeCount: initialAroundMeCount || 5,
@@ -62,17 +59,6 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
   // Debounce for location changes
   const debouncedLocation = useDebounce(currentLocation, 500);
 
-  // Function to update URL parameters
-  const updateUrlParams = useCallback(() => {
-    const params = new URLSearchParams(searchParams);
-    params.set('category', filters.category || '');
-    params.set('transportMode', filters.transportMode || 'driving');
-    params.set('maxDistance', String(filters.maxDistance || 10));
-    params.set('maxDuration', String(filters.maxDuration || 60));
-    params.set('aroundMeCount', String(filters.aroundMeCount || 5));
-    router.push(`/?${params.toString()}`);
-  }, [filters, router, searchParams]);
-
   // Load initial category from URL
   useEffect(() => {
     if (initialCategory) {
@@ -80,13 +66,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
     }
   }, [initialCategory, selectCategory]);
 
-  // Update URL parameters on filter changes
-  useEffect(() => {
-    updateUrlParams();
-  }, [filters, updateUrlParams]);
-
   // Handle filter changes
-  const onFiltersChange = (newFilters: any) => {
+  const onFilterChange = (newFilters: any) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
@@ -122,11 +103,10 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
           <h1 className="text-2xl font-semibold">
             {selectedCategory ? `Carte des ${selectedCategory.name}` : 'Carte interactive'}
           </h1>
-          {/* Add any additional header content here */}
         </div>
 
         <FilterBar
-          onFiltersChange={onFiltersChange}
+          onFilterChange={onFilterChange}
           filters={{
             category: filters.category,
             transportMode: filters.transportMode,
@@ -165,7 +145,6 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
                 Vous êtes ici.
               </Popup>
             </Marker>
-            {/* Add more markers and popups as needed */}
           </MapContainer>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">

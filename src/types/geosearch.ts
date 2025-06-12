@@ -1,41 +1,36 @@
 
-import { TransportMode } from "@/lib/data/transportModes";
-
-export interface GeoSearchFilters {
-  category: string | null;
-  subcategory: string | null;
-  transport: TransportMode;
-  distance: number;
-  unit: 'km' | 'mi';
-  query: string;
-  aroundMeCount: number;
-  showMultiDirections: boolean;
-  maxDuration: number;
-}
+import { TransportMode } from './map';
 
 export interface SearchResult {
   id: string;
   name: string;
-  address: string;
+  address?: string;
   coordinates: [number, number];
-  type: string; // Propriété requise pour identifier le type de lieu
-  category: string;
-  distance: number;
-  duration: number;
+  type: string;
+  category?: string;
+  distance?: number;
+  duration?: number;
 }
 
-export interface GeoLocationOptions {
-  enableHighAccuracy?: boolean;
-  timeout?: number;
-  maximumAge?: number;
-  autoRequest?: boolean;
+export interface GeoSearchFilters {
+  query?: string;
+  coordinates?: [number, number];
+  category?: string;
+  subcategory?: string;
+  transport: TransportMode;
+  distance: number;
+  maxDuration?: number;
+  aroundMeCount?: number;
+  distanceUnit?: 'km' | 'miles';
 }
 
 export interface GeoSearchState {
   userLocation: [number, number] | null;
-  startingPosition: [number, number] | null;
   filters: GeoSearchFilters;
   results: SearchResult[];
   isLoading: boolean;
-  showFilters: boolean;
+  isMapboxReady: boolean;
+  networkStatus: 'online' | 'offline' | 'slow';
+  statusInfo?: string;
+  searchQuery: string;
 }

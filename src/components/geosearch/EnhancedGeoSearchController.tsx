@@ -62,7 +62,7 @@ const EnhancedGeoSearchController: React.FC<EnhancedGeoSearchControllerProps> = 
         // Mettre à jour les filtres avec les nouvelles coordonnées et la requête
         updateFiltersWithSearch({
           query,
-          location: coords
+          coordinates: coords
         });
       });
 
