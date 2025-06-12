@@ -11,12 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DailyAddressItem } from '../types/category';
+import { DailyAddressItem, DailyAddressData } from '../types/category';
+import { TransportMode } from '@/types/map';
 
 interface DailyAddressFormProps {
-  onSave: (address: Partial<DailyAddressItem>) => void;
+  onSave: (address: Partial<DailyAddressData>) => void;
   onCancel: () => void;
-  initialData?: Partial<DailyAddressItem>;
+  initialData?: Partial<DailyAddressData>;
 }
 
 const transportModes = [
@@ -31,15 +32,15 @@ const DailyAddressForm: React.FC<DailyAddressFormProps> = ({
   onCancel,
   initialData = {}
 }) => {
-  const [formData, setFormData] = useState<Partial<DailyAddressItem>>({
+  const [formData, setFormData] = useState<Partial<DailyAddressData>>({
     name: '',
     address: '',
-    transportMode: 'walking',
+    transport: 'walking' as TransportMode,
     ...initialData
   });
   const [distance, setDistance] = useState<number>(5);
 
-  const handleChange = (field: keyof DailyAddressItem, value: any) => {
+  const handleChange = (field: keyof DailyAddressData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -78,8 +79,8 @@ const DailyAddressForm: React.FC<DailyAddressFormProps> = ({
       <div className="space-y-2">
         <Label htmlFor="transport-mode">Mode de transport préféré</Label>
         <Select
-          value={formData.transportMode || 'walking'}
-          onValueChange={(value) => handleChange('transportMode', value)}
+          value={formData.transport || 'walking'}
+          onValueChange={(value) => handleChange('transport', value as TransportMode)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Sélectionner un mode de transport" />

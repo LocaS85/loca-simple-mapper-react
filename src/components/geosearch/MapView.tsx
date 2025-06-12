@@ -34,7 +34,8 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
     initializeMapbox,
     filters,
     updateFilters,
-    resetFilters
+    resetFilters,
+    setUserLocation
   } = useGeoSearchStore();
 
   // Initialize map only once
@@ -112,7 +113,7 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
             position.coords.longitude,
             position.coords.latitude
           ];
-          useGeoSearchStore.getState().setUserLocation(coords);
+          setUserLocation(coords);
         },
         (error) => {
           console.error('❌ Erreur de géolocalisation:', error);
@@ -169,12 +170,10 @@ const MapView: React.FC<MapViewProps> = memo(({ transport }) => {
           />
           
           <EnhancedLocationButton
-            onLocationDetected={(coords) => {
-              useGeoSearchStore.getState().setUserLocation(coords);
-            }}
+            onLocationDetected={handleMyLocationClick}
             disabled={isLoading}
             variant="outline"
-            size="icon"
+            size="sm"
             className="w-[29px] h-[29px] min-w-[29px] min-h-[29px] p-0 border border-[rgba(0,0,0,0.1)] bg-white shadow-sm hover:bg-gray-50 transition-colors rounded-sm"
             isIconOnly={true}
           />

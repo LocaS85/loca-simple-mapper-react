@@ -22,7 +22,7 @@ export function useAddressManagement() {
         coordinates: addr.coordinates,
         category: addr.category,
         subcategory: addr.subcategory,
-        transportMode: addr.transportMode,
+        transport: addr.transport,
         date: addr.date,
         isDaily: addr.isDaily
       }));
@@ -41,7 +41,7 @@ export function useAddressManagement() {
   useEffect(() => {
     // Convert DailyAddressData[] to DailyAddressItem[]
     const convertedAddresses: DailyAddressItem[] = dailyAddresses.map(addr => ({
-      id: addr.id,
+      id: addr.id || `addr-${Date.now()}`,
       name: addr.name,
       address: addr.address,
       coordinates: addr.coordinates,
@@ -49,7 +49,7 @@ export function useAddressManagement() {
       subcategory: addr.subcategory,
       date: addr.date || new Date().toISOString(),
       isDaily: addr.isDaily || false,
-      transportMode: addr.transportMode
+      transport: addr.transport
     }));
     saveAddresses(convertedAddresses);
   }, [dailyAddresses]);
@@ -57,19 +57,31 @@ export function useAddressManagement() {
   const handleSaveAddress = (addressData: any) => {
     // Convert to DailyAddressItem for service call
     const addressItem: DailyAddressItem = {
-      ...addressData,
+      id: addressData.id || `addr-${Date.now()}`,
+      name: addressData.name,
+      address: addressData.address,
+      coordinates: addressData.coordinates,
+      category: addressData.category,
+      subcategory: addressData.subcategory,
       date: addressData.date || new Date().toISOString(),
-      isDaily: addressData.isDaily || false
+      isDaily: addressData.isDaily || false,
+      transport: addressData.transport
     };
     
     const editingItem = editingAddress ? {
-      ...editingAddress,
+      id: editingAddress.id || `addr-${Date.now()}`,
+      name: editingAddress.name,
+      address: editingAddress.address,
+      coordinates: editingAddress.coordinates,
+      category: editingAddress.category,
+      subcategory: editingAddress.subcategory,
       date: editingAddress.date || new Date().toISOString(),
-      isDaily: editingAddress.isDaily || false
+      isDaily: editingAddress.isDaily || false,
+      transport: editingAddress.transport
     } : null;
 
     const currentItems: DailyAddressItem[] = dailyAddresses.map(addr => ({
-      id: addr.id,
+      id: addr.id || `addr-${Date.now()}`,
       name: addr.name,
       address: addr.address,
       coordinates: addr.coordinates,
@@ -77,7 +89,7 @@ export function useAddressManagement() {
       subcategory: addr.subcategory,
       date: addr.date || new Date().toISOString(),
       isDaily: addr.isDaily || false,
-      transportMode: addr.transportMode
+      transport: addr.transport
     }));
 
     const result = createOrUpdateAddress(addressItem, editingItem, currentItems);
@@ -91,7 +103,7 @@ export function useAddressManagement() {
         coordinates: addr.coordinates,
         category: addr.category,
         subcategory: addr.subcategory,
-        transportMode: addr.transportMode,
+        transport: addr.transport,
         date: addr.date,
         isDaily: addr.isDaily
       }));

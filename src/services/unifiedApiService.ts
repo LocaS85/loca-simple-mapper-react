@@ -4,6 +4,16 @@ import { TransportMode } from '@/types/map';
 import { mapboxApiService } from './mapboxApiService';
 import { enhancedMapboxService } from './mapbox/enhancedMapboxService';
 
+export interface SearchPlace {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  category: string;
+  distance?: number;
+  duration?: number;
+}
+
 interface UnifiedSearchOptions {
   query: string;
   location: [number, number];

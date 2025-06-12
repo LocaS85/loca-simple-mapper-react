@@ -165,9 +165,10 @@ export const useGeoSearchStore = create<GeoSearchStore>()(
           
           console.log('📍 Résultats Mapbox reçus:', mapboxResults.length);
           
-          const searchResults = mapboxResults.map(result => 
-            convertMapboxToSearchResult(result, userLocation)
-          );
+          const searchResults = mapboxResults.map(result => ({
+            ...result,
+            address: result.address || 'Adresse non disponible'
+          }));
           
           // Cache the results
           cacheService.set(cacheKey, searchResults);

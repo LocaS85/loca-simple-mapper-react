@@ -81,6 +81,49 @@ export const mapboxApiService = {
     }
   },
 
+  async getDirections(
+    origin: [number, number],
+    destination: [number, number],
+    transportMode: TransportMode
+  ) {
+    try {
+      const profile = getMapboxProfile(transportMode);
+      const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${origin[0]},${origin[1]};${destination[0]},${destination[1]}?geometries=geojson&access_token=${MAPBOX_TOKEN}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Directions API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.routes[0];
+    } catch (error) {
+      console.error('Directions error:', error);
+      throw error;
+    }
+  },
+
+  async createIsochrone(
+    center: [number, number],
+    duration: number,
+    transportMode: TransportMode
+  ) {
+    try {
+      const profile = getMapboxProfile(transportMode);
+      const url = `https://api.mapbox.com/isochrone/v1/mapbox/${profile}/${center[0]},${center[1]}?contours_minutes=${duration}&polygons=true&access_token=${MAPBOX_TOKEN}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Isochrone API error: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Isochrone error:', error);
+      throw error;
+    }
+  },
+
   calculateDistance([lng1, lat1]: [number, number], [lng2, lat2]: [number, number]): number {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;

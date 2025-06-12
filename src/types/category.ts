@@ -9,9 +9,30 @@ export interface Category {
   subcategories: Subcategory[];
 }
 
+export interface CategoryItem {
+  id: string;
+  name: string;
+  icon: string;
+  label: string;
+  color: string;
+  subcategories?: {
+    id: string;
+    name: string;
+    description: string;
+  }[];
+}
+
 export interface Subcategory {
   id: string;
   name: string;
+  parentId: string;
+}
+
+export interface SubcategoryItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
   parentId: string;
 }
 
