@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { useTranslation } from 'react-i18next';
 import { FenetreFiltrageUnifiee } from '../filters';
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode, DistanceUnit } from '@/types/map';
 
 interface FiltersPopupProps {
   filters: GeoSearchFilters;
@@ -56,7 +56,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
   };
 
   const handleDistanceUnitChange = (value: 'km' | 'mi') => {
-    handleFilterChange('unit', value);
+    handleFilterChange('unit', value as DistanceUnit);
   };
 
   const handleMaxDurationChange = (value: number) => {
@@ -87,13 +87,13 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
       setSubcategory={handleSubcategoryChange}
       maxDistance={localFilters.distance}
       setMaxDistance={handleMaxDistanceChange}
-      maxDuration={localFilters.maxDuration}
+      maxDuration={localFilters.maxDuration || 20}
       setMaxDuration={handleMaxDurationChange}
-      aroundMeCount={localFilters.aroundMeCount}
+      aroundMeCount={localFilters.aroundMeCount || 3}
       setAroundMeCount={handleAroundMeCountChange}
-      showMultiDirections={localFilters.showMultiDirections}
+      showMultiDirections={localFilters.showMultiDirections || false}
       setShowMultiDirections={handleShowMultiDirectionsChange}
-      distanceUnit={localFilters.unit}
+      distanceUnit={(localFilters.unit || 'km') as 'km' | 'mi'}
       setDistanceUnit={handleDistanceUnitChange}
       transportMode={localFilters.transport}
       setTransportMode={handleTransportModeChange}

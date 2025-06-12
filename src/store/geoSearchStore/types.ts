@@ -1,5 +1,5 @@
 
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode } from '@/types/map';
 import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 
 export interface GeoSearchState {
@@ -42,7 +42,7 @@ export const defaultFilters: GeoSearchFilters = {
   subcategory: null,
   transport: 'walking' as TransportMode,
   distance: 10,
-  unit: 'km' as 'km' | 'mi',
+  unit: 'km',
   query: '',
   aroundMeCount: 3,
   showMultiDirections: false,

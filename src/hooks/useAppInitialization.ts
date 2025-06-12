@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useSearchParams } from 'react-router-dom';
+import { TransportMode, DistanceUnit } from '@/types/map';
 
 export const useAppInitialization = () => {
   const { 
@@ -37,9 +38,9 @@ export const useAppInitialization = () => {
     const urlFilters = {
       category: searchParams.get('category'),
       subcategory: searchParams.get('subcategory'),
-      transport: searchParams.get('transport') as any || 'walking',
+      transport: (searchParams.get('transport') as TransportMode) || 'walking',
       distance: Number(searchParams.get('distance')) || 10,
-      unit: (searchParams.get('unit') as 'km' | 'mi') || 'km',
+      unit: (searchParams.get('unit') as DistanceUnit) || 'km',
       query: searchParams.get('query') || '',
       aroundMeCount: Number(searchParams.get('aroundMeCount')) || 3,
       showMultiDirections: searchParams.get('showMultiDirections') === 'true',

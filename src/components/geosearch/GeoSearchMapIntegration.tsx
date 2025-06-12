@@ -4,7 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { CategoryMapView, EnhancedMapboxSearch, MultiRouteDisplay } from '@/components/map';
 import { getMapboxToken } from '@/utils/mapboxConfig';
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode, DistanceUnit } from '@/types/map';
 import { useToast } from '@/hooks/use-toast';
 
 interface GeoSearchMapIntegrationProps {
@@ -61,7 +61,7 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
     maxDuration: number;
     aroundMeCount?: number;
     showMultiDirections?: boolean;
-    distanceUnit?: 'km' | 'mi';
+    distanceUnit?: DistanceUnit;
   }) => {
     // Convert filters for GeoSearch store
     updateFilters({
@@ -116,20 +116,12 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
 
       {/* Multi-route display if enabled */}
       {map && userLocation && filters.showMultiDirections && destinations.length > 0 && (
-        <MultiRouteDisplay
-          map={map}
-          origin={userLocation}
-          destinations={destinations}
-          transportMode={filters.transport}
-          showLines={true}
-          lineColor="#3B82F6"
-        />
+        <MultiRouteDisplay />
       )}
 
       {/* Hidden integrated category view (connected but hidden) */}
       <div className="hidden">
         <CategoryMapView
-          onFiltersChange={handleFiltersChange}
           selectedCategory={filters.category ? { 
             id: filters.category, 
             name: filters.category,

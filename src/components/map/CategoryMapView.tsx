@@ -4,12 +4,11 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Category } from '@/types/category';
-import { TransportMode } from '@/types/map';
+import { TransportMode, DistanceUnit } from '@/types/map';
 import { useCategoryManagement } from '@/hooks/use-category-management';
 import { useMapSettings } from '@/hooks/use-map-settings';
 import { useDebounce } from '@/hooks/useDebounce';
 import { getCategoryById } from '@/utils/categoryConverter';
-import FilterBar from '@/components/FilterBar';
 
 // Define custom marker icon
 const customMarkerIcon = new L.Icon({
@@ -21,16 +20,16 @@ const customMarkerIcon = new L.Icon({
 });
 
 interface CategoryMapViewProps {
-  initialCategory?: string;
+  selectedCategory?: { id: string; name: string; color: string; icon: string; subcategories: any[] } | null;
   initialTransportMode?: TransportMode;
   initialMaxDistance?: number;
   initialMaxDuration?: number;
   initialAroundMeCount?: number;
-  initialDistanceUnit?: 'km' | 'miles';
+  initialDistanceUnit?: DistanceUnit;
 }
 
 const CategoryMapView: React.FC<CategoryMapViewProps> = ({
-  initialCategory,
+  selectedCategory,
   initialTransportMode,
   initialMaxDistance,
   initialMaxDuration,
@@ -41,8 +40,8 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState({
-    category: initialCategory || '',
-    transportMode: initialTransportMode || 'car',
+    category: selectedCategory?.id || '',
+    transportMode: initialTransportMode || 'driving',
     maxDistance: initialMaxDistance || 10,
     maxDuration: initialMaxDuration || 60,
     aroundMeCount: initialAroundMeCount || 5,
@@ -51,7 +50,7 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
   });
 
   // Category Management Hook
-  const { categories, selectedCategory, selectCategory, clearSelection } = useCategoryManagement();
+  const { categories, selectCategory, clearSelection } = useCategoryManagement();
 
   // Map Settings Hook
   const { mapZoom, setMapZoom, mapCenter, setMapCenter } = useMapSettings();
@@ -61,10 +60,10 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
 
   // Load initial category from URL
   useEffect(() => {
-    if (initialCategory) {
-      selectCategory(initialCategory);
+    if (selectedCategory) {
+      selectCategory(selectedCategory.id);
     }
-  }, [initialCategory, selectCategory]);
+  }, [selectedCategory, selectCategory]);
 
   // Handle filter changes
   const onFilterChange = (newFilters: any) => {
@@ -104,28 +103,6 @@ const CategoryMapView: React.FC<CategoryMapViewProps> = ({
             {selectedCategory ? `Carte des ${selectedCategory.name}` : 'Carte interactive'}
           </h1>
         </div>
-
-        <FilterBar
-          onFilterChange={onFilterChange}
-          filters={{
-            category: filters.category,
-            transportMode: filters.transportMode,
-            maxDistance: filters.maxDistance,
-            maxDuration: filters.maxDuration,
-            aroundMeCount: filters.aroundMeCount,
-            showMultiDirections: filters.showMultiDirections,
-            distanceUnit: filters.distanceUnit
-          }}
-          userLocation={userLocation}
-          isLoading={isLoading}
-          currentLocation={currentLocation}
-          initialCategory={initialCategory}
-          initialTransportMode={initialTransportMode}
-          initialMaxDistance={initialMaxDistance}
-          initialMaxDuration={initialMaxDuration}
-          initialAroundMeCount={initialAroundMeCount}
-          initialDistanceUnit={initialDistanceUnit}
-        />
       </div>
 
       {/* Map */}

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { FenetreFiltrageUnifiee } from '../filters';
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode, DistanceUnit } from '@/types/map';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FiltersFloatingButtonProps {
@@ -59,16 +59,16 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
           setSubcategory={(value) => onChange({ subcategory: value })}
           maxDistance={filters.distance}
           setMaxDistance={(value) => onChange({ distance: value })}
-          maxDuration={filters.maxDuration}
+          maxDuration={filters.maxDuration || 20}
           setMaxDuration={(value) => onChange({ maxDuration: value })}
-          aroundMeCount={filters.aroundMeCount}
+          aroundMeCount={filters.aroundMeCount || 3}
           setAroundMeCount={(value) => onChange({ aroundMeCount: value })}
-          showMultiDirections={filters.showMultiDirections}
+          showMultiDirections={filters.showMultiDirections || false}
           setShowMultiDirections={(value) => onChange({ showMultiDirections: value })}
-          distanceUnit={filters.unit}
+          distanceUnit={(filters.unit || 'km') as 'km' | 'mi'}
           setDistanceUnit={(value) => onChange({ unit: value })}
           transportMode={filters.transport}
-          setTransportMode={(value: TransportMode) => onChange({ transport: value })}
+          setTransportMode={(value) => onChange({ transport: value })}
           onReset={onReset}
         />
       </PopoverContent>

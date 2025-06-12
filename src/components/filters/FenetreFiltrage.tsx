@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useTranslation } from 'react-i18next';
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode, DistanceUnit } from '@/types/map';
 import { Car, User, Bike, Bus } from 'lucide-react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 
@@ -34,15 +34,15 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
   const handleClose = onClose || (() => setShowFilters(false));
 
   // Convertir entre km et mi
-  const convertDistance = (value: number, from: 'km' | 'mi', to: 'km' | 'mi'): number => {
+  const convertDistance = (value: number, from: DistanceUnit, to: DistanceUnit): number => {
     if (from === to) return value;
     return from === 'km' ? value * 0.621371 : value * 1.60934;
   };
 
   // Gérer le changement d'unité
-  const handleUnitChange = (unit: 'km' | 'mi') => {
+  const handleUnitChange = (unit: DistanceUnit) => {
     if (unit !== filters.unit) {
-      const newDistance = convertDistance(filters.distance, filters.unit, unit);
+      const newDistance = convertDistance(filters.distance, filters.unit || 'km', unit);
       updateFilters({
         distance: Math.round(newDistance * 10) / 10,
         unit
@@ -52,7 +52,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
 
   // Associer les modes de transport à leurs icônes
   const transportModeIcons = {
-    car: <Car className="h-4 w-4" />,
+    driving: <Car className="h-4 w-4" />,
     walking: <User className="h-4 w-4" />,
     cycling: <Bike className="h-4 w-4" />,
     bus: <Bus className="h-4 w-4" />,
@@ -70,7 +70,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
           <div className="space-y-4">
             <h3 className="text-sm font-medium">{t('filters.transportMode')}</h3>
             <div className="flex flex-wrap gap-2">
-              {(['car', 'walking', 'cycling', 'bus'] as TransportMode[]).map((mode) => (
+              {(['driving', 'walking', 'cycling', 'bus'] as TransportMode[]).map((mode) => (
                 <Button
                   key={mode}
                   variant={filters.transport === mode ? "default" : "outline"}
@@ -95,7 +95,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
                   <button
                     onClick={() => handleUnitChange('km')}
                     className={`px-2 py-1 text-xs ${
-                      filters.unit === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background'
+                      (filters.unit || 'km') === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background'
                     }`}
                   >
                     km
@@ -103,7 +103,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
                   <button
                     onClick={() => handleUnitChange('mi')}
                     className={`px-2 py-1 text-xs ${
-                      filters.unit === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background'
+                      (filters.unit || 'km') === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background'
                     }`}
                   >
                     mi
@@ -114,7 +114,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
             <Slider
               value={[filters.distance]}
               min={1}
-              max={filters.unit === 'km' ? 50 : 30}
+              max={(filters.unit || 'km') === 'km' ? 50 : 30}
               step={1}
               onValueChange={(values) => updateFilters({ distance: values[0] })}
             />
@@ -127,7 +127,7 @@ const FenetreFiltrage: React.FC<FenetreFiltrageProp> = ({
               <span className="font-semibold">{filters.aroundMeCount}</span>
             </div>
             <Slider
-              value={[filters.aroundMeCount]}
+              value={[filters.aroundMeCount || 3]}
               min={1}
               max={10}
               step={1}

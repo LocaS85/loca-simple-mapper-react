@@ -1,72 +1,64 @@
 
 import { DailyAddressItem } from '@/types/category';
-import { useToast } from '@/hooks/use-toast';
 
 export const loadAddresses = (): DailyAddressItem[] => {
-  const savedAddresses = localStorage.getItem('dailyAddresses');
-  if (savedAddresses) {
-    try {
-      return JSON.parse(savedAddresses);
-    } catch (error) {
-      console.error('Erreur de parsing des adresses:', error);
-      return [];
-    }
+  try {
+    const stored = localStorage.getItem('dailyAddresses');
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error loading addresses:', error);
+    return [];
   }
-  return [];
 };
 
-export const saveAddresses = (addresses: DailyAddressItem[]): void => {
-  if (addresses.length > 0) {
+export const saveAddresses = (addresses: DailyAddressItem[]) => {
+  try {
     localStorage.setItem('dailyAddresses', JSON.stringify(addresses));
+  } catch (error) {
+    console.error('Error saving addresses:', error);
   }
 };
 
 export const createOrUpdateAddress = (
-  addressData: Partial<DailyAddressItem>,
+  addressData: DailyAddressItem,
   editingAddress: DailyAddressItem | null,
-  existingAddresses: DailyAddressItem[]
-): {
-  addresses: DailyAddressItem[];
-  success: boolean;
-  message: { title: string; description: string; variant?: "default" | "destructive" };
-} => {
-  const newAddress = {
-    ...addressData,
-    id: editingAddress?.id || `addr_${Date.now()}`,
-    coordinates: addressData.coordinates || [0, 0] as [number, number],
-    category: 'quotidien',
-    subcategory: addressData.subcategory || 'autre',
-  } as DailyAddressItem;
+  currentAddresses: DailyAddressItem[]
+) => {
+  try {
+    let updatedAddresses: DailyAddressItem[];
+    
+    if (editingAddress) {
+      // Update existing address
+      updatedAddresses = currentAddresses.map(addr => 
+        addr.id === editingAddress.id ? { ...addressData, id: editingAddress.id } : addr
+      );
+    } else {
+      // Add new address
+      const newAddress: DailyAddressItem = {
+        ...addressData,
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        isDaily: true
+      };
+      updatedAddresses = [...currentAddresses, newAddress];
+    }
 
-  if (editingAddress) {
-    // Modification d'une adresse existante
     return {
-      addresses: existingAddresses.map(addr => addr.id === editingAddress.id ? newAddress : addr),
       success: true,
+      addresses: updatedAddresses,
       message: {
-        title: "Adresse modifiée",
-        description: `L'adresse "${newAddress.name}" a été mise à jour`
+        title: editingAddress ? "Adresse modifiée" : "Adresse ajoutée",
+        description: editingAddress ? "L'adresse a été mise à jour" : "Nouvelle adresse ajoutée avec succès"
       }
     };
-  } else {
-    // Ajout d'une nouvelle adresse
-    if (existingAddresses.length >= 10) {
-      return {
-        addresses: existingAddresses,
-        success: false,
-        message: {
-          title: "Limite atteinte",
-          description: "Vous ne pouvez pas enregistrer plus de 10 adresses",
-          variant: "destructive"
-        }
-      };
-    }
+  } catch (error) {
     return {
-      addresses: [...existingAddresses, newAddress],
-      success: true,
+      success: false,
+      addresses: currentAddresses,
       message: {
-        title: "Adresse ajoutée",
-        description: `L'adresse "${newAddress.name}" a été enregistrée`
+        title: "Erreur",
+        description: "Impossible de sauvegarder l'adresse",
+        variant: "destructive" as const
       }
     };
   }

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from 'react-i18next';
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode } from '@/types/map';
 import { Car, User, Bike, Bus, X } from 'lucide-react';
 
 // Données des catégories
@@ -84,7 +84,7 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
   const { t } = useTranslation();
 
   const transportModeIcons = {
-    car: <Car className="h-4 w-4" />,
+    driving: <Car className="h-4 w-4" />,
     walking: <User className="h-4 w-4" />,
     cycling: <Bike className="h-4 w-4" />,
     bus: <Bus className="h-4 w-4" />,
@@ -161,7 +161,7 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Mode de transport</h3>
             <div className="flex flex-wrap gap-2">
-              {(['car', 'walking', 'cycling', 'bus'] as TransportMode[]).map((mode) => (
+              {(['driving', 'walking', 'cycling', 'bus'] as TransportMode[]).map((mode) => (
                 <Button
                   key={mode}
                   variant={transportMode === mode ? "default" : "outline"}
@@ -170,7 +170,7 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
                   className="flex items-center gap-2"
                 >
                   {transportModeIcons[mode]}
-                  {mode === 'car' && 'Voiture'}
+                  {mode === 'driving' && 'Voiture'}
                   {mode === 'walking' && 'Marche'}
                   {mode === 'cycling' && 'Vélo'}
                   {mode === 'bus' && 'Transport'}

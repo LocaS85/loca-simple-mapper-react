@@ -13,6 +13,7 @@ import CategoryPageHeader from '@/components/categories/CategoryPageHeader';
 import { useAddressManagement } from '@/hooks/use-address-management';
 import { useCategoryManagement } from '@/hooks/use-category-management';
 import { useTranslation } from 'react-i18next';
+import { DailyAddressData } from '@/types/category';
 
 const Categories = () => {
   // State for map toggle
@@ -60,7 +61,8 @@ const Categories = () => {
     // Navigate to search page with category and subcategory parameters
     const categoryId = selectedCategory?.id;
     if (categoryId) {
-      navigate(`/geosearch?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${distanceUnit}`);
+      const unit = distanceUnit === 'km' ? 'km' : 'mi';
+      navigate(`/geosearch?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${unit}`);
     }
   };
   
@@ -83,8 +85,8 @@ const Categories = () => {
         setAroundMeCount={setAroundMeCount}
         showMultiDirections={showMultiDirections}
         setShowMultiDirections={setShowMultiDirections}
-        distanceUnit={distanceUnit}
-        setDistanceUnit={setDistanceUnit}
+        distanceUnit={distanceUnit === 'km' ? 'km' : 'mi'}
+        setDistanceUnit={(unit) => setDistanceUnit(unit === 'km' ? 'km' : 'mi')}
         transportMode={transportMode}
         setTransportMode={setTransportMode}
         onResetFilters={resetFilters}
@@ -98,7 +100,6 @@ const Categories = () => {
           {/* Main content - Map or List */}
           {showMap ? (
             <CategoryMapView 
-              onFiltersChange={handleFiltersChange}
               selectedCategory={selectedCategory}
               initialTransportMode={transportMode}
               initialMaxDistance={maxDistance}
@@ -111,7 +112,7 @@ const Categories = () => {
             <CategorySection 
               categories={convertedCategories}
               dailyAddresses={dailyAddresses}
-              onEditAddress={handleEditAddress}
+              onEditAddress={(address: DailyAddressData) => handleEditAddress(address)}
               onDeleteAddress={handleDeleteAddress}
               onAddNewAddress={handleAddNewAddress}
               onSelectCategory={handleSelectCategory}
@@ -119,7 +120,7 @@ const Categories = () => {
               transportMode={transportMode}
               maxDistance={maxDistance}
               maxDuration={maxDuration}
-              distanceUnit={distanceUnit}
+              distanceUnit={distanceUnit === 'km' ? 'km' : 'mi'}
               onSearchClick={handleSearchClick}
             />
           )}

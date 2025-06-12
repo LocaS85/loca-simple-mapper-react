@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { loadAddresses, saveAddresses, createOrUpdateAddress } from '@/services/addressService';
-import { DailyAddressData } from '@/types';
+import { DailyAddressData, DailyAddressItem } from '@/types/category';
 
 export function useAddressManagement() {
   const [dailyAddresses, setDailyAddresses] = useState<DailyAddressData[]>([]);
@@ -14,7 +14,19 @@ export function useAddressManagement() {
   useEffect(() => {
     try {
       const addresses = loadAddresses();
-      setDailyAddresses(addresses);
+      // Convert DailyAddressItem[] to DailyAddressData[]
+      const convertedAddresses: DailyAddressData[] = addresses.map(addr => ({
+        id: addr.id,
+        name: addr.name,
+        address: addr.address,
+        coordinates: addr.coordinates,
+        category: addr.category,
+        subcategory: addr.subcategory,
+        transportMode: addr.transportMode,
+        date: addr.date,
+        isDaily: addr.isDaily
+      }));
+      setDailyAddresses(convertedAddresses);
     } catch (error) {
       console.error('Erreur de chargement des adresses:', error);
       toast({
@@ -27,14 +39,63 @@ export function useAddressManagement() {
 
   // Save addresses to localStorage when they change
   useEffect(() => {
-    saveAddresses(dailyAddresses);
+    // Convert DailyAddressData[] to DailyAddressItem[]
+    const convertedAddresses: DailyAddressItem[] = dailyAddresses.map(addr => ({
+      id: addr.id,
+      name: addr.name,
+      address: addr.address,
+      coordinates: addr.coordinates,
+      category: addr.category,
+      subcategory: addr.subcategory,
+      date: addr.date || new Date().toISOString(),
+      isDaily: addr.isDaily || false,
+      transportMode: addr.transportMode
+    }));
+    saveAddresses(convertedAddresses);
   }, [dailyAddresses]);
 
   const handleSaveAddress = (addressData: any) => {
-    const result = createOrUpdateAddress(addressData, editingAddress, dailyAddresses);
+    // Convert to DailyAddressItem for service call
+    const addressItem: DailyAddressItem = {
+      ...addressData,
+      date: addressData.date || new Date().toISOString(),
+      isDaily: addressData.isDaily || false
+    };
+    
+    const editingItem = editingAddress ? {
+      ...editingAddress,
+      date: editingAddress.date || new Date().toISOString(),
+      isDaily: editingAddress.isDaily || false
+    } : null;
+
+    const currentItems: DailyAddressItem[] = dailyAddresses.map(addr => ({
+      id: addr.id,
+      name: addr.name,
+      address: addr.address,
+      coordinates: addr.coordinates,
+      category: addr.category,
+      subcategory: addr.subcategory,
+      date: addr.date || new Date().toISOString(),
+      isDaily: addr.isDaily || false,
+      transportMode: addr.transportMode
+    }));
+
+    const result = createOrUpdateAddress(addressItem, editingItem, currentItems);
     
     if (result.success) {
-      setDailyAddresses(result.addresses);
+      // Convert back to DailyAddressData[]
+      const convertedAddresses: DailyAddressData[] = result.addresses.map(addr => ({
+        id: addr.id,
+        name: addr.name,
+        address: addr.address,
+        coordinates: addr.coordinates,
+        category: addr.category,
+        subcategory: addr.subcategory,
+        transportMode: addr.transportMode,
+        date: addr.date,
+        isDaily: addr.isDaily
+      }));
+      setDailyAddresses(convertedAddresses);
       setShowAddressForm(false);
       setEditingAddress(null);
     }
@@ -42,7 +103,7 @@ export function useAddressManagement() {
     toast(result.message);
   };
 
-  const handleEditAddress = (address: any) => {
+  const handleEditAddress = (address: DailyAddressData) => {
     setEditingAddress(address);
     setShowAddressForm(true);
   };

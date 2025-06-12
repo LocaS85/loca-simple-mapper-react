@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Car, User, Bike, Bus, Compass, Route } from 'lucide-react';
-import { TransportMode } from '@/lib/data/transportModes';
+import { TransportMode, DistanceUnit } from '@/types/map';
 import { useTranslation } from 'react-i18next';
 import { UnifiedFilters } from '@/hooks/useUnifiedFilters';
 import { cn } from '@/lib/utils';
@@ -22,7 +22,7 @@ interface UnifiedFilterComponentProps {
 }
 
 const transportModes = [
-  { id: 'car' as TransportMode, name: 'Voiture', icon: Car },
+  { id: 'driving' as TransportMode, name: 'Voiture', icon: Car },
   { id: 'walking' as TransportMode, name: 'À pied', icon: User },
   { id: 'cycling' as TransportMode, name: 'Vélo', icon: Bike },
   { id: 'bus' as TransportMode, name: 'Transport', icon: Bus },
@@ -102,7 +102,7 @@ const UnifiedFilterComponent: React.FC<UnifiedFilterComponentProps> = ({
             <span className="text-sm font-medium">{filters.distance} {filters.unit}</span>
             <RadioGroup 
               value={filters.unit} 
-              onValueChange={(value: 'km' | 'mi') => onFilterChange('unit', value)}
+              onValueChange={(value: DistanceUnit) => onFilterChange('unit', value)}
               className="flex items-center space-x-1"
             >
               <div className="flex items-center">

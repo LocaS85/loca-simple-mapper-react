@@ -21,7 +21,6 @@ export interface GeoSearchFilters {
   distance: number;
   maxDuration?: number;
   aroundMeCount?: number;
-  distanceUnit?: DistanceUnit;
   unit?: DistanceUnit;
   showMultiDirections?: boolean;
 }

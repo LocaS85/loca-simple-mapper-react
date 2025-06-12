@@ -63,16 +63,19 @@ const normalizeCoordinates = (coords: LngLatLike): [number, number] => {
     return coords as [number, number];
   }
   
-  if ('lng' in coords) {
-    return [coords.lng, coords.lat];
+  // Type guard pour mapboxgl.LngLat ou similaire
+  if (typeof coords === 'object' && coords !== null) {
+    if ('lng' in coords && 'lat' in coords) {
+      return [coords.lng, coords.lat];
+    }
+    
+    if ('lon' in coords && 'lat' in coords) {
+      return [(coords as any).lon, (coords as any).lat];
+    }
   }
   
-  if ('lon' in coords) {
-    return [coords.lon, coords.lat];
-  }
-  
-  // Fallback pour mapboxgl.LngLat
-  return [coords.lng || 0, coords.lat || 0];
+  // Fallback
+  return [0, 0];
 };
 
 const MultiRouteDisplay: React.FC = () => {
