@@ -13,7 +13,7 @@ import CategoryPageHeader from '@/components/categories/CategoryPageHeader';
 import { useAddressManagement } from '@/hooks/use-address-management';
 import { useCategoryManagement } from '@/hooks/use-category-management';
 import { useTranslation } from 'react-i18next';
-import { DailyAddressData, DailyAddressItem } from '@/types/category';
+import { DailyAddressData, DailyAddressItem, convertToDailyAddressItem } from '@/types/category';
 
 const Categories = () => {
   // State for map toggle
@@ -67,22 +67,9 @@ const Categories = () => {
   };
   
   const handleEditAddressWrapper = (address: DailyAddressData) => {
-    // Ensure the address has all required DailyAddressItem properties
-    const addressWithId: DailyAddressItem = {
-      id: address.id || `temp-${Date.now()}`,
-      name: address.name,
-      address: address.address,
-      coordinates: address.coordinates,
-      category: address.category || '',
-      subcategory: address.subcategory || '',
-      isDaily: address.isDaily || true,
-      date: address.date || new Date().toISOString(),
-      transport: address.transport || 'walking',
-      distance: address.distance || 0,
-      duration: address.duration || 0,
-      unit: address.unit || 'km'
-    };
-    handleEditAddress(addressWithId);
+    // Use the helper function to convert DailyAddressData to DailyAddressItem
+    const addressItem = convertToDailyAddressItem(address);
+    handleEditAddress(addressItem);
   };
   
   // Check if Mapbox token is valid

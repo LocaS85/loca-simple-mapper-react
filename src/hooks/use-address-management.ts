@@ -24,7 +24,10 @@ export function useAddressManagement() {
         subcategory: addr.subcategory,
         transport: addr.transport,
         date: addr.date,
-        isDaily: addr.isDaily
+        isDaily: addr.isDaily,
+        distance: addr.distance,
+        duration: addr.duration,
+        unit: addr.unit
       }));
       setDailyAddresses(convertedAddresses);
     } catch (error) {
@@ -45,11 +48,14 @@ export function useAddressManagement() {
       name: addr.name,
       address: addr.address,
       coordinates: addr.coordinates,
-      category: addr.category,
-      subcategory: addr.subcategory,
+      category: addr.category || '',
+      subcategory: addr.subcategory || '',
       date: addr.date || new Date().toISOString(),
       isDaily: addr.isDaily || false,
-      transport: addr.transport
+      transport: addr.transport || 'walking',
+      distance: addr.distance || 0,
+      duration: addr.duration || 0,
+      unit: addr.unit || 'km'
     }));
     saveAddresses(convertedAddresses);
   }, [dailyAddresses]);
@@ -61,11 +67,14 @@ export function useAddressManagement() {
       name: addressData.name,
       address: addressData.address,
       coordinates: addressData.coordinates,
-      category: addressData.category,
-      subcategory: addressData.subcategory,
+      category: addressData.category || '',
+      subcategory: addressData.subcategory || '',
       date: addressData.date || new Date().toISOString(),
       isDaily: addressData.isDaily || false,
-      transport: addressData.transport
+      transport: addressData.transport || 'walking',
+      distance: addressData.distance || 0,
+      duration: addressData.duration || 0,
+      unit: addressData.unit || 'km'
     };
     
     const editingItem = editingAddress ? {
@@ -73,11 +82,14 @@ export function useAddressManagement() {
       name: editingAddress.name,
       address: editingAddress.address,
       coordinates: editingAddress.coordinates,
-      category: editingAddress.category,
-      subcategory: editingAddress.subcategory,
+      category: editingAddress.category || '',
+      subcategory: editingAddress.subcategory || '',
       date: editingAddress.date || new Date().toISOString(),
       isDaily: editingAddress.isDaily || false,
-      transport: editingAddress.transport
+      transport: editingAddress.transport || 'walking',
+      distance: editingAddress.distance || 0,
+      duration: editingAddress.duration || 0,
+      unit: editingAddress.unit || 'km'
     } : null;
 
     const currentItems: DailyAddressItem[] = dailyAddresses.map(addr => ({
@@ -85,11 +97,14 @@ export function useAddressManagement() {
       name: addr.name,
       address: addr.address,
       coordinates: addr.coordinates,
-      category: addr.category,
-      subcategory: addr.subcategory,
+      category: addr.category || '',
+      subcategory: addr.subcategory || '',
       date: addr.date || new Date().toISOString(),
       isDaily: addr.isDaily || false,
-      transport: addr.transport
+      transport: addr.transport || 'walking',
+      distance: addr.distance || 0,
+      duration: addr.duration || 0,
+      unit: addr.unit || 'km'
     }));
 
     const result = createOrUpdateAddress(addressItem, editingItem, currentItems);
@@ -105,7 +120,10 @@ export function useAddressManagement() {
         subcategory: addr.subcategory,
         transport: addr.transport,
         date: addr.date,
-        isDaily: addr.isDaily
+        isDaily: addr.isDaily,
+        distance: addr.distance,
+        duration: addr.duration,
+        unit: addr.unit
       }));
       setDailyAddresses(convertedAddresses);
       setShowAddressForm(false);
