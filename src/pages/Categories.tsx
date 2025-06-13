@@ -67,20 +67,20 @@ const Categories = () => {
   };
   
   const handleEditAddressWrapper = (address: DailyAddressData) => {
-    // Assurer que l'adresse a un ID avant de l'éditer
+    // Ensure the address has all required DailyAddressItem properties
     const addressWithId: DailyAddressItem = {
       id: address.id || `temp-${Date.now()}`,
       name: address.name,
       address: address.address,
       coordinates: address.coordinates,
-      category: address.category,
-      subcategory: address.subcategory,
+      category: address.category || '',
+      subcategory: address.subcategory || '',
       isDaily: address.isDaily || true,
       date: address.date || new Date().toISOString(),
-      transport: address.transport,
-      distance: address.distance,
-      duration: address.duration,
-      unit: address.unit
+      transport: address.transport || 'walking',
+      distance: address.distance || 0,
+      duration: address.duration || 0,
+      unit: address.unit || 'km'
     };
     handleEditAddress(addressWithId);
   };

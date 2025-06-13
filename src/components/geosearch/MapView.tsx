@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { LocateFixed } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from '@/store/geoSearchStore/searchLogic';
-import EnhancedLocationButton from './EnhancedLocationButton';
+import { EnhancedLocationButton } from '@/components/map';
 
 // Define custom marker icon
 const customMarkerIcon = new L.Icon({
