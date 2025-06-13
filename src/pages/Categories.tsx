@@ -114,7 +114,7 @@ const Categories = () => {
           ) : (
             <CategorySection 
               categories={convertedCategories}
-              dailyAddresses={dailyAddresses}
+              dailyAddresses={dailyAddresses.map(convertToDailyAddressItem)}
               onEditAddress={handleEditAddressWrapper}
               onDeleteAddress={handleDeleteAddress}
               onAddNewAddress={handleAddNewAddress}
