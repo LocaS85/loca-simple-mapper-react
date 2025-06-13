@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -67,9 +66,7 @@ const Categories = () => {
   };
   
   const handleEditAddressWrapper = (address: DailyAddressData) => {
-    // Use the helper function to convert DailyAddressData to DailyAddressItem
-    const addressItem = convertToDailyAddressItem(address);
-    handleEditAddress(addressItem);
+    handleEditAddress(address);
   };
   
   // Check if Mapbox token is valid
