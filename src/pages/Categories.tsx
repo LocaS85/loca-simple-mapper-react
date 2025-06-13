@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -12,7 +13,7 @@ import CategoryPageHeader from '@/components/categories/CategoryPageHeader';
 import { useAddressManagement } from '@/hooks/use-address-management';
 import { useCategoryManagement } from '@/hooks/use-category-management';
 import { useTranslation } from 'react-i18next';
-import { DailyAddressData } from '@/types/category';
+import { DailyAddressData, DailyAddressItem } from '@/types/category';
 
 const Categories = () => {
   // State for map toggle

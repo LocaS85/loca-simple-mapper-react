@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
@@ -122,12 +123,10 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
       <div className="hidden">
         <CategoryMapView
           selectedCategory={filters.category || ''}
-          initialTransportMode={filters.transport}
-          initialMaxDistance={filters.distance}
-          initialMaxDuration={filters.maxDuration}
-          initialAroundMeCount={filters.aroundMeCount}
-          initialShowMultiDirections={filters.showMultiDirections}
-          initialDistanceUnit={filters.unit}
+          transport={filters.transport}
+          radius={filters.distance}
+          count={filters.aroundMeCount}
+          unit={filters.unit}
         />
       </div>
     </div>

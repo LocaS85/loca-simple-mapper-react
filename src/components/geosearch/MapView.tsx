@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { LocateFixed } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { calculateDistance } from '@/store/geoSearchStore/searchLogic';
-import { EnhancedLocationButton } from './EnhancedLocationButton';
+import EnhancedLocationButton from './EnhancedLocationButton';
 
 // Define custom marker icon
 const customMarkerIcon = new L.Icon({
@@ -45,10 +46,10 @@ const MapView: React.FC<MapViewProps> = ({
   const { toast } = useToast();
 
   // Function to handle location detection
-  const handleLocationDetected = (location: [number, number]) => {
-    console.log('📍 Location detected:', location);
+  const handleLocationDetected = (coordinates: [number, number]) => {
+    console.log('📍 Location detected:', coordinates);
     if (onLocationUpdate) {
-      onLocationUpdate(location);
+      onLocationUpdate(coordinates);
     }
   };
 

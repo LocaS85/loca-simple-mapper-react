@@ -15,6 +15,13 @@ interface CategoryMapViewProps {
   unit?: DistanceUnit;
   onResultsChange?: (results: SearchResult[]) => void;
   className?: string;
+  // Nouvelles props pour compatibilité
+  initialTransportMode?: TransportMode;
+  initialMaxDistance?: number;
+  initialMaxDuration?: number;
+  initialAroundMeCount?: number;
+  initialShowMultiDirections?: boolean;
+  initialDistanceUnit?: DistanceUnit;
 }
 
 export default function CategoryMapView({
@@ -26,17 +33,30 @@ export default function CategoryMapView({
   count = 5,
   unit = 'km',
   onResultsChange,
-  className = ''
+  className = '',
+  // Props compatibilité
+  initialTransportMode,
+  initialMaxDistance,
+  initialMaxDuration,
+  initialAroundMeCount,
+  initialShowMultiDirections,
+  initialDistanceUnit
 }: CategoryMapViewProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Utiliser les valeurs initiales si disponibles
+  const effectiveTransport = initialTransportMode || transport;
+  const effectiveRadius = initialMaxDistance || radius;
+  const effectiveCount = initialAroundMeCount || count;
+  const effectiveUnit = initialDistanceUnit || unit;
+
   useEffect(() => {
     if (userLocation && selectedCategory) {
       searchPlaces();
     }
-  }, [userLocation, selectedCategory, selectedSubcategory, transport, radius]);
+  }, [userLocation, selectedCategory, selectedSubcategory, effectiveTransport, effectiveRadius]);
 
   const searchPlaces = async () => {
     if (!userLocation) return;
@@ -85,8 +105,8 @@ export default function CategoryMapView({
     <div className={`w-full h-full ${className}`}>
       <MapboxMap
         results={results}
-        transport={transport}
-        radius={radius}
+        transport={effectiveTransport}
+        radius={effectiveRadius}
         category={selectedCategory}
         className="w-full h-full"
       />
