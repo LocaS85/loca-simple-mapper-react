@@ -14,20 +14,20 @@ export function useAddressManagement() {
   useEffect(() => {
     try {
       const addresses = loadAddresses();
-      // Convert DailyAddressItem[] to DailyAddressData[]
+      // Convert DailyAddressItem[] to DailyAddressData[] avec id garanti
       const convertedAddresses: DailyAddressData[] = addresses.map(addr => ({
-        id: addr.id,
+        id: addr.id || `addr-${Date.now()}-${Math.random()}`, // Garantir un id unique
         name: addr.name,
         address: addr.address,
         coordinates: addr.coordinates,
-        category: addr.category,
-        subcategory: addr.subcategory,
-        transport: addr.transport,
-        date: addr.date,
-        isDaily: addr.isDaily,
-        distance: addr.distance,
-        duration: addr.duration,
-        unit: addr.unit
+        category: addr.category || '',
+        subcategory: addr.subcategory || '',
+        transport: addr.transport || 'walking',
+        date: addr.date || new Date().toISOString(),
+        isDaily: addr.isDaily || false,
+        distance: addr.distance || 0,
+        duration: addr.duration || 0,
+        unit: addr.unit || 'km'
       }));
       setDailyAddresses(convertedAddresses);
     } catch (error) {
@@ -44,26 +44,29 @@ export function useAddressManagement() {
   useEffect(() => {
     // Convert DailyAddressData[] to DailyAddressItem[]
     const convertedAddresses: DailyAddressItem[] = dailyAddresses.map(addr => ({
-      id: addr.id || `addr-${Date.now()}`,
+      id: addr.id,
       name: addr.name,
       address: addr.address,
       coordinates: addr.coordinates,
-      category: addr.category || '',
-      subcategory: addr.subcategory || '',
-      date: addr.date || new Date().toISOString(),
-      isDaily: addr.isDaily || false,
-      transport: addr.transport || 'walking',
-      distance: addr.distance || 0,
-      duration: addr.duration || 0,
-      unit: addr.unit || 'km'
+      category: addr.category,
+      subcategory: addr.subcategory,
+      date: addr.date,
+      isDaily: addr.isDaily,
+      transport: addr.transport,
+      distance: addr.distance,
+      duration: addr.duration,
+      unit: addr.unit
     }));
     saveAddresses(convertedAddresses);
   }, [dailyAddresses]);
 
   const handleSaveAddress = (addressData: any) => {
+    // S'assurer qu'un id est toujours présent
+    const ensuredId = addressData.id || `addr-${Date.now()}-${Math.random()}`;
+    
     // Convert to DailyAddressItem for service call
     const addressItem: DailyAddressItem = {
-      id: addressData.id || `addr-${Date.now()}`,
+      id: ensuredId,
       name: addressData.name,
       address: addressData.address,
       coordinates: addressData.coordinates,
@@ -78,39 +81,39 @@ export function useAddressManagement() {
     };
     
     const editingItem = editingAddress ? {
-      id: editingAddress.id || `addr-${Date.now()}`,
+      id: editingAddress.id,
       name: editingAddress.name,
       address: editingAddress.address,
       coordinates: editingAddress.coordinates,
-      category: editingAddress.category || '',
-      subcategory: editingAddress.subcategory || '',
-      date: editingAddress.date || new Date().toISOString(),
-      isDaily: editingAddress.isDaily || false,
-      transport: editingAddress.transport || 'walking',
-      distance: editingAddress.distance || 0,
-      duration: editingAddress.duration || 0,
-      unit: editingAddress.unit || 'km'
+      category: editingAddress.category,
+      subcategory: editingAddress.subcategory,
+      date: editingAddress.date,
+      isDaily: editingAddress.isDaily,
+      transport: editingAddress.transport,
+      distance: editingAddress.distance,
+      duration: editingAddress.duration,
+      unit: editingAddress.unit
     } : null;
 
     const currentItems: DailyAddressItem[] = dailyAddresses.map(addr => ({
-      id: addr.id || `addr-${Date.now()}`,
+      id: addr.id,
       name: addr.name,
       address: addr.address,
       coordinates: addr.coordinates,
-      category: addr.category || '',
-      subcategory: addr.subcategory || '',
-      date: addr.date || new Date().toISOString(),
-      isDaily: addr.isDaily || false,
-      transport: addr.transport || 'walking',
-      distance: addr.distance || 0,
-      duration: addr.duration || 0,
-      unit: addr.unit || 'km'
+      category: addr.category,
+      subcategory: addr.subcategory,
+      date: addr.date,
+      isDaily: addr.isDaily,
+      transport: addr.transport,
+      distance: addr.distance,
+      duration: addr.duration,
+      unit: addr.unit
     }));
 
     const result = createOrUpdateAddress(addressItem, editingItem, currentItems);
     
     if (result.success) {
-      // Convert back to DailyAddressData[]
+      // Convert back to DailyAddressData[] avec id garanti
       const convertedAddresses: DailyAddressData[] = result.addresses.map(addr => ({
         id: addr.id,
         name: addr.name,

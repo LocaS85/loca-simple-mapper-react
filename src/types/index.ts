@@ -39,16 +39,7 @@ export interface TransportModeItem {
   color: string;
 }
 
-export interface DailyAddressData {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: [number, number];
-  category: string;
-  subcategory: string;
-  transportMode?: string;
-}
-
+// Suppression de DailyAddressData pour éviter le conflit - utiliser celui de types/category.ts
 export type TransportMode = "car" | "walking" | "cycling" | "bus" | "train" | "driving" | "transit";
 
 // Updated Location interface with image and price properties

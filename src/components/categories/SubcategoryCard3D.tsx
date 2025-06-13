@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { DailyAddressData } from '@/types';
+import { DailyAddressData } from '@/types/category';
 
 interface SubcategoryCardProps {
   title: string;

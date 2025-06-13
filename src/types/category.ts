@@ -37,35 +37,36 @@ export interface DailyAddressItem {
   unit: DistanceUnit;
 }
 
+// Version unifiée de DailyAddressData avec id requis pour éviter les conflits
 export interface DailyAddressData {
-  id?: string;
+  id: string; // Maintenant requis pour la cohérence
   name: string;
   address: string;
   coordinates: [number, number];
-  category?: string;
-  subcategory?: string;
-  isDaily?: boolean;
-  date?: string;
-  transport?: TransportMode;
-  distance?: number;
-  duration?: number;
-  unit?: DistanceUnit;
+  category: string;
+  subcategory: string;
+  isDaily: boolean;
+  date: string;
+  transport: TransportMode;
+  distance: number;
+  duration: number;
+  unit: DistanceUnit;
 }
 
 // Helper function to convert DailyAddressData to DailyAddressItem
 export const convertToDailyAddressItem = (data: DailyAddressData): DailyAddressItem => {
   return {
-    id: data.id || `temp-${Date.now()}`,
+    id: data.id,
     name: data.name,
     address: data.address,
     coordinates: data.coordinates,
-    category: data.category || '',
-    subcategory: data.subcategory || '',
-    isDaily: data.isDaily || true,
-    date: data.date || new Date().toISOString(),
-    transport: data.transport || 'walking',
-    distance: data.distance || 0,
-    duration: data.duration || 0,
-    unit: data.unit || 'km'
+    category: data.category,
+    subcategory: data.subcategory,
+    isDaily: data.isDaily,
+    date: data.date,
+    transport: data.transport,
+    distance: data.distance,
+    duration: data.duration,
+    unit: data.unit
   };
 };
