@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock } from 'lucide-react';
 import SubcategoryCard3D from './SubcategoryCard3D';
@@ -41,9 +42,14 @@ const SubcategoriesList: React.FC<SubcategoriesListProps> = ({
           address => address.subcategory === subcategory.id
         );
         
-        // Create icon element with proper typing
-        const IconComponent = subcategory.icon as React.ComponentType<React.SVGProps<SVGSVGElement>>;
-        const iconElement = <IconComponent color={category.color} />;
+        // Handle icon - either string or React component
+        let iconElement: React.ReactNode;
+        if (typeof subcategory.icon === 'string') {
+          iconElement = <span style={{ color: category.color }}>{subcategory.icon}</span>;
+        } else {
+          const IconComponent = subcategory.icon as React.ComponentType<React.SVGProps<SVGSVGElement>>;
+          iconElement = <IconComponent color={category.color} />;
+        }
         
         return (
           <SubcategoryCard3D

@@ -1,9 +1,10 @@
+
 import { TransportMode, DistanceUnit } from '@/types/map';
 
 export interface Category {
   id: string;
   name: string;
-  icon: string;
+  icon: string | React.ComponentType<React.SVGProps<SVGSVGElement>>;
   color: string;
   subcategories: Subcategory[];
 }
@@ -14,7 +15,7 @@ export interface Subcategory {
   id: string;
   name: string;
   description?: string;
-  icon: string; // Ajout de la propriété icon manquante
+  icon: string | React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 export interface SubcategoryItem extends Subcategory {
