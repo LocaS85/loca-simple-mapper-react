@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -54,6 +55,9 @@ const Categories = () => {
     setTransportMode,
     resetFilters
   } = useCategoryManagement();
+
+  // Convert dailyAddresses to DailyAddressItem[] for consistent typing
+  const convertedDailyAddresses = dailyAddresses.map(convertToDailyAddressItem);
 
   // Handle search from subcategory cards
   const handleSearchClick = (subcategoryId: string) => {
@@ -114,7 +118,7 @@ const Categories = () => {
           ) : (
             <CategorySection 
               categories={convertedCategories}
-              dailyAddresses={dailyAddresses.map(convertToDailyAddressItem)}
+              dailyAddresses={convertedDailyAddresses}
               onEditAddress={handleEditAddressWrapper}
               onDeleteAddress={handleDeleteAddress}
               onAddNewAddress={handleAddNewAddress}
