@@ -1,9 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import CategoryCard3D from '@/components/categories/CategoryCard3D';
 import SubcategoriesList from '@/components/categories/SubcategoriesList';
-import { Category } from '@/types';
+import { Category } from '@/types/category';
 import { DailyAddressData } from '@/types/category';
 import { useToast } from '@/hooks/use-toast';
 import { TransportMode } from '@/lib/data/transportModes';
@@ -110,11 +109,12 @@ const CategorySection: React.FC<CategorySectionProps> = ({
           >
             <div className="flex items-center mb-6 space-x-3">
               <div className="text-2xl md:text-3xl p-2 rounded-full" style={{ backgroundColor: selectedCategory.color + '20' }}>
-                {React.createElement(selectedCategory.icon as React.ComponentType<any>, { 
-                  size: 30,
-                  color: selectedCategory.color,
-                  strokeWidth: 2
-                })}
+                {typeof selectedCategory.icon === 'string' ? selectedCategory.icon : 
+                 React.createElement(selectedCategory.icon as React.ComponentType<any>, { 
+                   size: 30,
+                   color: selectedCategory.color,
+                   strokeWidth: 2
+                 })}
               </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-bold" style={{ color: selectedCategory.color }}>

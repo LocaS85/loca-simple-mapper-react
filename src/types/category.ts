@@ -1,4 +1,3 @@
-
 import { TransportMode, DistanceUnit } from '@/types/map';
 
 export interface Category {
@@ -15,10 +14,10 @@ export interface Subcategory {
   id: string;
   name: string;
   description?: string;
+  icon: string; // Ajout de la propriété icon manquante
 }
 
 export interface SubcategoryItem extends Subcategory {
-  icon: string;
   parentId: string;
 }
 
