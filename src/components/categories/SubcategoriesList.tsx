@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Clock } from 'lucide-react';
 import SubcategoryCard3D from './SubcategoryCard3D';
-import { Category, DailyAddressData } from '@/types';
+import { Category, DailyAddressData } from '@/types/category';
 
 interface SubcategoriesListProps {
   category: Category;
