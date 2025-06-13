@@ -51,6 +51,44 @@ export const unifiedApiService = {
     }
   },
 
+  async searchPlaces(params: {
+    query?: string;
+    center: [number, number];
+    category?: string;
+    radius?: number;
+    limit?: number;
+  }): Promise<SearchPlace[]> {
+    try {
+      const searchResults = await this.search({
+        query: params.query || 'restaurant',
+        location: params.center,
+        filters: {
+          category: params.category,
+          distance: params.radius || 10,
+          aroundMeCount: params.limit || 5,
+          transport: 'walking',
+          unit: 'km',
+          query: params.query || '',
+          maxDuration: 30,
+          showMultiDirections: false
+        }
+      });
+
+      return searchResults.map(result => ({
+        id: result.id,
+        name: result.name,
+        address: result.address || 'Adresse non disponible',
+        coordinates: result.coordinates,
+        category: result.category || 'place',
+        distance: result.distance,
+        duration: result.duration
+      }));
+    } catch (error) {
+      console.error('❌ Search places error:', error);
+      return [];
+    }
+  },
+
   getMockResults(location: [number, number]): SearchResult[] {
     return [
       {
@@ -76,3 +114,6 @@ export const unifiedApiService = {
     ];
   }
 };
+
+// Export avec l'ancien nom pour compatibilité
+export const unifiedSearchService = unifiedApiService;

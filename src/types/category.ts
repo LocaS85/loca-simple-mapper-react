@@ -15,11 +15,7 @@ export interface CategoryItem {
   icon: string;
   label: string;
   color: string;
-  subcategories?: {
-    id: string;
-    name: string;
-    description: string;
-  }[];
+  subcategories?: SubcategoryItem[];
 }
 
 export interface Subcategory {

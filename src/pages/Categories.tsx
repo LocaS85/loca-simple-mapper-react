@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
@@ -66,6 +65,25 @@ const Categories = () => {
     }
   };
   
+  const handleEditAddressWrapper = (address: DailyAddressData) => {
+    // Assurer que l'adresse a un ID avant de l'éditer
+    const addressWithId: DailyAddressItem = {
+      id: address.id || `temp-${Date.now()}`,
+      name: address.name,
+      address: address.address,
+      coordinates: address.coordinates,
+      category: address.category,
+      subcategory: address.subcategory,
+      isDaily: address.isDaily || true,
+      date: address.date || new Date().toISOString(),
+      transport: address.transport,
+      distance: address.distance,
+      duration: address.duration,
+      unit: address.unit
+    };
+    handleEditAddress(addressWithId);
+  };
+  
   // Check if Mapbox token is valid
   if (!isMapboxTokenValid()) {
     return <MapboxError />;
@@ -100,7 +118,7 @@ const Categories = () => {
           {/* Main content - Map or List */}
           {showMap ? (
             <CategoryMapView 
-              selectedCategory={selectedCategory}
+              selectedCategory={selectedCategory?.id || ''}
               initialTransportMode={transportMode}
               initialMaxDistance={maxDistance}
               initialMaxDuration={maxDuration}
@@ -112,7 +130,7 @@ const Categories = () => {
             <CategorySection 
               categories={convertedCategories}
               dailyAddresses={dailyAddresses}
-              onEditAddress={(address: DailyAddressData) => handleEditAddress(address)}
+              onEditAddress={handleEditAddressWrapper}
               onDeleteAddress={handleDeleteAddress}
               onAddNewAddress={handleAddNewAddress}
               onSelectCategory={handleSelectCategory}
