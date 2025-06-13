@@ -1,17 +1,18 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import CategoryCard3D from '@/components/categories/CategoryCard3D';
 import SubcategoriesList from '@/components/categories/SubcategoriesList';
 import { Category } from '@/types';
-import { DailyAddressItem } from '@/types/category';
+import { DailyAddressData } from '@/types/category';
 import { useToast } from '@/hooks/use-toast';
 import { TransportMode } from '@/lib/data/transportModes';
 import { useNavigate } from 'react-router-dom';
 
 interface CategorySectionProps {
   categories: Category[];
-  dailyAddresses: DailyAddressItem[];
-  onEditAddress: (address: any) => void;
+  dailyAddresses: DailyAddressData[];
+  onEditAddress: (address: DailyAddressData) => void;
   onDeleteAddress: (addressId: string) => void;
   onAddNewAddress: (subcategoryId: string) => void;
   onSelectCategory?: (category: Category) => void;

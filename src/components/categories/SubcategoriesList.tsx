@@ -27,9 +27,9 @@ const SubcategoriesList: React.FC<SubcategoriesListProps> = ({
   // Count addresses per subcategory
   const subcategoryAddressCounts: {[key: string]: number} = {};
   categoryAddresses.forEach(address => {
-    if (subcategoryAddressCounts[address.subcategory]) {
+    if (address.subcategory && subcategoryAddressCounts[address.subcategory]) {
       subcategoryAddressCounts[address.subcategory]++;
-    } else {
+    } else if (address.subcategory) {
       subcategoryAddressCounts[address.subcategory] = 1;
     }
   });

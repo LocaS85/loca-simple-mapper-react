@@ -13,7 +13,7 @@ import CategoryPageHeader from '@/components/categories/CategoryPageHeader';
 import { useAddressManagement } from '@/hooks/use-address-management';
 import { useCategoryManagement } from '@/hooks/use-category-management';
 import { useTranslation } from 'react-i18next';
-import { DailyAddressData, DailyAddressItem, convertToDailyAddressItem } from '@/types/category';
+import { DailyAddressData } from '@/types/category';
 
 const Categories = () => {
   // State for map toggle
@@ -55,9 +55,6 @@ const Categories = () => {
     setTransportMode,
     resetFilters
   } = useCategoryManagement();
-
-  // Convert dailyAddresses to DailyAddressItem[] for consistent typing
-  const convertedDailyAddresses = dailyAddresses.map(convertToDailyAddressItem);
 
   // Handle search from subcategory cards
   const handleSearchClick = (subcategoryId: string) => {
@@ -118,7 +115,7 @@ const Categories = () => {
           ) : (
             <CategorySection 
               categories={convertedCategories}
-              dailyAddresses={convertedDailyAddresses}
+              dailyAddresses={dailyAddresses}
               onEditAddress={handleEditAddressWrapper}
               onDeleteAddress={handleDeleteAddress}
               onAddNewAddress={handleAddNewAddress}
