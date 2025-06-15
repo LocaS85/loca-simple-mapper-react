@@ -5,10 +5,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import checker from "vite-plugin-checker";
 
-// ATTENTION : Pour éviter EMFILE/Too Many Files, limitez la surveillance de fichiers Vite
-// Voir doc : https://vitejs.dev/config/server-options.html#server-watch
-// Vous pouvez aussi adapter le paramètre : ulimit -n [nombre]
-
+// On surveille uniquement src pour éviter EMFILE
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -16,8 +13,19 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: true
     },
+    // On ignore tout sauf src (c’est lui qu’on édite et qui importe tout)
     watch: {
-      ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/.env']
+      ignored: [
+        '**/node_modules/**',
+        '**/.git/**',
+        '**/dist/**',
+        '**/.env',
+        '**/.output/**',
+        '**/build/**',
+        '**/.cache/**',
+        '**/coverage/**',
+        '!src/**'
+      ]
     }
   },
   plugins: [
@@ -29,7 +37,6 @@ export default defineConfig(({ mode }) => ({
         initialIsOpen: false,
       },
       eslint: {
-        // L’option dev n’est pas supportée partout; enlever si besoin
         lintCommand: 'eslint "./src/**/*.{ts,tsx}" --max-warnings 0'
       }
     }),
@@ -52,7 +59,10 @@ export default defineConfig(({ mode }) => ({
     minify: mode === 'production' ? 'esbuild' : false,
     rollupOptions: {
       onwarn(warning, defaultHandler) {
-        if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || warning.code === 'CIRCULAR_DEPENDENCY') {
+        if (
+          warning.code === 'MODULE_LEVEL_DIRECTIVE' ||
+          warning.code === 'CIRCULAR_DEPENDENCY'
+        ) {
           return;
         }
         defaultHandler(warning);
@@ -60,7 +70,11 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           'mapbox-vendor': ['mapbox-gl', 'react-map-gl', '@mapbox/mapbox-sdk'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-select']
+          'ui-vendor': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select'
+          ]
         }
       }
     },
