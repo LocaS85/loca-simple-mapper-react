@@ -1,10 +1,14 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import checker from "vite-plugin-checker";
 
-// https://vitejs.dev/config/
+// ATTENTION : Pour éviter EMFILE/Too Many Files, limitez la surveillance de fichiers Vite
+// Voir doc : https://vitejs.dev/config/server-options.html#server-watch
+// Vous pouvez aussi adapter le paramètre : ulimit -n [nombre]
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -19,16 +23,14 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    checker({ 
+    checker({
       typescript: true,
       overlay: {
         initialIsOpen: false,
       },
       eslint: {
-        lintCommand: 'eslint "./src/**/*.{ts,tsx}" --max-warnings 0',
-        dev: {
-          logLevel: ['error']
-        }
+        // L’option dev n’est pas supportée partout; enlever si besoin
+        lintCommand: 'eslint "./src/**/*.{ts,tsx}" --max-warnings 0'
       }
     }),
   ].filter(Boolean),
