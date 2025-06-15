@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
 import { LocateFixed, MapPin } from 'lucide-react';
@@ -9,6 +8,9 @@ import MapboxSetup from '@/components/MapboxSetup';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SearchResult } from '@/types/geosearch';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
+import UserLocationButton from './mapbox-map/UserLocationButton';
+import ResultMarkers from './mapbox-map/ResultMarkers';
+import { useMapboxError } from './mapbox-map/useMapboxError';
 
 interface MapboxMapProps {
   results?: SearchResult[];
@@ -38,7 +40,10 @@ export default function MapboxMap({
   const [mapError, setMapError] = useState<string | null>(null);
   const [showTokenSetup, setShowTokenSetup] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  
+
+  // Use new hook for error (sécurisé)
+  const handleMapboxError = useMapboxError(setShowTokenSetup);
+
   // Use GeoSearch store for better integration
   const { userLocation, setUserLocation } = useGeoSearchStore();
 
@@ -153,8 +158,8 @@ export default function MapboxMap({
           console.log('🗺️ Carte Mapbox chargée');
         }}
         onError={(e) => {
-          console.error("Mapbox error:", e);
           setMapError(e.error?.message || "Error loading map");
+          handleMapboxError(e.error);
         }}
         interactiveLayerIds={[]}
       >
@@ -176,6 +181,7 @@ export default function MapboxMap({
           }}
         />
 
+        {/* User marker */}
         {userLocation && (
           <Marker 
             longitude={userLocation[0]} 
@@ -197,31 +203,8 @@ export default function MapboxMap({
           </Marker>
         )}
 
-        {results.map((result, index) => (
-          result.coordinates && (
-            <Marker 
-              key={result.id || index}
-              longitude={result.coordinates[0]} 
-              latitude={result.coordinates[1]} 
-              anchor="bottom"
-            >
-              <div className="flex flex-col items-center">
-                <MapPin 
-                  className="w-6 h-6 drop-shadow-md" 
-                  style={{ color: getColorForCategory(result.category || category) }} 
-                  role="img"
-                  aria-label={`Marqueur pour ${result.name}`}
-                />
-                <div 
-                  className="text-xs bg-white px-1 rounded shadow-sm max-w-20 truncate"
-                  title={result.name}
-                >
-                  {result.name}
-                </div>
-              </div>
-            </Marker>
-          )
-        ))}
+        {/* Résultats : extract out */}
+        <ResultMarkers results={results} category={category} />
       </Map>
 
       {mapError && (
@@ -246,8 +229,7 @@ export default function MapboxMap({
       )}
 
       {userLocation && (
-        <button
-          className="absolute bottom-4 right-4 z-10 p-3 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        <UserLocationButton
           onClick={() => {
             if (mapRef.current) {
               mapRef.current.flyTo({ 
@@ -257,12 +239,7 @@ export default function MapboxMap({
               });
             }
           }}
-          aria-label="Centrer la carte sur ma position"
-          title="Centrer sur ma position"
-          type="button"
-        >
-          <LocateFixed className="w-5 h-5 text-gray-700" />
-        </button>
+        />
       )}
     </div>
   );
