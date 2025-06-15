@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    checker({
+    mode === 'development' && checker({
       typescript: true,
       overlay: {
         initialIsOpen: false,
