@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapView from './MapView';
-import { GeoSearchHeader } from './layout/GeoSearchHeader';
+// CORRECTION ICI : import par défaut
+import GeoSearchHeader from './layout/GeoSearchHeader';
 import { GeoSearchSidebarPopup } from './layout/GeoSearchSidebarPopup';
 import { GeoSearchMobileResults } from './layout/GeoSearchMobileResults';
 import EnhancedSearchBar from '../enhanced/EnhancedSearchBar';
