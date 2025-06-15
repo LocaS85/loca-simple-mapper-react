@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { SubcategoryItem } from '../types/category';
 import { Link } from 'react-router-dom';
+import { renderIcon } from '@/utils/iconRenderer';
 
 interface SubcategoryCard3DProps {
   subcategory: SubcategoryItem;
@@ -33,7 +34,9 @@ const SubcategoryCard3D: React.FC<SubcategoryCard3DProps> = ({
         `}
         style={{ borderColor: parentCategoryColor }}
       >
-        <div className="mb-3 text-3xl">{subcategory.icon}</div>
+        <div className="mb-3">
+          {renderIcon(subcategory.icon, parentCategoryColor, 32)}
+        </div>
         <h3 className="font-medium text-lg mb-1">{subcategory.name}</h3>
         <p className="text-sm text-gray-500 text-center">{subcategory.description}</p>
       </motion.div>

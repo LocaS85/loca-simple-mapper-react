@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     hmr: {
       overlay: true
+    },
+    watch: {
+      ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/.env']
     }
   },
   plugins: [

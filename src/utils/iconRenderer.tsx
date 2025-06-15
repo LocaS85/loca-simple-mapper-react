@@ -1,7 +1,8 @@
 
 import React from 'react';
+import { LucideProps } from 'lucide-react';
 
-export type IconType = string | React.ComponentType<React.SVGProps<SVGSVGElement>>;
+export type IconType = string | React.ComponentType<LucideProps>;
 
 export const renderIcon = (icon: IconType, color?: string, size?: number): React.ReactNode => {
   if (typeof icon === 'string') {
@@ -20,7 +21,7 @@ export const renderIcon = (icon: IconType, color?: string, size?: number): React
     );
   }
   
-  const IconComponent = icon as React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  const IconComponent = icon as React.ComponentType<LucideProps>;
   return (
     <IconComponent 
       color={color} 

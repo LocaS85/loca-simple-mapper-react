@@ -3,9 +3,16 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { RotateCcw, Settings } from 'lucide-react';
+import { RotateCcw, Filter } from 'lucide-react';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { TransportMode } from '@/lib/data/transportModes';
 
@@ -14,7 +21,7 @@ interface GeoSearchFiltersPanelProps {
   onFiltersChange: (filters: Partial<GeoSearchFilters>) => void;
   onTransportChange: (transport: TransportMode) => void;
   onClearCache: () => void;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 const GeoSearchFiltersPanel: React.FC<GeoSearchFiltersPanelProps> = ({
@@ -22,105 +29,136 @@ const GeoSearchFiltersPanel: React.FC<GeoSearchFiltersPanelProps> = ({
   onFiltersChange,
   onTransportChange,
   onClearCache,
-  isLoading
+  isLoading = false
 }) => {
-  const transportModes: { mode: TransportMode; label: string; icon: string }[] = [
-    { mode: 'walking', label: 'À pied', icon: '🚶' },
-    { mode: 'cycling', label: 'Vélo', icon: '🚴' },
-    { mode: 'driving', label: 'Voiture', icon: '🚗' },
-    { mode: 'transit', label: 'Transport', icon: '🚌' }
-  ];
+  const handleDistanceChange = (value: number[]) => {
+    onFiltersChange({ distance: value[0] });
+  };
+
+  const handleTransportSelect = (value: TransportMode) => {
+    onTransportChange(value);
+    onFiltersChange({ transport: value });
+  };
+
+  const handleCountChange = (value: string) => {
+    onFiltersChange({ aroundMeCount: parseInt(value) });
+  };
+
+  const resetFilters = () => {
+    onFiltersChange({
+      query: '',
+      category: '',
+      subcategory: '',
+      transport: 'walking',
+      distance: 10,
+      aroundMeCount: 5
+    });
+    onClearCache();
+  };
 
   return (
-    <Card>
+    <Card className="h-fit">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Settings className="h-5 w-5" />
-            Filtres
-          </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClearCache}
-            disabled={isLoading}
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-        </div>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Filter className="h-5 w-5" />
+          Filtres de recherche
+        </CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-6">
         {/* Transport Mode */}
-        <div>
-          <Label className="text-sm font-medium mb-3 block">
-            Mode de transport
-          </Label>
-          <div className="grid grid-cols-2 gap-2">
-            {transportModes.map(({ mode, label, icon }) => (
-              <Button
-                key={mode}
-                variant={filters.transport === mode ? "default" : "outline"}
-                size="sm"
-                onClick={() => onTransportChange(mode)}
-                className="justify-start"
-                disabled={isLoading}
-              >
-                <span className="mr-2">{icon}</span>
-                {label}
-              </Button>
-            ))}
-          </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Mode de transport</label>
+          <Select 
+            value={filters.transport} 
+            onValueChange={handleTransportSelect}
+            disabled={isLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner un mode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="walking">🚶 À pied</SelectItem>
+              <SelectItem value="cycling">🚴 Vélo</SelectItem>
+              <SelectItem value="car">🚗 Voiture</SelectItem>
+              <SelectItem value="bus">🚌 Bus</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
+        <Separator />
+
         {/* Distance */}
-        <div>
-          <Label className="text-sm font-medium mb-3 block">
-            Distance maximale: {filters.distance} {filters.unit}
-          </Label>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Distance maximale</label>
+            <Badge variant="secondary">{filters.distance} km</Badge>
+          </div>
           <Slider
-            value={[filters.distance]}
-            onValueChange={([value]) => onFiltersChange({ distance: value })}
+            value={[filters.distance || 10]}
+            onValueChange={handleDistanceChange}
             max={50}
             min={1}
             step={1}
             disabled={isLoading}
+            className="w-full"
           />
         </div>
+
+        <Separator />
 
         {/* Number of results */}
-        <div>
-          <Label className="text-sm font-medium mb-3 block">
-            Nombre de résultats: {filters.aroundMeCount}
-          </Label>
-          <Slider
-            value={[filters.aroundMeCount || 5]}
-            onValueChange={([value]) => onFiltersChange({ aroundMeCount: value })}
-            max={20}
-            min={1}
-            step={1}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Nombre de résultats</label>
+          <Select 
+            value={filters.aroundMeCount?.toString() || '5'} 
+            onValueChange={handleCountChange}
             disabled={isLoading}
-          />
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Nombre de résultats" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="3">3 résultats</SelectItem>
+              <SelectItem value="5">5 résultats</SelectItem>
+              <SelectItem value="10">10 résultats</SelectItem>
+              <SelectItem value="20">20 résultats</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Active filters display */}
-        {(filters.category || filters.query) && (
-          <div>
-            <Label className="text-sm font-medium mb-2 block">
-              Filtres actifs
-            </Label>
-            <div className="flex flex-wrap gap-2">
-              {filters.category && (
-                <Badge variant="secondary" className="text-xs">
-                  📍 {filters.category}
-                </Badge>
-              )}
-              {filters.query && (
-                <Badge variant="secondary" className="text-xs">
-                  🔍 {filters.query}
-                </Badge>
-              )}
-            </div>
+        <Separator />
+
+        {/* Actions */}
+        <div className="space-y-2">
+          <Button 
+            variant="outline" 
+            onClick={resetFilters}
+            disabled={isLoading}
+            className="w-full"
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Réinitialiser les filtres
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={onClearCache}
+            disabled={isLoading}
+            className="w-full"
+            size="sm"
+          >
+            Vider le cache
+          </Button>
+        </div>
+
+        {/* Current filters display */}
+        {filters.query && (
+          <div className="pt-2">
+            <p className="text-xs text-muted-foreground mb-2">Recherche actuelle:</p>
+            <Badge variant="outline" className="text-xs">
+              {filters.query}
+            </Badge>
           </div>
         )}
       </CardContent>

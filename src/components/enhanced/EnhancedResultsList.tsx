@@ -11,8 +11,11 @@ interface EnhancedResultsListProps {
   isLoading?: boolean;
   onNavigate?: (coordinates: [number, number]) => void;
   onSelect?: (result: SearchResult) => void;
+  onResultClick?: (result: SearchResult) => void;
   className?: string;
   maxHeight?: string;
+  userLocation?: [number, number] | null;
+  transportMode?: string;
 }
 
 const EnhancedResultsList: React.FC<EnhancedResultsListProps> = ({
@@ -20,9 +23,17 @@ const EnhancedResultsList: React.FC<EnhancedResultsListProps> = ({
   isLoading = false,
   onNavigate,
   onSelect,
+  onResultClick,
   className = '',
-  maxHeight = '600px'
+  maxHeight = '600px',
+  userLocation,
+  transportMode
 }) => {
+  const handleResultClick = (result: SearchResult) => {
+    onResultClick?.(result);
+    onSelect?.(result);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -60,7 +71,7 @@ const EnhancedResultsList: React.FC<EnhancedResultsListProps> = ({
               key={result.id}
               result={result}
               onNavigate={onNavigate}
-              onSelect={onSelect}
+              onSelect={handleResultClick}
             />
           ))}
         </div>
