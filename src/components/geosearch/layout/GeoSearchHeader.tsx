@@ -1,96 +1,74 @@
 
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Wifi, WifiOff, Loader2 } from 'lucide-react';
-import { GeoSearchFilters } from '@/types/geosearch';
+import { MapPin } from 'lucide-react';
+import AutoSuggestSearch from '../AutoSuggestSearch';
+import EnhancedLocationButton from '../EnhancedLocationButton';
 
 interface GeoSearchHeaderProps {
-  filters: GeoSearchFilters;
+  searchQuery: string;
+  onSearch: (query: string) => void;
+  onLocationSelect: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
   userLocation: [number, number] | null;
   isLoading: boolean;
-  networkStatus: string;
-  statusInfo: {
-    totalResults: number;
-    hasResults: boolean;
-  };
+  onMyLocationClick: () => void;
 }
 
-export const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
-  filters,
+const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
+  searchQuery,
+  onSearch,
+  onLocationSelect,
   userLocation,
   isLoading,
-  networkStatus,
-  statusInfo
+  onMyLocationClick
 }) => {
-  // Status indicator component
-  const StatusIndicator = () => (
-    <div className="flex items-center gap-2 text-xs sm:text-sm">
-      {networkStatus === 'online' ? (
-        <Wifi className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-      ) : (
-        <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
-      )}
-      <span className="text-muted-foreground truncate">
-        {isLoading ? (
-          <span className="flex items-center gap-1">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Recherche...
-          </span>
-        ) : statusInfo.hasResults ? (
-          `${statusInfo.totalResults} résultat${statusInfo.totalResults > 1 ? 's' : ''}`
-        ) : (
-          'Prêt'
-        )}
-      </span>
-    </div>
-  );
-
-  // Active filters display
-  const ActiveFilters = () => {
-    const hasActiveFilters = filters.category || filters.transport !== 'walking' || filters.distance !== 10;
-    
-    if (!hasActiveFilters) return null;
-
-    return (
-      <div className="flex flex-wrap gap-1 sm:gap-2 p-2 bg-blue-50 rounded-lg overflow-hidden">
-        {filters.category && (
-          <Badge variant="secondary" className="text-xs truncate max-w-[120px]">
-            📍 {filters.category}
-          </Badge>
-        )}
-        {filters.transport !== 'walking' && (
-          <Badge variant="secondary" className="text-xs">
-            🚶 {filters.transport}
-          </Badge>
-        )}
-        {filters.distance !== 10 && (
-          <Badge variant="secondary" className="text-xs">
-            📏 {filters.distance} {filters.unit}
-          </Badge>
-        )}
-        {filters.maxDuration !== 20 && (
-          <Badge variant="secondary" className="text-xs">
-            ⏱️ {filters.maxDuration} min
-          </Badge>
-        )}
-      </div>
-    );
-  };
-
   return (
-    <div className="bg-white border-b shadow-sm z-30 p-3 sm:p-4 flex-shrink-0">
-      <div className="space-y-2 sm:space-y-3">
-        <div className="flex items-center justify-between">
-          <StatusIndicator />
+    <Card className="mb-6 shadow-sm border-0">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Recherche Géographique
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Trouvez des lieux et services près de vous
+            </p>
+          </div>
+          
           {userLocation && (
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
+            <Badge variant="outline" className="flex items-center gap-2">
               <MapPin className="h-3 w-3" />
-              Position OK
+              Position détectée
             </Badge>
           )}
         </div>
-        <ActiveFilters />
-      </div>
-    </div>
+
+        <div className="flex gap-3 items-center">
+          <div className="flex-1">
+            <AutoSuggestSearch
+              onResultSelect={(result) => onLocationSelect({
+                name: result.name || result.place_name,
+                coordinates: result.center,
+                placeName: result.place_name
+              })}
+              placeholder="Rechercher des lieux, restaurants, services..."
+              initialValue={searchQuery}
+              showMyLocationButton={false}
+              className="w-full"
+            />
+          </div>
+          
+          <EnhancedLocationButton
+            onLocationDetected={onMyLocationClick}
+            disabled={isLoading}
+            variant="outline"
+            className="shrink-0"
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
+
+export default GeoSearchHeader;

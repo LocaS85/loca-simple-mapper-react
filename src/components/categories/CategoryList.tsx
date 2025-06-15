@@ -1,93 +1,45 @@
 
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import CategoryCard3D from '@/components/CategoryCard3D';
-import SubcategoryCard3D from '@/components/SubcategoryCard3D';
-import { CategoryItem, SubcategoryItem } from '@/types/category';
-import DailyAddressSection from './DailyAddressSection';
+import React from 'react';
+import { Category } from '@/types/category';
+import { renderIcon } from '@/utils/iconRenderer';
 
 interface CategoryListProps {
-  categories: CategoryItem[];
-  dailyAddresses: any[];
-  onEditAddress: (address: any) => void;
-  onDeleteAddress: (addressId: string) => void;
-  onAddNewAddress: (subcategoryId: string) => void;
+  categories: Category[];
+  selectedCategory?: string;
+  onCategorySelect: (categoryId: string) => void;
 }
 
 const CategoryList: React.FC<CategoryListProps> = ({
   categories,
-  dailyAddresses,
-  onEditAddress,
-  onDeleteAddress,
-  onAddNewAddress
+  selectedCategory,
+  onCategorySelect
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(null);
-
   return (
-    <>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {categories.map((category) => (
-          <CategoryCard3D
-            key={category.id}
-            category={category}
-            isSelected={selectedCategory?.id === category.id}
-            onClick={() => setSelectedCategory(category)}
-          />
-        ))}
-      </div>
-      
-      <AnimatePresence>
-        {selectedCategory && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="mt-8"
-          >
-            <div className="flex items-center mb-4 space-x-3">
-              <span className="text-2xl">{selectedCategory.icon}</span>
-              <h2 className="text-xl md:text-2xl font-bold" style={{ color: selectedCategory.color }}>
-                {selectedCategory.name}
-              </h2>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {categories.map((category) => (
+        <div
+          key={category.id}
+          className={`
+            cursor-pointer bg-white rounded-lg p-4 shadow-sm border-2
+            transition-all duration-200 hover:shadow-md
+            ${selectedCategory === category.id ? 'border-blue-500' : 'border-gray-200'}
+          `}
+          onClick={() => onCategorySelect(category.id)}
+        >
+          <div className="flex flex-col items-center space-y-2">
+            <div 
+              className="p-2 rounded-full"
+              style={{ backgroundColor: category.color + '20' }}
+            >
+              {renderIcon(category.icon, category.color, 20)}
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {selectedCategory.subcategories?.map((subcategory) => {
-                // Convertir en SubcategoryItem avec les propriétés manquantes
-                const subcategoryItem: SubcategoryItem = {
-                  id: subcategory.id,
-                  name: subcategory.name,
-                  description: subcategory.description,
-                  icon: '📍', // Icône par défaut
-                  parentId: selectedCategory.id
-                };
-
-                return (
-                  <div key={subcategory.id} className="flex flex-col">
-                    <SubcategoryCard3D 
-                      subcategory={subcategoryItem}
-                      parentCategoryId={selectedCategory.id}
-                      parentCategoryColor={selectedCategory.color}
-                    />
-                    
-                    {/* For Daily category, show saved addresses */}
-                    {selectedCategory.id === 'quotidien' && (
-                      <DailyAddressSection
-                        subcategoryId={subcategory.id}
-                        addresses={dailyAddresses.filter(addr => addr.subcategory === subcategory.id)}
-                        onEditAddress={onEditAddress}
-                        onDeleteAddress={onDeleteAddress}
-                        onAddNewAddress={() => onAddNewAddress(subcategory.id)}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            <span className="text-sm font-medium text-center">
+              {category.name}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 

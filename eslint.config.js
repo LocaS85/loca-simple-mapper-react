@@ -63,5 +63,8 @@ export default tseslint.config(
         version: 'detect',
       },
     },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'warn'
+    }
   },
 );

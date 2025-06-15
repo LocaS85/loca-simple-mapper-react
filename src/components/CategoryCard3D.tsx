@@ -1,47 +1,48 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CategoryItem } from '../types/category';
+import { Category } from '@/types/category';
+import { renderIcon } from '@/utils/iconRenderer';
 
-interface CategoryCard3DProps {
-  category: CategoryItem;
+interface CategoryCardProps {
+  category: Category;
   isSelected: boolean;
   onClick: () => void;
 }
 
-const CategoryCard3D: React.FC<CategoryCard3DProps> = ({ 
-  category,
-  isSelected,
-  onClick
-}) => {
+const CategoryCard3D: React.FC<CategoryCardProps> = ({ category, isSelected, onClick }) => {
   return (
     <motion.div
       whileHover={{ 
         scale: 1.05,
         rotateY: 5,
         rotateX: -5,
-        boxShadow: "0 20px 30px rgba(0,0,0,0.2)" 
+        boxShadow: "0 10px 20px rgba(0,0,0,0.1)" 
       }}
-      animate={{ 
-        scale: isSelected ? 1.05 : 1,
-        rotateY: isSelected ? 5 : 0,
-        rotateX: isSelected ? -5 : 0
-      }}
+      whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-      onClick={onClick}
-      style={{ backgroundColor: isSelected ? category.color : undefined }}
       className={`
-        cursor-pointer rounded-2xl p-5 
-        ${isSelected 
-          ? 'text-white shadow-lg transform -translate-y-1' 
-          : 'bg-white shadow-md hover:shadow-lg'
-        }
-        transition-all duration-300 perspective-1000
+        cursor-pointer bg-white rounded-xl p-4 shadow-md
+        h-full flex flex-col items-center justify-center
+        border-2 transition-all duration-300 perspective-1000
+        ${isSelected ? 'border-blue-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'}
       `}
+      onClick={onClick}
+      style={{
+        borderColor: isSelected ? category.color : undefined,
+        boxShadow: isSelected ? `0 0 0 2px ${category.color}20` : undefined
+      }}
     >
-      <div className="flex flex-col items-center justify-center h-full space-y-3">
-        <span className="text-4xl">{category.icon}</span>
-        <h3 className="text-lg font-medium text-center">{category.name}</h3>
+      <div className="flex flex-col items-center space-y-2">
+        <div 
+          className="p-3 rounded-full mb-2" 
+          style={{ backgroundColor: category.color + '15' }}
+        >
+          {renderIcon(category.icon, category.color, 24)}
+        </div>
+        <h3 className="font-medium text-sm text-center leading-tight">
+          {category.name}
+        </h3>
       </div>
     </motion.div>
   );
