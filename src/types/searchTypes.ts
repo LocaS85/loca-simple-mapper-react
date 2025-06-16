@@ -15,7 +15,7 @@ export interface SearchResultData {
 
 export interface SearchBarProps {
   value?: string;
-  onSearch: (query?: string) => void;
+  onSearch: (query: string) => void;
   onLocationSelect: (location: LocationSelectData) => void;
   placeholder?: string;
   className?: string;

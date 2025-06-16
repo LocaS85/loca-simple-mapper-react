@@ -121,7 +121,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     onResultSelect(suggestion);
   };
 
-  const handleMyLocationClick = async () => {
+  const handleMyLocationClick = useCallback(async () => {
     if (!onMyLocationClick) return;
     
     setIsGeolocating(true);
@@ -163,7 +163,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     } finally {
       setIsGeolocating(false);
     }
-  };
+  }, [onMyLocationClick, setUserLocation]);
 
   const handleInputBlur = () => {
     setTimeout(() => {

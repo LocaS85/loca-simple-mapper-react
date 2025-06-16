@@ -3,9 +3,16 @@ import React, { useState } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { SearchBarProps } from '@/types/searchTypes';
 
-const SimpleSearchBar: React.FC<SearchBarProps> = ({
+interface SimpleSearchBarProps {
+  value?: string;
+  onSearch: (query: string) => void;
+  placeholder?: string;
+  className?: string;
+  isLoading?: boolean;
+}
+
+const SimpleSearchBar: React.FC<SimpleSearchBarProps> = ({
   value = "",
   onSearch,
   placeholder = "Rechercher...",

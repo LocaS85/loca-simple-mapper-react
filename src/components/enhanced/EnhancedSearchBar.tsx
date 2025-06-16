@@ -9,8 +9,7 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   onLocationSelect,
   placeholder = "Rechercher des lieux...",
-  className = "",
-  isLoading = false
+  className = ""
 }) => {
   const [query, setQuery] = useState(value);
   const debouncedQuery = useDebounce(query, 500);
