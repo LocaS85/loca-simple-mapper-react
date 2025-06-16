@@ -1,22 +1,16 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { SearchBarProps, LocationSelectData, SearchResultData } from '@/types/searchTypes';
 import AutoSuggestSearchClean from '../AutoSuggestSearchClean';
 
-interface EnhancedSearchBarProps {
-  value: string;
-  onSearch: (query?: string) => void;
-  onLocationSelect: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
-  placeholder?: string;
-  className?: string;
-}
-
-const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
-  value,
+const EnhancedSearchBar: React.FC<SearchBarProps> = ({
+  value = "",
   onSearch,
   onLocationSelect,
   placeholder = "Rechercher des lieux...",
-  className = ""
+  className = "",
+  isLoading = false
 }) => {
   const [query, setQuery] = useState(value);
   const debouncedQuery = useDebounce(query, 500);
@@ -31,17 +25,13 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
     }
   }, [debouncedQuery, onSearch]);
 
-  const handleResultSelect = useCallback((result: {
-    id: string;
-    name: string;
-    address: string;
-    coordinates: [number, number];
-  }) => {
-    onLocationSelect({
+  const handleResultSelect = useCallback((result: SearchResultData) => {
+    const locationData: LocationSelectData = {
       name: result.name,
       coordinates: result.coordinates,
       placeName: result.address
-    });
+    };
+    onLocationSelect(locationData);
   }, [onLocationSelect]);
 
   return (

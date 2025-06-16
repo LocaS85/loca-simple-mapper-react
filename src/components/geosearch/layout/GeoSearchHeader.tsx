@@ -23,6 +23,19 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
   isLoading,
   onMyLocationClick
 }) => {
+  const handleResultSelect = (result: {
+    id: string;
+    name: string;
+    address: string;
+    coordinates: [number, number];
+  }) => {
+    onLocationSelect({
+      name: result.name,
+      coordinates: result.coordinates,
+      placeName: result.address
+    });
+  };
+
   return (
     <Card className="mb-6 shadow-sm border-0">
       <CardContent className="p-6">
@@ -47,11 +60,7 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
         <div className="flex gap-3 items-center">
           <div className="flex-1">
             <AutoSuggestSearch
-              onResultSelect={(result) => onLocationSelect({
-                name: result.name || result.place_name,
-                coordinates: result.center,
-                placeName: result.place_name
-              })}
+              onResultSelect={handleResultSelect}
               placeholder="Rechercher des lieux, restaurants, services..."
               initialValue={searchQuery}
               showMyLocationButton={false}
