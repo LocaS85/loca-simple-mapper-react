@@ -6,17 +6,10 @@ import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
-
-interface SearchResult {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: [number, number];
-  distance?: number;
-}
+import { SearchResultData } from '@/types/searchTypes';
 
 interface AutoSuggestSearchProps {
-  onResultSelect: (result: SearchResult) => void;
+  onResultSelect: (result: SearchResultData) => void;
   placeholder?: string;
   initialValue?: string;
   onBlur?: () => void;
@@ -37,7 +30,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   className = ""
 }) => {
   const [query, setQuery] = useState(initialValue);
-  const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
+  const [suggestions, setSuggestions] = useState<SearchResultData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,8 +53,8 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         radius: 50
       });
       
-      const formattedResults: SearchResult[] = results.map((result, index) => ({
-        id: `result-${index}`,
+      const formattedResults: SearchResultData[] = results.map((result, index) => ({
+        id: result.id || `result-${index}`,
         name: result.name || result.address?.split(',')[0] || 'Unknown',
         address: result.address || 'No address',
         coordinates: result.coordinates,
@@ -113,13 +106,12 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     setError(null);
   };
 
-  const handleSuggestionClick = (suggestion: SearchResult) => {
+  const handleSuggestionClick = useCallback((suggestion: SearchResultData) => {
     setQuery(suggestion.name);
     setShowSuggestions(false);
     setError(null);
-    
     onResultSelect(suggestion);
-  };
+  }, [onResultSelect]);
 
   const handleMyLocationClick = useCallback(async () => {
     if (!onMyLocationClick) return;
@@ -163,7 +155,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     } finally {
       setIsGeolocating(false);
     }
-  }, [onMyLocationClick, setUserLocation]);
+  }, [onMyLocationClick, setUserLocation, onResultSelect]);
 
   const handleInputBlur = () => {
     setTimeout(() => {

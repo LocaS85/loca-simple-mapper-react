@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, MapPin, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
 import { useSearchIntegrationContext } from './GeoSearchController';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
+import { SearchResultData } from '@/types/searchTypes';
 
 interface IntegratedSearchBarProps {
   placeholder?: string;
@@ -18,7 +19,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
   className = ""
 }) => {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<SearchResultData[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,24 +28,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
   const { onSearchSelect, onDirectSearch } = useSearchIntegrationContext();
   const { userLocation, filters } = useGeoSearchStore();
 
-  // Load suggestions when debounced query changes
-  useEffect(() => {
-    if (debouncedQuery.length >= 2) {
-      loadSuggestions(debouncedQuery);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, [debouncedQuery]);
-
-  // Sync with store filters
-  useEffect(() => {
-    if (filters.query && filters.query !== query) {
-      setQuery(filters.query);
-    }
-  }, [filters.query]);
-
-  const loadSuggestions = async (searchQuery: string) => {
+  const loadSuggestions = useCallback(async (searchQuery: string) => {
     if (!userLocation) return;
     
     setIsLoading(true);
@@ -59,15 +43,40 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
         }
       );
       
-      setSuggestions(results);
-      setShowSuggestions(results.length > 0);
+      const formattedResults: SearchResultData[] = results.map((result, index) => ({
+        id: result.id || `result-${index}`,
+        name: result.name || result.address?.split(',')[0] || 'Lieu',
+        address: result.address || 'Adresse non disponible',
+        coordinates: result.coordinates,
+        distance: result.distance
+      }));
+      
+      setSuggestions(formattedResults);
+      setShowSuggestions(formattedResults.length > 0);
     } catch (error) {
       console.error('Erreur de chargement des suggestions:', error);
       setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userLocation]);
+
+  // Load suggestions when debounced query changes
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) {
+      loadSuggestions(debouncedQuery);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [debouncedQuery, loadSuggestions]);
+
+  // Sync with store filters
+  useEffect(() => {
+    if (filters.query && filters.query !== query) {
+      setQuery(filters.query);
+    }
+  }, [filters.query, query]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +86,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     }
   };
 
-  const handleSuggestionClick = (suggestion: any) => {
+  const handleSuggestionClick = (suggestion: SearchResultData) => {
     setQuery(suggestion.name || suggestion.address);
     setShowSuggestions(false);
     
@@ -86,7 +95,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
       text: suggestion.name || suggestion.address,
       place_name: suggestion.address,
       center: suggestion.coordinates,
-      properties: suggestion.properties || {}
+      properties: {}
     });
   };
 
