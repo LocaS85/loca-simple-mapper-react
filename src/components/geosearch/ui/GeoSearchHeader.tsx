@@ -78,7 +78,10 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
               className="w-full"
             />
           </div>
+        </div>
 
+        {/* Bouton Ma position */}
+        <div className="flex justify-center mb-3">
           <EnhancedLocationButton
             onLocationDetected={onMyLocationClick}
             disabled={isLoading}
@@ -88,8 +91,8 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
           />
         </div>
 
-        {/* Contrôles */}
-        <div className="flex items-center justify-center gap-2">
+        {/* Boutons Filtres et Navigation alignés */}
+        <div className="flex items-center justify-center gap-3">
           <FiltersFloatingButton
             filters={filters}
             onChange={onFiltersChange}
