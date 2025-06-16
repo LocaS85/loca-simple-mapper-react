@@ -55,6 +55,7 @@ const GeoSearchApp: React.FC = () => {
             position.coords.longitude,
             position.coords.latitude
           ];
+          console.log('📍 Position détectée:', coords);
           setUserLocation(coords);
         },
         (error) => {
@@ -62,6 +63,12 @@ const GeoSearchApp: React.FC = () => {
         }
       );
     }
+  };
+
+  // Fonction pour basculer la sidebar
+  const handleToggleSidebar = () => {
+    console.log('🔄 Toggle sidebar:', !sidebarOpen);
+    setSidebarOpen(!sidebarOpen);
   };
 
   // Affichage d'erreur si Mapbox non prêt
@@ -90,7 +97,7 @@ const GeoSearchApp: React.FC = () => {
           onMyLocationClick={handleMyLocationClick}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          onToggleSidebar={handleToggleSidebar}
           isMobile={true}
           statusInfo={statusInfo}
         />
@@ -177,7 +184,7 @@ const GeoSearchApp: React.FC = () => {
           onMyLocationClick={handleMyLocationClick}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          onToggleSidebar={handleToggleSidebar}
           isMobile={false}
           statusInfo={statusInfo}
         />

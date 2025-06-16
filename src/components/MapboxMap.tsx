@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
 import { LocateFixed, MapPin } from 'lucide-react';
@@ -93,6 +94,18 @@ export default function MapboxMap({
     }
   }, [toast, showTokenSetup, userLocation, setUserLocation]);
 
+  // Update viewport when userLocation changes
+  useEffect(() => {
+    if (userLocation && mapRef.current) {
+      console.log('📍 Centrage de la carte sur:', userLocation);
+      mapRef.current.flyTo({
+        center: [userLocation[0], userLocation[1]],
+        zoom: 14,
+        duration: 1000
+      });
+    }
+  }, [userLocation]);
+
   // Helper to get color based on category
   const getColorForCategory = (cat: string) => {
     switch (cat.toLowerCase()) {
@@ -181,7 +194,7 @@ export default function MapboxMap({
           }}
         />
 
-        {/* User marker */}
+        {/* User marker - Marqueur de position utilisateur amélioré */}
         {userLocation && (
           <Marker 
             longitude={userLocation[0]} 
@@ -189,15 +202,22 @@ export default function MapboxMap({
             anchor="bottom"
           >
             <div className="flex flex-col items-center">
-              <div 
-                className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 animate-pulse"
-                role="img"
-                aria-label="Marqueur de votre position"
-              >
-                <MapPin className="text-white w-4 h-4" />
+              {/* Marqueur avec animation de pulsation */}
+              <div className="relative">
+                {/* Cercle de pulsation */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></div>
+                {/* Marqueur principal */}
+                <div 
+                  className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 border-2 border-white shadow-lg"
+                  role="img"
+                  aria-label="Marqueur de votre position"
+                >
+                  <MapPin className="text-white w-4 h-4" />
+                </div>
               </div>
-              <div className="text-xs font-bold bg-white px-1 rounded shadow-sm mt-1">
-                Vous
+              {/* Label */}
+              <div className="text-xs font-bold bg-white px-2 py-1 rounded shadow-sm mt-1 border">
+                Ma position
               </div>
             </div>
           </Marker>
@@ -231,7 +251,8 @@ export default function MapboxMap({
       {userLocation && (
         <UserLocationButton
           onClick={() => {
-            if (mapRef.current) {
+            if (mapRef.current && userLocation) {
+              console.log('🎯 Centrage sur la position utilisateur');
               mapRef.current.flyTo({ 
                 center: [userLocation[0], userLocation[1]], 
                 zoom: 14,
