@@ -12,6 +12,12 @@ export interface SearchResult {
   duration?: number;
 }
 
+export interface LocationData {
+  name: string;
+  coordinates: [number, number];
+  placeName: string;
+}
+
 export interface GeoSearchFilters {
   query?: string;
   coordinates?: [number, number];
@@ -23,6 +29,7 @@ export interface GeoSearchFilters {
   aroundMeCount?: number;
   unit?: DistanceUnit;
   showMultiDirections?: boolean;
+  selectedLocation?: LocationData;
 }
 
 export interface GeoSearchState {

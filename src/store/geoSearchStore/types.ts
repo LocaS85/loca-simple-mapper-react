@@ -1,6 +1,6 @@
 
 import { TransportMode } from '@/types/map';
-import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
+import { SearchResult, GeoSearchFilters, LocationData } from '@/types/geosearch';
 
 export interface GeoSearchState {
   userLocation: [number, number] | null;
@@ -46,7 +46,8 @@ export const defaultFilters: GeoSearchFilters = {
   query: '',
   aroundMeCount: 3,
   showMultiDirections: false,
-  maxDuration: 20
+  maxDuration: 20,
+  selectedLocation: undefined
 };
 
 export const initialState: GeoSearchState = {

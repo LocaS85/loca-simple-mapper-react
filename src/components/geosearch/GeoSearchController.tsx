@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext } from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
+import { LocationData } from '@/types/geosearch';
 
 interface SearchIntegrationContextType {
   onSearchSelect: (result: {
@@ -27,7 +28,7 @@ interface GeoSearchControllerProps {
 }
 
 const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) => {
-  const { updateFilters, setResults, setIsLoading } = useGeoSearchStore();
+  const { updateFilters, setIsLoading } = useGeoSearchStore();
 
   const handleSearchSelect = (result: {
     id: string;
@@ -36,13 +37,15 @@ const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) =
     center: [number, number];
     properties: Record<string, unknown>;
   }) => {
+    const locationData: LocationData = {
+      name: result.text,
+      coordinates: result.center,
+      placeName: result.place_name
+    };
+
     updateFilters({ 
       query: result.text,
-      selectedLocation: {
-        name: result.text,
-        coordinates: result.center,
-        placeName: result.place_name
-      }
+      selectedLocation: locationData
     });
   };
 

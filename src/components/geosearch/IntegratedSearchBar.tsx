@@ -29,7 +29,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
   const { userLocation, filters } = useGeoSearchStore();
 
   const loadSuggestions = useCallback(async (searchQuery: string) => {
-    if (!userLocation) return;
+    if (!userLocation || !searchQuery.trim()) return;
     
     setIsLoading(true);
     try {
@@ -56,6 +56,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     } catch (error) {
       console.error('Erreur de chargement des suggestions:', error);
       setSuggestions([]);
+      setShowSuggestions(false);
     } finally {
       setIsLoading(false);
     }
