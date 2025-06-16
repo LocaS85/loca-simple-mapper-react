@@ -1,7 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { Search, Loader2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import AutoSuggestSearchClean from '../AutoSuggestSearchClean';
 
@@ -9,7 +7,6 @@ interface EnhancedSearchBarProps {
   value: string;
   onSearch: (query?: string) => void;
   onLocationSelect: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
-  isLoading?: boolean;
   placeholder?: string;
   className?: string;
 }
@@ -18,7 +15,6 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   value,
   onSearch,
   onLocationSelect,
-  isLoading = false,
   placeholder = "Rechercher des lieux...",
   className = ""
 }) => {
@@ -35,13 +31,18 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
     }
   }, [debouncedQuery, onSearch]);
 
-  const handleResultSelect = (result: any) => {
+  const handleResultSelect = useCallback((result: {
+    id: string;
+    name: string;
+    address: string;
+    coordinates: [number, number];
+  }) => {
     onLocationSelect({
       name: result.name,
       coordinates: result.coordinates,
       placeName: result.address
     });
-  };
+  }, [onLocationSelect]);
 
   return (
     <div className={`relative ${className}`}>

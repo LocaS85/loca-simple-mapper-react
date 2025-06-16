@@ -1,15 +1,22 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MapPin, Search, Loader2, AlertCircle, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
 import { mapboxApiService } from '@/services/mapboxApiService';
-import { useTranslation } from 'react-i18next';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 
+interface SearchResult {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  distance?: number;
+}
+
 interface AutoSuggestSearchProps {
-  onResultSelect: (result: any) => void;
+  onResultSelect: (result: SearchResult) => void;
   placeholder?: string;
   initialValue?: string;
   onBlur?: () => void;
@@ -29,9 +36,8 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   onMyLocationClick,
   className = ""
 }) => {
-  const { t } = useTranslation();
   const [query, setQuery] = useState(initialValue);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,32 +47,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   
   const { userLocation, setUserLocation } = useGeoSearchStore();
 
-  useEffect(() => {
-    if (autoFocus && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [autoFocus]);
-
-  useEffect(() => {
-    if (initialValue && initialValue !== query) {
-      setQuery(initialValue);
-    }
-  }, [initialValue]);
-
-  useEffect(() => {
-    if (debouncedQuery.length >= 2) {
-      searchPlaces(debouncedQuery);
-      setError(null);
-    } else if (debouncedQuery.length > 0) {
-      setSuggestions([]);
-      setError("Type at least 2 characters");
-    } else {
-      setSuggestions([]);
-      setError(null);
-    }
-  }, [debouncedQuery]);
-
-  const searchPlaces = async (searchQuery: string) => {
+  const searchPlaces = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
 
     setIsLoading(true);
@@ -79,10 +60,18 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         radius: 50
       });
       
-      setSuggestions(results);
+      const formattedResults: SearchResult[] = results.map((result, index) => ({
+        id: `result-${index}`,
+        name: result.name || result.address?.split(',')[0] || 'Unknown',
+        address: result.address || 'No address',
+        coordinates: result.coordinates,
+        distance: result.distance
+      }));
+      
+      setSuggestions(formattedResults);
       setShowSuggestions(true);
       
-      if (results.length === 0) {
+      if (formattedResults.length === 0) {
         setError("No results found");
       }
     } catch (error) {
@@ -92,24 +81,44 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userLocation]);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
+
+  useEffect(() => {
+    if (initialValue && initialValue !== query) {
+      setQuery(initialValue);
+    }
+  }, [initialValue, query]);
+
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) {
+      searchPlaces(debouncedQuery);
+      setError(null);
+    } else if (debouncedQuery.length > 0) {
+      setSuggestions([]);
+      setError("Type at least 2 characters");
+    } else {
+      setSuggestions([]);
+      setError(null);
+    }
+  }, [debouncedQuery, searchPlaces]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
     setError(null);
   };
 
-  const handleSuggestionClick = (suggestion: any) => {
-    const displayName = suggestion.name || suggestion.address.split(',')[0];
-    setQuery(displayName);
+  const handleSuggestionClick = (suggestion: SearchResult) => {
+    setQuery(suggestion.name);
     setShowSuggestions(false);
     setError(null);
     
-    onResultSelect({
-      ...suggestion,
-      place_name: suggestion.address,
-      center: suggestion.coordinates
-    });
+    onResultSelect(suggestion);
   };
 
   const handleMyLocationClick = async () => {
@@ -133,10 +142,8 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
 
       const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
       
-      // Update store with new location
       setUserLocation(coords);
       
-      // Reverse geocoding to get address
       const results = await mapboxApiService.searchPlaces('', coords, { limit: 1 });
       const locationName = results[0]?.address || "My location";
       
@@ -147,9 +154,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         id: 'user-location',
         name: locationName,
         address: locationName,
-        coordinates: coords,
-        place_name: locationName,
-        center: coords
+        coordinates: coords
       });
       
     } catch (error) {
@@ -214,7 +219,6 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         )}
       </div>
 
-      {/* Error messages */}
       {error && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-yellow-50 border border-yellow-200 rounded-md p-2 text-xs text-yellow-700 z-50 flex items-center gap-2">
           <AlertCircle className="h-3 w-3" />
@@ -222,19 +226,18 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
         </div>
       )}
 
-      {/* Suggestions list */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
-          {suggestions.map((suggestion, index) => (
+          {suggestions.map((suggestion) => (
             <div
-              key={index}
+              key={suggestion.id}
               className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3 transition-colors"
               onClick={() => handleSuggestionClick(suggestion)}
             >
               <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-900 truncate">
-                  {suggestion.name || suggestion.address?.split(',')[0]}
+                  {suggestion.name}
                 </div>
                 <div className="text-xs text-gray-500 truncate">
                   {suggestion.address}
