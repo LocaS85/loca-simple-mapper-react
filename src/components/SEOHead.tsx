@@ -5,16 +5,12 @@ interface SEOHeadProps {
   title?: string;
   description?: string;
   keywords?: string;
-  image?: string;
-  url?: string;
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
   title,
   description,
-  keywords,
-  image,
-  url
+  keywords
 }) => {
   React.useEffect(() => {
     if (title) {

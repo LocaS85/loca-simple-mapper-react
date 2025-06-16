@@ -4,7 +4,7 @@ import { MapResult } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MapPin, ArrowUpRight } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 interface ResultsListProps {
   results: MapResult[];

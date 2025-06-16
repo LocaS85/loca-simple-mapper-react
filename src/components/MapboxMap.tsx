@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
-import { LocateFixed, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getMapboxToken, isMapboxTokenValid, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
@@ -24,8 +24,6 @@ interface MapboxMapProps {
 
 export default function MapboxMap({ 
   results = [], 
-  transport = "walking", 
-  radius = 10,
   category = "",
   className = ""
 }: MapboxMapProps) {
@@ -35,14 +33,14 @@ export default function MapboxMap({
     zoom: DEFAULT_MAP_ZOOM,
   });
 
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<mapboxgl.Map>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [mapError, setMapError] = useState<string | null>(null);
   const [showTokenSetup, setShowTokenSetup] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  // Use new hook for error (sécurisé)
+  // Use new hook for error handling
   const handleMapboxError = useMapboxError(setShowTokenSetup);
 
   // Use GeoSearch store for better integration
@@ -51,7 +49,6 @@ export default function MapboxMap({
   // Check Mapbox token on mount
   useEffect(() => {
     try {
-      const token = getMapboxToken();
       if (!isMapboxTokenValid()) {
         setShowTokenSetup(true);
         return;
@@ -74,11 +71,11 @@ export default function MapboxMap({
             position.coords.longitude,
             position.coords.latitude
           ];
-          setViewport({ 
-            ...viewport, 
+          setViewport(prev => ({ 
+            ...prev, 
             latitude: coordinates[1], 
             longitude: coordinates[0] 
-          });
+          }));
           setUserLocation(coordinates);
         },
         (err) => {
@@ -105,25 +102,6 @@ export default function MapboxMap({
       });
     }
   }, [userLocation]);
-
-  // Helper to get color based on category
-  const getColorForCategory = (cat: string) => {
-    switch (cat.toLowerCase()) {
-      case 'restaurant':
-      case 'food':
-        return '#e67e22';
-      case 'health':
-      case 'santé':
-        return '#27ae60';
-      case 'entertainment':
-      case 'divertissement':
-        return '#8e44ad';
-      case 'shopping':
-        return '#f39c12';
-      default:
-        return '#3498db';
-    }
-  };
 
   // Show token setup interface
   if (showTokenSetup) {

@@ -2,7 +2,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Location } from '../types';
-import { useToast } from '@/hooks/use-toast';
 import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 
@@ -21,15 +20,12 @@ const Map: React.FC<MapProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<{ [key: string]: mapboxgl.Marker }>({});
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { toast } = useToast();
-
-  // Définir le token Mapbox
-  const mapboxToken = getMapboxToken();
 
   // Initialize map when component mounts
   useEffect(() => {
     if (!mapContainer.current || !isMapboxTokenValid()) return;
     
+    const mapboxToken = getMapboxToken();
     mapboxgl.accessToken = mapboxToken;
     
     map.current = new mapboxgl.Map({

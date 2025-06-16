@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 interface ResponsiveLayoutProps {
@@ -16,8 +15,6 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   maxWidth = 'xl',
   padding = 'md'
 }) => {
-  const isMobile = useIsMobile();
-
   const maxWidthClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
