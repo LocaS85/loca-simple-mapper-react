@@ -40,13 +40,9 @@ export default function MapboxMap({
   const [showTokenSetup, setShowTokenSetup] = useState(false);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  // Use new hook for error handling
   const handleMapboxError = useMapboxError(setShowTokenSetup);
-
-  // Use GeoSearch store for better integration
   const { userLocation, setUserLocation } = useGeoSearchStore();
 
-  // Check Mapbox token on mount
   useEffect(() => {
     try {
       if (!isMapboxTokenValid()) {
@@ -60,7 +56,6 @@ export default function MapboxMap({
     }
   }, []);
 
-  // Get user position with improved error handling
   useEffect(() => {
     if (showTokenSetup || userLocation) return;
 
@@ -91,7 +86,6 @@ export default function MapboxMap({
     }
   }, [toast, showTokenSetup, userLocation, setUserLocation]);
 
-  // Update viewport when userLocation changes
   useEffect(() => {
     if (userLocation && mapRef.current) {
       console.log('📍 Centrage de la carte sur:', userLocation);
@@ -103,12 +97,10 @@ export default function MapboxMap({
     }
   }, [userLocation]);
 
-  // Show token setup interface
   if (showTokenSetup) {
     return <MapboxSetup />;
   }
 
-  // Check token validity before rendering map
   if (!isMapboxTokenValid()) {
     return <MapboxError onRetry={() => window.location.reload()} />;
   }
@@ -121,7 +113,6 @@ export default function MapboxMap({
       role="application"
       aria-label={`Carte interactive affichant ${results.length} résultat${results.length > 1 ? 's' : ''} pour ${category || 'votre recherche'}`}
     >
-      {/* Status live region for screen readers */}
       <div 
         aria-live="polite" 
         aria-atomic="true" 
@@ -158,7 +149,6 @@ export default function MapboxMap({
           position="top-left"
           showCompass={true}
           showZoom={true}
-          visualizePitch={true}
         />
         
         <GeolocateControl
@@ -172,7 +162,6 @@ export default function MapboxMap({
           }}
         />
 
-        {/* User marker - Marqueur de position utilisateur amélioré */}
         {userLocation && (
           <Marker 
             longitude={userLocation[0]} 
@@ -180,11 +169,8 @@ export default function MapboxMap({
             anchor="bottom"
           >
             <div className="flex flex-col items-center">
-              {/* Marqueur avec animation de pulsation */}
               <div className="relative">
-                {/* Cercle de pulsation */}
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></div>
-                {/* Marqueur principal */}
                 <div 
                   className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 border-2 border-white shadow-lg"
                   role="img"
@@ -193,7 +179,6 @@ export default function MapboxMap({
                   <MapPin className="text-white w-4 h-4" />
                 </div>
               </div>
-              {/* Label */}
               <div className="text-xs font-bold bg-white px-2 py-1 rounded shadow-sm mt-1 border">
                 Ma position
               </div>
@@ -201,7 +186,6 @@ export default function MapboxMap({
           </Marker>
         )}
 
-        {/* Résultats : extract out */}
         <ResultMarkers results={results} category={category} />
       </Map>
 

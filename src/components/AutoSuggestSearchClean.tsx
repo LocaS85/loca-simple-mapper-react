@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MapPin, Search, Loader2, AlertCircle, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -47,32 +47,7 @@ const AutoSuggestSearchClean: React.FC<AutoSuggestSearchCleanProps> = ({
   
   const { userLocation, setUserLocation } = useGeoSearchStore();
 
-  useEffect(() => {
-    if (autoFocus && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [autoFocus]);
-
-  useEffect(() => {
-    if (initialValue && initialValue !== query) {
-      setQuery(initialValue);
-    }
-  }, [initialValue, query]);
-
-  useEffect(() => {
-    if (debouncedQuery.length >= 2) {
-      searchPlaces(debouncedQuery);
-      setError(null);
-    } else if (debouncedQuery.length > 0) {
-      setSuggestions([]);
-      setError("Type at least 2 characters");
-    } else {
-      setSuggestions([]);
-      setError(null);
-    }
-  }, [debouncedQuery]);
-
-  const searchPlaces = async (searchQuery: string) => {
+  const searchPlaces = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
 
     setIsLoading(true);
@@ -106,7 +81,32 @@ const AutoSuggestSearchClean: React.FC<AutoSuggestSearchCleanProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userLocation]);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
+
+  useEffect(() => {
+    if (initialValue && initialValue !== query) {
+      setQuery(initialValue);
+    }
+  }, [initialValue, query]);
+
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) {
+      searchPlaces(debouncedQuery);
+      setError(null);
+    } else if (debouncedQuery.length > 0) {
+      setSuggestions([]);
+      setError("Type at least 2 characters");
+    } else {
+      setSuggestions([]);
+      setError(null);
+    }
+  }, [debouncedQuery, searchPlaces]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);

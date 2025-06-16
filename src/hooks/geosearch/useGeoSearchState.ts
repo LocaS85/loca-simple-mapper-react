@@ -19,7 +19,6 @@ export const useGeoSearchState = () => {
     clearCache
   } = useGeoSearchStore();
 
-  // Status information
   const statusInfo = useMemo(() => ({
     hasResults: Array.isArray(results) && results.length > 0,
     isReady: isMapboxReady && userLocation !== null,
@@ -30,7 +29,6 @@ export const useGeoSearchState = () => {
   }), [results, isMapboxReady, userLocation, isLoading, networkStatus]);
 
   return {
-    // State
     searchQuery,
     setSearchQuery,
     userLocation,
@@ -40,8 +38,6 @@ export const useGeoSearchState = () => {
     isMapboxReady,
     networkStatus,
     statusInfo,
-    
-    // Actions
     setUserLocation,
     updateFilters,
     setResults,
