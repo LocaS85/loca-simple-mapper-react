@@ -4,9 +4,9 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import react from 'eslint-plugin-react';
-import tseslint from 'typescript-eslint';
+import tseslint from '@typescript-eslint/eslint-plugin';
 
-export default tseslint.config(
+export default [
   {
     ignores: [
       'dist',
@@ -18,7 +18,6 @@ export default tseslint.config(
     ],
   },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
@@ -30,6 +29,7 @@ export default tseslint.config(
         mapboxgl: 'readonly',
         GeoJSON: 'readonly'
       },
+      parser: '@typescript-eslint/parser',
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
@@ -40,6 +40,7 @@ export default tseslint.config(
       react: react,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      '@typescript-eslint': tseslint,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -67,4 +68,4 @@ export default tseslint.config(
       reportUnusedDisableDirectives: 'warn'
     }
   },
-);
+];
