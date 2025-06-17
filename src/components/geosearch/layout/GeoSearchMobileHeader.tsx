@@ -6,13 +6,14 @@ import FiltersFloatingButton from "../FiltersFloatingButton";
 import PrintButton from "../PrintButton";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Menu } from "lucide-react";
+import { GeoSearchFilters, SearchResult } from "@/types/geosearch";
 
 interface GeoSearchMobileHeaderProps {
   isLoading: boolean;
-  filters: any;
-  updateFilters: (filters: any) => void;
+  filters: GeoSearchFilters;
+  updateFilters: (filters: Partial<GeoSearchFilters>) => void;
   resetFilters: () => void;
-  results: any[];
+  results: SearchResult[];
   handleMyLocationClick: () => void;
   handleSearch: (query?: string) => void;
   handleLocationSelect: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
@@ -72,7 +73,7 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
       </div>
 
       {/* Ligne 4: Contrôles - Positionnés à gauche pour éviter les contrôles carte */}
-      <div className="flex items-center justify-start gap-2">
+      <div className="flex items-center justify-start gap-2 pb-2">
         <FiltersFloatingButton
           filters={filters}
           onChange={updateFilters}

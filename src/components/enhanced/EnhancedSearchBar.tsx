@@ -2,27 +2,75 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { SearchBarProps, LocationSelectData, SearchResultData } from '@/types/searchTypes';
-import AutoSuggestSearchClean from '../AutoSuggestSearchClean';
+import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
+import { Input } from '@/components/ui/input';
+import { Search, MapPin, Loader2 } from 'lucide-react';
 
 const EnhancedSearchBar: React.FC<SearchBarProps> = ({
   value = "",
   onSearch,
   onLocationSelect,
   placeholder = "Rechercher des lieux...",
-  className = ""
+  className = "",
+  isLoading = false
 }) => {
   const [query, setQuery] = useState(value);
-  const debouncedQuery = useDebounce(query, 500);
+  const [suggestions, setSuggestions] = useState<SearchResultData[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
     setQuery(value);
   }, [value]);
 
+  const loadSuggestions = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim() || searchQuery.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Centre par défaut (Paris)
+      const center: [number, number] = [2.3522, 48.8566];
+      
+      const results = await enhancedGeocodingService.searchPlaces(
+        searchQuery, 
+        center, 
+        {
+          limit: 5,
+          radius: 50,
+          language: 'fr'
+        }
+      );
+      
+      const formattedResults: SearchResultData[] = results.map((result, index) => ({
+        id: result.id || `result-${index}`,
+        name: result.name || result.address?.split(',')[0] || 'Lieu',
+        address: result.address || 'Adresse non disponible',
+        coordinates: result.coordinates,
+        distance: result.distance
+      }));
+      
+      setSuggestions(formattedResults);
+      setShowSuggestions(formattedResults.length > 0);
+    } catch (error) {
+      console.error('Erreur de recherche auto-suggestion:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (debouncedQuery) {
+      loadSuggestions(debouncedQuery);
       onSearch(debouncedQuery);
     }
-  }, [debouncedQuery, onSearch]);
+  }, [debouncedQuery, onSearch, loadSuggestions]);
 
   const handleResultSelect = useCallback((result: SearchResultData) => {
     const locationData: LocationSelectData = {
@@ -30,17 +78,62 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
       coordinates: result.coordinates,
       placeName: result.address
     };
+    setQuery(result.name);
+    setShowSuggestions(false);
     onLocationSelect(locationData);
   }, [onLocationSelect]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowSuggestions(false);
+    onSearch(query);
+  };
+
   return (
     <div className={`relative ${className}`}>
-      <AutoSuggestSearchClean
-        onResultSelect={handleResultSelect}
-        placeholder={placeholder}
-        initialValue={query}
-        className="w-full"
-      />
+      <form onSubmit={handleSubmit} className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          placeholder={placeholder}
+          className="pl-10 pr-10 h-10 bg-white/95 backdrop-blur-sm border-gray-200 focus:border-blue-500"
+          disabled={isLoading}
+        />
+        {(isSearching || isLoading) && (
+          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
+        )}
+      </form>
+
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={`${suggestion.id}-${index}`}
+              className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3 transition-colors"
+              onClick={() => handleResultSelect(suggestion)}
+            >
+              <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-900 truncate">
+                  {suggestion.name}
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {suggestion.address}
+                </div>
+                {suggestion.distance && (
+                  <div className="text-xs text-blue-600">
+                    {Math.round(suggestion.distance * 10) / 10} km
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -73,14 +73,14 @@ const GeoSearchLayout: React.FC = () => {
       <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
         <div className="flex-1 relative overflow-hidden">
           {/* Map avec marge pour le header augmentée */}
-          <div className="absolute inset-0" style={{ paddingTop: '200px' }}>
+          <div className="absolute inset-0" style={{ paddingTop: '220px' }}>
             <div className="relative h-full w-full">
               {/* Zone de carte avec marges pour éviter les superpositions */}
               <div className="absolute inset-0" style={{ 
                 paddingLeft: '8px', 
                 paddingRight: '8px', 
                 paddingTop: '8px',
-                paddingBottom: showResults ? (isResultsExpanded ? '60%' : '200px') : '8px'
+                paddingBottom: showResults ? (isResultsExpanded ? '60%' : '200px') : '80px'
               }}>
                 <MapView transport={filters.transport} />
               </div>

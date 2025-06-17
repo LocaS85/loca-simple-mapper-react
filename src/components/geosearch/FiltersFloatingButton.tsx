@@ -35,7 +35,7 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
           variant={hasActiveFilters ? "default" : "outline"}
           size="sm"
           className={`
-            h-8 px-3 flex items-center gap-2 relative z-30
+            h-7 px-2 flex items-center gap-1 relative z-30
             border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors rounded-md
             ${hasActiveFilters ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' : 'bg-white'}
           `}
