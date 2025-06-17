@@ -73,7 +73,7 @@ const GeoSearchLayout: React.FC = () => {
       <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
         <div className="flex-1 relative overflow-hidden">
           {/* Map avec marge pour le header et espaces pour les contrôles */}
-          <div className="absolute inset-0" style={{ paddingTop: '150px' }}>
+          <div className="absolute inset-0" style={{ paddingTop: '170px' }}>
             <div className="relative h-full w-full">
               {/* Zone de carte avec marges pour éviter les superpositions */}
               <div className="absolute inset-0" style={{ 

@@ -47,32 +47,9 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
         </div>
         <div className="w-8 h-8 flex-shrink-0" />
       </div>
-      
-      {/* Ligne 2: Barre de recherche */}
-      <div className="w-full">
-        <EnhancedSearchBar
-          value={filters.query || ''}
-          onSearch={handleSearch}
-          onLocationSelect={handleLocationSelect}
-          placeholder="Rechercher un lieu..."
-          className="w-full"
-          isLoading={isLoading}
-        />
-      </div>
-      
-      {/* Ligne 3: Ma position centré */}
-      <div className="flex justify-center py-1">
-        <EnhancedLocationButton
-          onLocationDetected={handleMyLocationClick}
-          disabled={isLoading}
-          variant="outline"
-          size="sm"
-          className="px-3 h-8 text-xs"
-        />
-      </div>
-      
-      {/* Ligne 4: Contrôles alignés au centre avec espacement pour éviter les contrôles de carte */}
-      <div className="flex items-center justify-center gap-2 pb-2">
+
+      {/* Ligne 2: Filtres et navigation sous le menu */}
+      <div className="flex items-center justify-start gap-2 px-1">
         <FiltersFloatingButton
           filters={filters}
           onChange={updateFilters}
@@ -89,6 +66,29 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
           <RotateCcw className="h-3 w-3" />
         </Button>
         <PrintButton results={results} />
+      </div>
+      
+      {/* Ligne 3: Barre de recherche */}
+      <div className="w-full">
+        <EnhancedSearchBar
+          value={filters.query || ''}
+          onSearch={handleSearch}
+          onLocationSelect={handleLocationSelect}
+          placeholder="Rechercher un lieu..."
+          className="w-full"
+          isLoading={isLoading}
+        />
+      </div>
+      
+      {/* Ligne 4: Ma position centré */}
+      <div className="flex justify-center py-1">
+        <EnhancedLocationButton
+          onLocationDetected={handleMyLocationClick}
+          disabled={isLoading}
+          variant="outline"
+          size="sm"
+          className="px-3 h-8 text-xs"
+        />
       </div>
     </div>
   </div>
