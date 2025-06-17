@@ -30,8 +30,8 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
   handleLocationSelect,
   setShowSidebarPopup,
 }) => (
-  <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
-    <div className="px-3 py-2 space-y-2">
+  <div className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b shadow-sm">
+    <div className="px-3 py-2 space-y-3">
       {/* Ligne 1: Menu burger et titre */}
       <div className="flex items-center justify-between h-10">
         <Button
@@ -48,8 +48,31 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
         <div className="w-8 h-8 flex-shrink-0" />
       </div>
 
-      {/* Ligne 2: Filtres et navigation sous le menu */}
-      <div className="flex items-center justify-start gap-2 px-1">
+      {/* Ligne 2: Barre de recherche */}
+      <div className="w-full">
+        <EnhancedSearchBar
+          value={filters.query || ''}
+          onSearch={handleSearch}
+          onLocationSelect={handleLocationSelect}
+          placeholder="Rechercher un lieu..."
+          className="w-full"
+          isLoading={isLoading}
+        />
+      </div>
+      
+      {/* Ligne 3: Ma position centré */}
+      <div className="flex justify-center">
+        <EnhancedLocationButton
+          onLocationDetected={handleMyLocationClick}
+          disabled={isLoading}
+          variant="outline"
+          size="sm"
+          className="px-3 h-8 text-xs"
+        />
+      </div>
+
+      {/* Ligne 4: Contrôles - Positionnés à gauche pour éviter les contrôles carte */}
+      <div className="flex items-center justify-start gap-2">
         <FiltersFloatingButton
           filters={filters}
           onChange={updateFilters}
@@ -62,33 +85,11 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
           onClick={resetFilters}
           className="h-7 w-7 p-0"
           disabled={isLoading}
+          title="Réinitialiser les filtres"
         >
           <RotateCcw className="h-3 w-3" />
         </Button>
         <PrintButton results={results} />
-      </div>
-      
-      {/* Ligne 3: Barre de recherche */}
-      <div className="w-full">
-        <EnhancedSearchBar
-          value={filters.query || ''}
-          onSearch={handleSearch}
-          onLocationSelect={handleLocationSelect}
-          placeholder="Rechercher un lieu..."
-          className="w-full"
-          isLoading={isLoading}
-        />
-      </div>
-      
-      {/* Ligne 4: Ma position centré */}
-      <div className="flex justify-center py-1">
-        <EnhancedLocationButton
-          onLocationDetected={handleMyLocationClick}
-          disabled={isLoading}
-          variant="outline"
-          size="sm"
-          className="px-3 h-8 text-xs"
-        />
       </div>
     </div>
   </div>

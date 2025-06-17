@@ -151,7 +151,7 @@ export default function MapboxMap({
           showCompass={true}
           showZoom={true}
           style={isMobile ? { 
-            bottom: '120px', 
+            bottom: '140px', 
             right: '12px',
             zIndex: 20
           } : {
@@ -167,7 +167,7 @@ export default function MapboxMap({
           showAccuracyCircle={false}
           showUserHeading={true}
           style={isMobile ? { 
-            bottom: '180px', 
+            bottom: '200px', 
             right: '12px',
             zIndex: 20
           } : {

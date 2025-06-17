@@ -35,16 +35,17 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
           variant={hasActiveFilters ? "default" : "outline"}
           size="sm"
           className={`
-            h-7 w-7 p-0 flex-shrink-0 relative z-40
-            border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors rounded-sm
+            h-8 px-3 flex items-center gap-2 relative z-30
+            border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors rounded-md
             ${hasActiveFilters ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' : 'bg-white'}
           `}
           disabled={isLoading}
           title="Filtres de recherche"
         >
           <SlidersHorizontal className="h-3 w-3" />
+          <span className="text-xs font-medium">Filtres</span>
           {hasActiveFilters && (
-            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-orange-500 rounded-full border border-white"></span>
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full border border-white"></span>
           )}
         </Button>
       </PopoverTrigger>
@@ -52,9 +53,9 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
         className={`w-80 z-50 bg-white border border-gray-200 shadow-lg ${isMobile ? 'w-screen max-w-sm mx-2' : ''}`} 
         align={isMobile ? "start" : "end"} 
         side={isMobile ? "bottom" : "left"}
-        sideOffset={isMobile ? 10 : 5}
+        sideOffset={isMobile ? 12 : 5}
         avoidCollisions={true}
-        collisionPadding={8}
+        collisionPadding={10}
       >
         <FenetreFiltrageUnifiee
           open={true}
