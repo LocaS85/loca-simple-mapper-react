@@ -21,6 +21,7 @@ export interface SearchBarProps {
   onLocationSelect: (location: LocationSelectData) => void;
   placeholder?: string;
   className?: string;
+  isLoading?: boolean;
 }
 
 export interface SearchOptions {

@@ -73,7 +73,6 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
               value={filters.query || ''}
               onSearch={onSearch}
               onLocationSelect={onLocationSelect}
-              isLoading={isLoading}
               placeholder="Rechercher des lieux, restaurants..."
               className="w-full"
             />

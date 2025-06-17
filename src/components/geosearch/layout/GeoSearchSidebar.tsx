@@ -61,7 +61,6 @@ export const GeoSearchSidebar: React.FC<GeoSearchSidebarProps> = ({
             value={filters.query || ''}
             onSearch={onSearch}
             onLocationSelect={onLocationSelect}
-            isLoading={isLoading}
             placeholder="Rechercher des lieux..."
           />
           

@@ -57,7 +57,6 @@ const GeoSearchLayout: React.FC = () => {
           setUserLocation(coords);
         },
         (error) => {
-          // Ici, on peut ajouter toast ou notification...
           console.error('❌ Erreur de géolocalisation:', error);
         }
       );
@@ -96,6 +95,21 @@ const GeoSearchLayout: React.FC = () => {
             statusInfo={statusInfo}
             onToggleExpanded={() => setIsResultsExpanded(!isResultsExpanded)}
           />
+
+          <GeoSearchSidebarPopup
+            filters={filters}
+            userLocation={userLocation}
+            results={results}
+            isLoading={isLoading}
+            statusInfo={statusInfo}
+            onLocationSelect={handleLocationSelect}
+            onSearch={handleSearch}
+            onMyLocationClick={handleMyLocationClick}
+            onFiltersChange={updateFilters}
+            onResetFilters={resetFilters}
+            open={showSidebarPopup}
+            onOpenChange={setShowSidebarPopup}
+          />
         </div>
       </div>
     );
@@ -117,25 +131,24 @@ const GeoSearchLayout: React.FC = () => {
           handleLocationSelect={handleLocationSelect}
           setShowSidebarPopup={setShowSidebarPopup}
         />
+
+        <GeoSearchSidebarPopup
+          filters={filters}
+          userLocation={userLocation}
+          results={results}
+          isLoading={isLoading}
+          statusInfo={statusInfo}
+          onLocationSelect={handleLocationSelect}
+          onSearch={handleSearch}
+          onMyLocationClick={handleMyLocationClick}
+          onFiltersChange={updateFilters}
+          onResetFilters={resetFilters}
+          open={showSidebarPopup}
+          onOpenChange={setShowSidebarPopup}
+        />
       </div>
-      <GeoSearchSidebarPopup
-        filters={filters}
-        userLocation={userLocation}
-        results={results}
-        isLoading={isLoading}
-        statusInfo={statusInfo}
-        onLocationSelect={handleLocationSelect}
-        onSearch={handleSearch}
-        onMyLocationClick={handleMyLocationClick}
-        onFiltersChange={updateFilters}
-        onResetFilters={resetFilters}
-        open={showSidebarPopup}
-        onOpenChange={setShowSidebarPopup}
-      />
     </div>
   );
 };
 
 export default GeoSearchLayout;
-
-// FICHIER DE PLUS DE 150 LIGNES : PENSEZ À UNE NOUVELLE FRACTIONNATION APRÈS VALIDATION.

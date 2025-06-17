@@ -5,7 +5,7 @@ import EnhancedSearchBar from "../../enhanced/EnhancedSearchBar";
 import FiltersFloatingButton from "../FiltersFloatingButton";
 import PrintButton from "../PrintButton";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Menu } from "lucide-react";
 
 interface GeoSearchDesktopHeaderProps {
   isLoading: boolean;
@@ -35,16 +35,14 @@ const GeoSearchDesktopHeader: React.FC<GeoSearchDesktopHeaderProps> = ({
       {/* Ligne 1: Menu et titre */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button
-            className="w-10 h-10 bg-white shadow-md border rounded-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setShowSidebarPopup(true)}
+            className="w-10 h-10 p-0 bg-white shadow-md border hover:bg-gray-50 transition-colors"
           >
-            <div className="w-4 h-4 flex flex-col justify-between">
-              <div className="w-full h-0.5 bg-gray-700 rounded-full"></div>
-              <div className="w-full h-0.5 bg-gray-700 rounded-full"></div>
-              <div className="w-full h-0.5 bg-gray-700 rounded-full"></div>
-            </div>
-          </button>
+            <Menu className="h-4 w-4" />
+          </Button>
           <h1 className="text-lg font-semibold text-gray-900">
             Recherche géographique
           </h1>
@@ -53,6 +51,7 @@ const GeoSearchDesktopHeader: React.FC<GeoSearchDesktopHeaderProps> = ({
           {results.length} résultat{results.length > 1 ? 's' : ''}
         </div>
       </div>
+      
       {/* Ligne 2: Ma position */}
       <div className="flex justify-center">
         <EnhancedLocationButton
@@ -63,17 +62,18 @@ const GeoSearchDesktopHeader: React.FC<GeoSearchDesktopHeaderProps> = ({
           className="w-auto px-6"
         />
       </div>
+      
       {/* Ligne 3: Barre de recherche principale */}
       <div className="max-w-2xl mx-auto">
         <EnhancedSearchBar
           value={filters.query || ''}
           onSearch={handleSearch}
           onLocationSelect={handleLocationSelect}
-          isLoading={isLoading}
           placeholder="Rechercher un lieu, un type d'établissement..."
           className="w-full"
         />
       </div>
+      
       {/* Ligne 4: Contrôles */}
       <div className="flex items-center justify-center gap-3">
         <FiltersFloatingButton
