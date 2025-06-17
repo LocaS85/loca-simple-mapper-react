@@ -28,16 +28,17 @@ export const GeoSearchMobileResults: React.FC<GeoSearchMobileResultsProps> = ({
   if (!showResults) return null;
 
   return (
-    <div className={`absolute bottom-0 left-0 right-0 z-30 bg-white rounded-t-xl shadow-2xl border-t transition-all duration-300 ${
+    <div className={`fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-xl shadow-2xl border-t transition-all duration-300 ${
       isResultsExpanded ? 'h-3/4' : 'h-48'
     }`}>
+      {/* Handle pour glisser */}
       <div 
-        className="p-3 sm:p-4 border-b bg-gray-50 cursor-pointer"
+        className="p-3 border-b bg-gray-50 cursor-pointer touch-manipulation"
         onClick={onToggleExpanded}
       >
         <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-3"></div>
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm sm:text-base">
+          <h3 className="font-semibold text-sm">
             Résultats trouvés
           </h3>
           <div className="flex items-center gap-2">
@@ -52,9 +53,11 @@ export const GeoSearchMobileResults: React.FC<GeoSearchMobileResultsProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Contenu scrollable */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="p-3 sm:p-4">
+          <div className="p-3">
             <EnhancedResultsList
               results={results}
               isLoading={isLoading}

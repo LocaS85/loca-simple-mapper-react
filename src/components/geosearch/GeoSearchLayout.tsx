@@ -15,7 +15,6 @@ const GeoSearchLayout: React.FC = () => {
     filters,
     results,
     isLoading,
-    networkStatus,
     updateFilters,
     resetFilters,
     performSearch,
@@ -73,8 +72,12 @@ const GeoSearchLayout: React.FC = () => {
     return (
       <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
         <div className="flex-1 relative overflow-hidden">
-          <MapView transport={filters.transport} />
+          {/* Map avec marge pour le header */}
+          <div className="absolute inset-0" style={{ paddingTop: '140px' }}>
+            <MapView transport={filters.transport} />
+          </div>
 
+          {/* Header fixe en haut */}
           <GeoSearchMobileHeader
             isLoading={isLoading}
             filters={filters}
@@ -87,6 +90,7 @@ const GeoSearchLayout: React.FC = () => {
             setShowSidebarPopup={setShowSidebarPopup}
           />
 
+          {/* Résultats en bas */}
           <GeoSearchMobileResults
             results={results}
             isLoading={isLoading}
@@ -96,6 +100,7 @@ const GeoSearchLayout: React.FC = () => {
             onToggleExpanded={() => setIsResultsExpanded(!isResultsExpanded)}
           />
 
+          {/* Sidebar popup */}
           <GeoSearchSidebarPopup
             filters={filters}
             userLocation={userLocation}
@@ -118,7 +123,10 @@ const GeoSearchLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <div className="flex-1 relative overflow-hidden">
-        <MapView transport={filters.transport} />
+        {/* Map avec marge pour le header desktop */}
+        <div className="absolute inset-0" style={{ paddingTop: '160px' }}>
+          <MapView transport={filters.transport} />
+        </div>
 
         <GeoSearchDesktopHeader
           isLoading={isLoading}

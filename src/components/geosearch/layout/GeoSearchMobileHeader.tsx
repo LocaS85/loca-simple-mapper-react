@@ -30,46 +30,49 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
   handleLocationSelect,
   setShowSidebarPopup,
 }) => (
-  <div className="absolute top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
-    <div className="p-3 space-y-3">
-      {/* Ligne 1: Menu burger */}
-      <div className="flex items-center justify-between">
+  <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
+    <div className="px-3 py-2 space-y-2">
+      {/* Ligne 1: Menu burger et titre */}
+      <div className="flex items-center justify-between h-10">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowSidebarPopup(true)}
-          className="w-10 h-10 p-0 bg-white shadow-md border hover:bg-gray-50 transition-colors"
+          className="h-8 w-8 p-0 bg-white shadow-sm border hover:bg-gray-50 transition-colors flex-shrink-0"
         >
           <Menu className="h-4 w-4" />
         </Button>
-        <div className="text-sm font-medium text-gray-600">
+        <div className="text-sm font-medium text-gray-600 flex-1 text-center">
           GeoSearch
         </div>
-        <div className="w-10 h-10" />
+        <div className="w-8 h-8 flex-shrink-0" />
       </div>
       
-      {/* Ligne 2: Ma position */}
-      <div className="flex justify-center">
+      {/* Ligne 2: Barre de recherche */}
+      <div className="w-full">
+        <EnhancedSearchBar
+          value={filters.query || ''}
+          onSearch={handleSearch}
+          onLocationSelect={handleLocationSelect}
+          placeholder="Rechercher un lieu..."
+          className="w-full"
+          isLoading={isLoading}
+        />
+      </div>
+      
+      {/* Ligne 3: Ma position centré */}
+      <div className="flex justify-center py-1">
         <EnhancedLocationButton
           onLocationDetected={handleMyLocationClick}
           disabled={isLoading}
           variant="outline"
           size="sm"
-          className="w-auto px-4"
+          className="px-3 h-8 text-xs"
         />
       </div>
       
-      {/* Ligne 3: Barre de recherche */}
-      <EnhancedSearchBar
-        value={filters.query || ''}
-        onSearch={handleSearch}
-        onLocationSelect={handleLocationSelect}
-        placeholder="Rechercher un lieu..."
-        className="w-full"
-      />
-      
-      {/* Ligne 4: Filtres et contrôle navigation */}
-      <div className="flex items-center justify-center gap-2">
+      {/* Ligne 4: Contrôles alignés au centre */}
+      <div className="flex items-center justify-center gap-2 pb-1">
         <FiltersFloatingButton
           filters={filters}
           onChange={updateFilters}
@@ -80,9 +83,10 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
           variant="outline"
           size="sm"
           onClick={resetFilters}
-          className="px-3"
+          className="h-7 w-7 p-0"
+          disabled={isLoading}
         >
-          <RotateCcw className="h-4 w-4" />
+          <RotateCcw className="h-3 w-3" />
         </Button>
         <PrintButton results={results} />
       </div>

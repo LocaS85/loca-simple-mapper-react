@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { GeoSearchFilters } from '@/types/geosearch';
 import { FenetreFiltrageUnifiee } from '../filters';
-import { TransportMode, DistanceUnit } from '@/types/map';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FiltersFloatingButtonProps {
@@ -34,22 +33,27 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
       <PopoverTrigger asChild>
         <Button
           variant={hasActiveFilters ? "default" : "outline"}
-          size="icon"
+          size="sm"
           className={`
-            w-[29px] h-[29px] min-w-[29px] min-h-[29px] p-0
-            border border-[rgba(0,0,0,0.1)] shadow-sm hover:bg-gray-50 transition-colors rounded-sm relative
+            h-7 w-7 p-0 flex-shrink-0
+            border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors rounded-sm relative
             ${hasActiveFilters ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' : 'bg-white'}
           `}
           disabled={isLoading}
           title="Filtres de recherche"
         >
-          <SlidersHorizontal className="h-3.5 w-3.5" />
+          <SlidersHorizontal className="h-3 w-3" />
           {hasActiveFilters && (
             <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-orange-500 rounded-full border border-white"></span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80" align="end" side="left">
+      <PopoverContent 
+        className={`w-80 z-50 ${isMobile ? 'w-screen max-w-sm' : ''}`} 
+        align={isMobile ? "center" : "end"} 
+        side={isMobile ? "top" : "left"}
+        sideOffset={isMobile ? 10 : 5}
+      >
         <FenetreFiltrageUnifiee
           open={true}
           onClose={() => setOpen(false)}
