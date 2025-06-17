@@ -9,6 +9,19 @@ import GeoSearchMobilePanel from './ui/GeoSearchMobilePanel';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
+interface LocationSelectData {
+  name: string;
+  coordinates: [number, number];
+  placeName: string;
+}
+
+interface StatusInfo {
+  totalResults: number;
+  hasResults: boolean;
+  isReady: boolean;
+  canSearch: boolean;
+}
+
 const GeoSearchApp: React.FC = () => {
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
@@ -28,26 +41,26 @@ const GeoSearchApp: React.FC = () => {
   } = useGeoSearchStore();
 
   // Status info consolidé
-  const statusInfo = {
+  const statusInfo: StatusInfo = {
     totalResults: results.length,
     hasResults: results.length > 0,
     isReady: !!userLocation && isMapboxReady,
     canSearch: isMapboxReady && networkStatus === 'online'
   };
 
-  const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
+  const handleLocationSelect = (location: LocationSelectData): void => {
     setUserLocation(location.coordinates);
     performSearch(location.name);
   };
 
-  const handleSearch = (query?: string) => {
+  const handleSearch = (query?: string): void => {
     if (query) {
       updateFilters({ query });
     }
     performSearch(query);
   };
 
-  const handleMyLocationClick = () => {
+  const handleMyLocationClick = (): void => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -65,9 +78,7 @@ const GeoSearchApp: React.FC = () => {
     }
   };
 
-  // Fonction pour basculer la sidebar
-  const handleToggleSidebar = () => {
-    console.log('🔄 Toggle sidebar:', !sidebarOpen);
+  const handleToggleSidebar = (): void => {
     setSidebarOpen(!sidebarOpen);
   };
 

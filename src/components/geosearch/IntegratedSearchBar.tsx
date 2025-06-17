@@ -77,7 +77,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     }
   }, [filters.query, query]);
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (query.trim()) {
       setShowSuggestions(false);

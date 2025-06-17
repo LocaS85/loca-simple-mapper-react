@@ -1,66 +1,61 @@
 
-import { TransportMode } from '@/types/map';
 import { SearchResult, GeoSearchFilters, LocationData } from '@/types/geosearch';
+import { TransportMode, DistanceUnit } from '@/types/map';
 
-export interface GeoSearchState {
+export const defaultFilters: GeoSearchFilters = {
+  query: '',
+  transport: 'walking',
+  distance: 10,
+  maxDuration: 30,
+  aroundMeCount: 5,
+  unit: 'km',
+  showMultiDirections: false
+};
+
+export interface GeoSearchStore {
+  // State
   userLocation: [number, number] | null;
   startingPosition: [number, number] | null;
   filters: GeoSearchFilters;
   results: SearchResult[];
   isLoading: boolean;
-  showFilters: boolean;
-  lastSearchParams: string | null;
-  searchCache: Map<string, { results: SearchResult[]; timestamp: number; expiry: number }>;
   isMapboxReady: boolean;
   mapboxError: string | null;
   networkStatus: 'online' | 'offline' | 'slow';
+  showFilters: boolean;
   retryCount: number;
-}
+  searchCache: Map<string, SearchResult[]>;
+  lastSearchParams: string | null;
 
-export interface GeoSearchActions {
+  // Actions
   setUserLocation: (location: [number, number] | null) => void;
   setStartingPosition: (position: [number, number] | null) => void;
-  updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
+  initializeMapbox: () => Promise<void>;
+  updateFilters: (filters: Partial<GeoSearchFilters>) => void;
   resetFilters: () => void;
   setResults: (results: SearchResult[]) => void;
   setIsLoading: (loading: boolean) => void;
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
-  loadResults: () => Promise<void>;
-  performSearch: (query?: string) => Promise<void>;
-  initializeMapbox: () => Promise<void>;
-  clearCache: () => void;
   setNetworkStatus: (status: 'online' | 'offline' | 'slow') => void;
   incrementRetryCount: () => void;
   resetRetryCount: () => void;
+  performSearch: (query?: string) => Promise<void>;
+  loadResults: () => Promise<void>;
+  clearCache: () => void;
 }
 
-export type GeoSearchStore = GeoSearchState & GeoSearchActions;
-
-export const defaultFilters: GeoSearchFilters = {
-  category: null,
-  subcategory: null,
-  transport: 'walking' as TransportMode,
-  distance: 10,
-  unit: 'km',
-  query: '',
-  aroundMeCount: 3,
-  showMultiDirections: false,
-  maxDuration: 20,
-  selectedLocation: undefined
-};
-
-export const initialState: GeoSearchState = {
+export const initialState = {
   userLocation: null,
   startingPosition: null,
-  filters: { ...defaultFilters },
+  filters: defaultFilters,
   results: [],
   isLoading: false,
-  showFilters: false,
-  lastSearchParams: null,
-  searchCache: new Map(),
   isMapboxReady: false,
   mapboxError: null,
-  networkStatus: 'online',
-  retryCount: 0
+  networkStatus: 'online' as const,
+  showFilters: false,
+  retryCount: 0,
+  searchCache: new Map<string, SearchResult[]>(),
+  lastSearchParams: null
 };

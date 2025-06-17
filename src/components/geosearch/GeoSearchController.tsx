@@ -4,14 +4,16 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { LocationData } from '@/types/geosearch';
 
 interface SearchIntegrationContextType {
-  onSearchSelect: (result: {
-    id: string;
-    text: string;
-    place_name: string;
-    center: [number, number];
-    properties: Record<string, unknown>;
-  }) => void;
+  onSearchSelect: (result: SearchSelectResult) => void;
   onDirectSearch: (query: string) => void;
+}
+
+interface SearchSelectResult {
+  id: string;
+  text: string;
+  place_name: string;
+  center: [number, number];
+  properties: Record<string, unknown>;
 }
 
 const SearchIntegrationContext = createContext<SearchIntegrationContextType>({
@@ -30,13 +32,7 @@ interface GeoSearchControllerProps {
 const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) => {
   const { updateFilters, setIsLoading } = useGeoSearchStore();
 
-  const handleSearchSelect = (result: {
-    id: string;
-    text: string;
-    place_name: string;
-    center: [number, number];
-    properties: Record<string, unknown>;
-  }): void => {
+  const handleSearchSelect = (result: SearchSelectResult): void => {
     const locationData: LocationData = {
       name: result.text,
       coordinates: result.center,
