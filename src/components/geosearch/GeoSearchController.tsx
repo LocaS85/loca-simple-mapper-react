@@ -1,65 +1,43 @@
 
-import React, { createContext, useContext } from 'react';
-import { useGeoSearchStore } from '@/store/geoSearchStore';
-import { LocationData } from '@/types/geosearch';
+import React from 'react';
+import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
+import GeoSearchLayout from './GeoSearchLayout';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
-interface SearchIntegrationContextType {
-  onSearchSelect: (result: SearchSelectResult) => void;
-  onDirectSearch: (query: string) => void;
-}
+const GeoSearchController: React.FC = () => {
+  const {
+    isMapboxReady,
+    networkStatus
+  } = useGeoSearchManager();
 
-interface SearchSelectResult {
-  id: string;
-  text: string;
-  place_name: string;
-  center: [number, number];
-  properties: Record<string, unknown>;
-}
+  if (!isMapboxReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Initialisation des services de cartographie en cours...
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
-const SearchIntegrationContext = createContext<SearchIntegrationContextType>({
-  onSearchSelect: () => {},
-  onDirectSearch: () => {}
-});
+  if (networkStatus === 'offline') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Connexion réseau requise pour utiliser GeoSearch.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
-export const useSearchIntegrationContext = (): SearchIntegrationContextType => {
-  return useContext(SearchIntegrationContext);
-};
-
-interface GeoSearchControllerProps {
-  children: React.ReactNode;
-}
-
-const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) => {
-  const { updateFilters, setIsLoading } = useGeoSearchStore();
-
-  const handleSearchSelect = (result: SearchSelectResult): void => {
-    const locationData: LocationData = {
-      name: result.text,
-      coordinates: result.center,
-      placeName: result.place_name
-    };
-
-    updateFilters({ 
-      query: result.text,
-      selectedLocation: locationData
-    });
-  };
-
-  const handleDirectSearch = (query: string): void => {
-    updateFilters({ query });
-    setIsLoading(true);
-  };
-
-  const contextValue: SearchIntegrationContextType = {
-    onSearchSelect: handleSearchSelect,
-    onDirectSearch: handleDirectSearch
-  };
-
-  return (
-    <SearchIntegrationContext.Provider value={contextValue}>
-      {children}
-    </SearchIntegrationContext.Provider>
-  );
+  return <GeoSearchLayout />;
 };
 
 export default GeoSearchController;
