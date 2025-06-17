@@ -40,7 +40,7 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
   
   const { userLocation, setUserLocation } = useGeoSearchStore();
 
-  const searchPlaces = useCallback(async (searchQuery: string) => {
+  const searchPlaces = useCallback(async (searchQuery: string): Promise<void> => {
     if (!searchQuery.trim()) return;
 
     setIsLoading(true);
@@ -101,19 +101,19 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   }, [debouncedQuery, searchPlaces]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setQuery(e.target.value);
     setError(null);
   };
 
-  const handleSuggestionClick = useCallback((suggestion: SearchResultData) => {
+  const handleSuggestionClick = useCallback((suggestion: SearchResultData): void => {
     setQuery(suggestion.name);
     setShowSuggestions(false);
     setError(null);
     onResultSelect(suggestion);
   }, [onResultSelect]);
 
-  const handleMyLocationClick = useCallback(async () => {
+  const handleMyLocationClick = useCallback(async (): Promise<void> => {
     if (!onMyLocationClick) return;
     
     setIsGeolocating(true);
@@ -157,14 +157,14 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
     }
   }, [onMyLocationClick, setUserLocation, onResultSelect]);
 
-  const handleInputBlur = () => {
+  const handleInputBlur = (): void => {
     setTimeout(() => {
       setShowSuggestions(false);
       if (onBlur) onBlur();
     }, 200);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'Escape') {
       setShowSuggestions(false);
       inputRef.current?.blur();

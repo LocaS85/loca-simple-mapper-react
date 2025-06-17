@@ -30,7 +30,7 @@ const AutoSuggestSearchClean: React.FC<AutoSuggestSearchCleanProps> = ({
   
   const { userLocation } = useGeoSearchStore();
 
-  const searchPlaces = useCallback(async (searchQuery: string) => {
+  const searchPlaces = useCallback(async (searchQuery: string): Promise<void> => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -74,24 +74,24 @@ const AutoSuggestSearchClean: React.FC<AutoSuggestSearchCleanProps> = ({
     }
   }, [debouncedQuery, searchPlaces]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setQuery(e.target.value);
   };
 
-  const handleSuggestionClick = (suggestion: SearchResultData) => {
+  const handleSuggestionClick = (suggestion: SearchResultData): void => {
     setQuery(suggestion.name);
     setShowSuggestions(false);
     onResultSelect(suggestion);
   };
 
-  const handleClear = () => {
+  const handleClear = (): void => {
     setQuery('');
     setSuggestions([]);
     setShowSuggestions(false);
     inputRef.current?.focus();
   };
 
-  const handleInputBlur = () => {
+  const handleInputBlur = (): void => {
     setTimeout(() => setShowSuggestions(false), 200);
   };
 

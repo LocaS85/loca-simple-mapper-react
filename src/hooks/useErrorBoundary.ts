@@ -7,10 +7,17 @@ interface ErrorInfo {
   componentStack?: string;
 }
 
-export const useErrorBoundary = () => {
+interface UseErrorBoundaryReturn {
+  error: ErrorInfo | null;
+  hasError: boolean;
+  captureError: (error: Error, errorInfo?: { componentStack: string }) => void;
+  clearError: () => void;
+}
+
+export const useErrorBoundary = (): UseErrorBoundaryReturn => {
   const [error, setError] = useState<ErrorInfo | null>(null);
 
-  const captureError = useCallback((error: Error, errorInfo?: { componentStack: string }) => {
+  const captureError = useCallback((error: Error, errorInfo?: { componentStack: string }): void => {
     const errorData: ErrorInfo = {
       message: error.message,
       stack: error.stack,
@@ -21,7 +28,7 @@ export const useErrorBoundary = () => {
     console.error('Error captured:', errorData);
   }, []);
 
-  const clearError = useCallback(() => {
+  const clearError = useCallback((): void => {
     setError(null);
   }, []);
 

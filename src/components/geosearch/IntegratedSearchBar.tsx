@@ -28,7 +28,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
   const { onSearchSelect, onDirectSearch } = useSearchIntegrationContext();
   const { userLocation, filters } = useGeoSearchStore();
 
-  const loadSuggestions = useCallback(async (searchQuery: string) => {
+  const loadSuggestions = useCallback(async (searchQuery: string): Promise<void> => {
     if (!userLocation || !searchQuery.trim()) return;
     
     setIsLoading(true);
@@ -77,7 +77,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     }
   }, [filters.query, query]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     if (query.trim()) {
       setShowSuggestions(false);
@@ -85,7 +85,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     }
   };
 
-  const handleSuggestionClick = (suggestion: SearchResultData) => {
+  const handleSuggestionClick = (suggestion: SearchResultData): void => {
     setQuery(suggestion.name || suggestion.address);
     setShowSuggestions(false);
     
@@ -98,7 +98,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     });
   };
 
-  const handleClear = () => {
+  const handleClear = (): void => {
     setQuery('');
     setSuggestions([]);
     setShowSuggestions(false);
@@ -146,7 +146,7 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
           {suggestions.map((suggestion, index) => (
             <div
-              key={index}
+              key={`${suggestion.id}-${index}`}
               className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3 transition-colors"
               onClick={() => handleSuggestionClick(suggestion)}
             >

@@ -19,7 +19,7 @@ const SearchIntegrationContext = createContext<SearchIntegrationContextType>({
   onDirectSearch: () => {}
 });
 
-export const useSearchIntegrationContext = () => {
+export const useSearchIntegrationContext = (): SearchIntegrationContextType => {
   return useContext(SearchIntegrationContext);
 };
 
@@ -36,7 +36,7 @@ const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) =
     place_name: string;
     center: [number, number];
     properties: Record<string, unknown>;
-  }) => {
+  }): void => {
     const locationData: LocationData = {
       name: result.text,
       coordinates: result.center,
@@ -49,7 +49,7 @@ const GeoSearchController: React.FC<GeoSearchControllerProps> = ({ children }) =
     });
   };
 
-  const handleDirectSearch = (query: string) => {
+  const handleDirectSearch = (query: string): void => {
     updateFilters({ query });
     setIsLoading(true);
   };
