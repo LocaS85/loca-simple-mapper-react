@@ -49,10 +49,10 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className={`w-80 z-50 ${isMobile ? 'w-screen max-w-sm mx-2' : ''}`} 
+        className={`w-80 z-50 bg-white border border-gray-200 shadow-lg ${isMobile ? 'w-screen max-w-sm mx-2' : ''}`} 
         align={isMobile ? "start" : "end"} 
         side={isMobile ? "bottom" : "left"}
-        sideOffset={isMobile ? 8 : 5}
+        sideOffset={isMobile ? 10 : 5}
         avoidCollisions={true}
         collisionPadding={8}
       >

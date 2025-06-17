@@ -33,7 +33,7 @@ export default function MapboxMap({
     zoom: DEFAULT_MAP_ZOOM,
   });
 
-  const mapRef = useRef<any>(null); // Keeping as any for now to avoid type conflicts
+  const mapRef = useRef<any>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [mapError, setMapError] = useState<string | null>(null);
@@ -151,10 +151,14 @@ export default function MapboxMap({
           showCompass={true}
           showZoom={true}
           style={isMobile ? { 
-            bottom: '80px', 
-            right: '8px',
-            zIndex: 30
-          } : {}}
+            bottom: '120px', 
+            right: '12px',
+            zIndex: 20
+          } : {
+            top: '12px',
+            left: '12px',
+            zIndex: 20
+          }}
         />
         
         <GeolocateControl
@@ -163,10 +167,14 @@ export default function MapboxMap({
           showAccuracyCircle={false}
           showUserHeading={true}
           style={isMobile ? { 
-            bottom: '140px', 
-            right: '8px',
-            zIndex: 30
-          } : {}}
+            bottom: '180px', 
+            right: '12px',
+            zIndex: 20
+          } : {
+            top: '80px',
+            left: '12px',
+            zIndex: 20
+          }}
           positionOptions={{
             enableHighAccuracy: true,
             timeout: 6000
