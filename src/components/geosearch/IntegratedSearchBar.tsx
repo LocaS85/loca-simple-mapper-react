@@ -62,7 +62,6 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     }
   }, [userLocation]);
 
-  // Load suggestions when debounced query changes
   useEffect(() => {
     if (debouncedQuery.length >= 2) {
       loadSuggestions(debouncedQuery);
@@ -72,7 +71,6 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
     }
   }, [debouncedQuery, loadSuggestions]);
 
-  // Sync with store filters
   useEffect(() => {
     if (filters.query && filters.query !== query) {
       setQuery(filters.query);
@@ -144,7 +142,6 @@ const IntegratedSearchBar: React.FC<IntegratedSearchBarProps> = ({
         </Button>
       </form>
 
-      {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
           {suggestions.map((suggestion, index) => (
