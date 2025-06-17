@@ -35,8 +35,8 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
           variant={hasActiveFilters ? "default" : "outline"}
           size="sm"
           className={`
-            h-7 w-7 p-0 flex-shrink-0
-            border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors rounded-sm relative
+            h-7 w-7 p-0 flex-shrink-0 relative z-40
+            border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors rounded-sm
             ${hasActiveFilters ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500' : 'bg-white'}
           `}
           disabled={isLoading}
@@ -49,10 +49,12 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className={`w-80 z-50 ${isMobile ? 'w-screen max-w-sm' : ''}`} 
+        className={`w-80 z-50 ${isMobile ? 'w-screen max-w-sm mx-2' : ''}`} 
         align={isMobile ? "center" : "end"} 
         side={isMobile ? "top" : "left"}
-        sideOffset={isMobile ? 10 : 5}
+        sideOffset={isMobile ? 15 : 5}
+        avoidCollisions={true}
+        collisionPadding={8}
       >
         <FenetreFiltrageUnifiee
           open={true}

@@ -145,17 +145,28 @@ export default function MapboxMap({
         }}
         interactiveLayerIds={[]}
       >
+        {/* Contrôles de navigation positionnés pour éviter les superpositions */}
         <NavigationControl 
-          position="top-left"
+          position={isMobile ? "bottom-right" : "top-left"}
           showCompass={true}
           showZoom={true}
+          style={isMobile ? { 
+            bottom: '80px', 
+            right: '8px',
+            zIndex: 30
+          } : {}}
         />
         
         <GeolocateControl
-          position="top-left"
+          position={isMobile ? "bottom-right" : "top-left"}
           trackUserLocation
           showAccuracyCircle={false}
           showUserHeading={true}
+          style={isMobile ? { 
+            bottom: '140px', 
+            right: '8px',
+            zIndex: 30
+          } : {}}
           positionOptions={{
             enableHighAccuracy: true,
             timeout: 6000

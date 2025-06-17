@@ -71,8 +71,8 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
         />
       </div>
       
-      {/* Ligne 4: Contrôles alignés au centre */}
-      <div className="flex items-center justify-center gap-2 pb-1">
+      {/* Ligne 4: Contrôles alignés au centre avec espacement pour éviter les contrôles de carte */}
+      <div className="flex items-center justify-center gap-2 pb-2">
         <FiltersFloatingButton
           filters={filters}
           onChange={updateFilters}
