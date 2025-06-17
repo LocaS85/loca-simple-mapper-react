@@ -17,6 +17,7 @@ interface MapboxFeature {
   properties?: {
     category?: string;
     address?: string;
+    foursquare?: string;
   };
   context?: Array<{
     id: string;
@@ -67,13 +68,34 @@ export const enhancedGeocodingService = {
         address: feature.place_name,
         coordinates: feature.center,
         type: 'place',
-        category: feature.properties?.category || 'place',
+        category: feature.properties?.category || this.extractCategoryFromContext(feature) || 'place',
         distance: this.calculateDistance(center, feature.center)
       }));
     } catch (error) {
       console.error('Enhanced geocoding error:', error);
       return [];
     }
+  },
+
+  extractCategoryFromContext(feature: MapboxFeature): string | null {
+    // Essayer d'extraire la catégorie du contexte
+    if (feature.context) {
+      for (const ctx of feature.context) {
+        if (ctx.id.includes('poi')) {
+          return 'restaurant';
+        }
+        if (ctx.id.includes('address')) {
+          return 'place';
+        }
+      }
+    }
+    
+    // Extraire de properties si disponible
+    if (feature.properties?.foursquare) {
+      return 'restaurant';
+    }
+    
+    return null;
   },
 
   calculateDistance([lng1, lat1]: [number, number], [lng2, lat2]: [number, number]): number {

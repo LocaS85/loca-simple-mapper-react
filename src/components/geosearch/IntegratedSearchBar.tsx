@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
 import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
-import { useSearchIntegrationContext } from './GeoSearchController';
+import { useSearchIntegrationContext } from '@/hooks/geosearch/useSearchIntegrationContext';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { SearchResultData } from '@/types/searchTypes';
 
