@@ -16,3 +16,13 @@ export interface MapFilters {
   unit: DistanceUnit;
   category?: string;
 }
+
+export interface POI {
+  id: string;
+  name: string;
+  coordinates: [number, number];
+  category?: string;
+  description?: string;
+  distance?: number;
+  duration?: number;
+}

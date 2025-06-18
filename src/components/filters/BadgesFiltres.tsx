@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TransportMode } from '@/types/map';
-import { MapPin, Filter as FilterIcon, Bike, Car, User, Bus, Train } from 'lucide-react';
+import { MapPin, Bike, Car, User, Train } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BadgesFiltresProps {
@@ -35,8 +35,7 @@ const BadgesFiltres: React.FC<BadgesFiltresProps> = ({
       case 'driving': return <Car size={12} />;
       case 'walking': return <User size={12} />;
       case 'cycling': return <Bike size={12} />;
-      case 'bus': return <Bus size={12} />;
-      case 'train': return <Train size={12} />;
+      case 'transit': return <Train size={12} />;
       default: return <Car size={12} />;
     }
   };

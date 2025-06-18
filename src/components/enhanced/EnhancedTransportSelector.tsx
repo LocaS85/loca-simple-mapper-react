@@ -32,24 +32,21 @@ const EnhancedTransportSelector: React.FC<EnhancedTransportSelectorProps> = ({
       onValueChange={(val: TransportMode) => val && onChange(val)}
       className={`justify-start flex-wrap gap-1 ${className}`}
     >
-      {transportModes.map((mode) => {
-        const Icon = mode.icon;
-        return (
-          <ToggleGroupItem
-            key={mode.value}
-            value={mode.value}
-            aria-label={t(`filters.transportModes.${mode.value}`)}
-            className={`${sizeClasses[size]} data-[state=on]:bg-blue-600 data-[state=on]:text-white transition-all`}
-          >
-            <div className="flex items-center gap-2">
-              <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">
-                {t(`filters.transportModes.${mode.value}`)}
-              </span>
-            </div>
-          </ToggleGroupItem>
-        );
-      })}
+      {transportModes.map((mode) => (
+        <ToggleGroupItem
+          key={mode.value}
+          value={mode.value}
+          aria-label={t(`filters.transportModes.${mode.value}`)}
+          className={`${sizeClasses[size]} data-[state=on]:bg-blue-600 data-[state=on]:text-white transition-all`}
+        >
+          <div className="flex items-center gap-2">
+            <span>{mode.icon}</span>
+            <span className="hidden sm:inline">
+              {t(`filters.transportModes.${mode.value}`)}
+            </span>
+          </div>
+        </ToggleGroupItem>
+      ))}
     </ToggleGroup>
   );
 };

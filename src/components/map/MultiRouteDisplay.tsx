@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl, { LngLatLike, Map as MapboxMap } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -11,8 +10,6 @@ const modeColors: Record<TransportMode, string> = {
   driving: '#1976D2',
   walking: '#43A047',
   cycling: '#FB8C00',
-  bus: '#8E24AA',
-  train: '#EF4444',
   transit: '#8E24AA'
 };
 
