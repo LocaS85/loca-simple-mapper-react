@@ -147,7 +147,7 @@ const GeoSearchLayout: React.FC = () => {
           handleMyLocationClick={handleMyLocationClick}
           handleSearch={handleSearch}
           handleLocationSelect={handleLocationSelect}
-          setShowSidebarPopup={setShowSidebarPopup}
+          onFiltersClick={() => setShowSidebarPopup(true)}
         />
 
         <GeoSearchSidebarPopup

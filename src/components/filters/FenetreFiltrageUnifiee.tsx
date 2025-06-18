@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from 'react-i18next';
 import { TransportMode } from '@/types/map';
-import { Car, User, Bike, Bus, X } from 'lucide-react';
+import { Car, User, Bike, Train, X } from 'lucide-react';
 
 // Données des catégories
 const CATEGORIES = [
@@ -36,7 +36,7 @@ const SUBCATEGORIES: Record<string, { value: string; label: string }[]> = {
     { value: 'market', label: 'Marché' },
     { value: 'boutique', label: 'Boutique' }
   ]
-};
+];
 
 interface FenetreFiltrageUnifieeProps {
   open: boolean;
@@ -83,11 +83,11 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const transportModeIcons = {
+  const transportModeIcons: Record<TransportMode, React.ReactNode> = {
     driving: <Car className="h-4 w-4" />,
     walking: <User className="h-4 w-4" />,
     cycling: <Bike className="h-4 w-4" />,
-    bus: <Bus className="h-4 w-4" />,
+    transit: <Train className="h-4 w-4" />,
   };
 
   const handleCategoryChange = (value: string) => {
@@ -161,7 +161,7 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
           <div className="space-y-3">
             <h3 className="text-sm font-medium">Mode de transport</h3>
             <div className="flex flex-wrap gap-2">
-              {(['driving', 'walking', 'cycling', 'bus'] as TransportMode[]).map((mode) => (
+              {(['driving', 'walking', 'cycling', 'transit'] as TransportMode[]).map((mode) => (
                 <Button
                   key={mode}
                   variant={transportMode === mode ? "default" : "outline"}
@@ -173,7 +173,7 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
                   {mode === 'driving' && 'Voiture'}
                   {mode === 'walking' && 'Marche'}
                   {mode === 'cycling' && 'Vélo'}
-                  {mode === 'bus' && 'Transport'}
+                  {mode === 'transit' && 'Transport'}
                 </Button>
               ))}
             </div>
