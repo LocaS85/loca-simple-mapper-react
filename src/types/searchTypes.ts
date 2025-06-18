@@ -6,7 +6,6 @@ export interface SearchResultData {
   coordinates: [number, number];
   distance?: number;
   category?: string;
-  type?: string;
 }
 
 export interface LocationSelectData {
@@ -22,20 +21,4 @@ export interface SearchBarProps {
   placeholder?: string;
   className?: string;
   isLoading?: boolean;
-}
-
-export interface SearchOptions {
-  limit?: number;
-  radius?: number;
-  language?: string;
-  categories?: string[];
-}
-
-export interface GeocodingResult {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: [number, number];
-  distance?: number;
-  properties?: Record<string, unknown>;
 }

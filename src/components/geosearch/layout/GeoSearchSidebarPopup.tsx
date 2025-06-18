@@ -135,8 +135,8 @@ export const GeoSearchSidebarPopup: React.FC<GeoSearchSidebarPopupProps> = ({
                 <EnhancedResultsList
                   results={results}
                   isLoading={isLoading}
-                  onNavigate={(coords) => {
-                    console.log('Navigate to:', coords);
+                  onNavigate={(result) => {
+                    console.log('Navigate to:', result);
                   }}
                 />
               </div>

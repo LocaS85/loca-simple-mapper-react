@@ -61,8 +61,8 @@ export const GeoSearchMobileResults: React.FC<GeoSearchMobileResultsProps> = ({
             <EnhancedResultsList
               results={results}
               isLoading={isLoading}
-              onNavigate={(coords) => {
-                console.log('Navigate to:', coords);
+              onNavigate={(result) => {
+                console.log('Navigate to:', result);
               }}
             />
           </div>

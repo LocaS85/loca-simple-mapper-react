@@ -185,60 +185,63 @@ const AutoSuggestSearch: React.FC<AutoSuggestSearchProps> = ({
             onFocus={() => query.length >= 2 && setShowSuggestions(true)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="pl-10 pr-12 h-10 bg-white/95 backdrop-blur-sm"
+            className="pl-10 pr-10 h-12 bg-white/95 backdrop-blur-sm border-gray-200 focus:border-blue-500"
+            disabled={isLoading}
           />
-          {isLoading && (
-            <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
+          
+          {(isLoading || isGeolocating) && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            </div>
           )}
         </div>
-        
+
         {showMyLocationButton && (
           <Button
             type="button"
             variant="outline"
             size="sm"
+            className="ml-2 h-12 px-3"
             onClick={handleMyLocationClick}
-            disabled={isGeolocating}
-            className="ml-2 h-10 px-3 shrink-0 bg-white/95 backdrop-blur-sm"
-            title="Use my location"
+            disabled={isGeolocating || isLoading}
           >
-            {isGeolocating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Navigation className="h-4 w-4" />
-            )}
+            <Navigation className="h-4 w-4" />
           </Button>
         )}
       </div>
 
       {error && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-yellow-50 border border-yellow-200 rounded-md p-2 text-xs text-yellow-700 z-50 flex items-center gap-2">
-          <AlertCircle className="h-3 w-3" />
-          {error}
+        <div className="absolute top-full left-0 right-0 mt-1 p-2 bg-red-50 border border-red-200 rounded-md z-50">
+          <div className="flex items-center gap-2 text-red-600 text-sm">
+            <AlertCircle className="h-4 w-4" />
+            <span>{error}</span>
+          </div>
         </div>
       )}
 
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
-          {suggestions.map((suggestion) => (
+          {suggestions.map((suggestion, index) => (
             <div
-              key={suggestion.id}
-              className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3 transition-colors"
+              key={`${suggestion.id}-${index}`}
+              className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
               onClick={() => handleSuggestionClick(suggestion)}
             >
-              <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">
-                  {suggestion.name}
-                </div>
-                <div className="text-xs text-gray-500 truncate">
-                  {suggestion.address}
-                </div>
-                {suggestion.distance && (
-                  <div className="text-xs text-blue-600">
-                    {Math.round(suggestion.distance * 10) / 10} km
+              <div className="flex items-center gap-3">
+                <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {suggestion.name}
                   </div>
-                )}
+                  <div className="text-xs text-gray-500 truncate">
+                    {suggestion.address}
+                  </div>
+                  {suggestion.distance && (
+                    <div className="text-xs text-blue-600">
+                      {suggestion.distance.toFixed(1)} km
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
