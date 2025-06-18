@@ -1,115 +1,49 @@
 
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { SearchResult } from '@/types/geosearch';
-import { formatDistance, formatDuration } from '@/utils/formatting';
 
 interface PrintViewProps {
   results: SearchResult[];
-  filters: any;
-  userLocation?: [number, number];
-  mapImageUrl?: string;
+  filters: Record<string, string | number | boolean>;
 }
 
-const PrintView = forwardRef<HTMLDivElement, PrintViewProps>(({
-  results,
-  filters,
-  userLocation,
-  mapImageUrl
-}, ref) => {
+const PrintView: React.FC<PrintViewProps> = ({ results, filters }) => {
   return (
-    <div ref={ref} className="p-6 bg-white max-w-4xl mx-auto print:shadow-none">
-      {/* En-tête */}
-      <div className="mb-6 border-b pb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Résultats de recherche</h1>
-        <p className="text-gray-600 mt-2">
-          Généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')}
-        </p>
-      </div>
-
-      {/* Filtres appliqués */}
-      <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-        <h2 className="font-semibold text-gray-800 mb-2">Critères de recherche</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          {filters.query && (
-            <div>
-              <span className="font-medium">Recherche :</span> {filters.query}
-            </div>
-          )}
-          {filters.category && (
-            <div>
-              <span className="font-medium">Catégorie :</span> {filters.category}
-            </div>
-          )}
-          {filters.transport && (
-            <div>
-              <span className="font-medium">Transport :</span> {filters.transport}
-            </div>
-          )}
-          {filters.distance && (
-            <div>
-              <span className="font-medium">Distance max :</span> {filters.distance} km
-            </div>
-          )}
+    <div className="print-only p-6 bg-white">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-2">Résultats de recherche GeoSearch</h1>
+        <div className="text-sm text-gray-600">
+          <p>Date d'impression: {new Date().toLocaleDateString('fr-FR')}</p>
+          <p>Nombre de résultats: {results.length}</p>
+          {filters.query && <p>Recherche: {filters.query}</p>}
+          {filters.category && <p>Catégorie: {filters.category}</p>}
         </div>
       </div>
 
-      {/* Carte statique */}
-      {mapImageUrl && (
-        <div className="mb-6">
-          <h2 className="font-semibold text-gray-800 mb-2">Carte</h2>
-          <img 
-            src={mapImageUrl} 
-            alt="Carte des résultats"
-            className="w-full max-w-2xl mx-auto border rounded-lg"
-          />
-        </div>
-      )}
-
-      {/* Liste des résultats */}
-      <div>
-        <h2 className="font-semibold text-gray-800 mb-4">
-          Résultats ({results.length} lieu{results.length > 1 ? 'x' : ''})
-        </h2>
-        
-        <div className="space-y-4">
-          {results.map((result, index) => (
-            <div key={result.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg text-gray-800">
-                  {index + 1}. {result.name}
-                </h3>
-                <div className="flex gap-4 text-sm text-gray-600">
-                  {result.distance && (
-                    <span>📍 {formatDistance(result.distance)}</span>
-                  )}
-                  {result.duration && (
-                    <span>⏱️ {formatDuration(result.duration)}</span>
-                  )}
+      <div className="space-y-4">
+        {results.map((result, index) => (
+          <div key={result.id} className="border-b pb-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold text-lg">{result.name}</h3>
+                <p className="text-gray-600">{result.address}</p>
+                <div className="flex gap-4 text-sm text-gray-500 mt-1">
+                  <span>Catégorie: {result.category}</span>
+                  {result.distance && <span>Distance: {result.distance} km</span>}
+                  {result.duration && <span>Durée: {result.duration} min</span>}
                 </div>
               </div>
-              
-              {result.address && (
-                <p className="text-gray-600 mb-2">{result.address}</p>
-              )}
-              
-              {result.category && (
-                <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  {result.category}
-                </span>
-              )}
+              <span className="text-sm text-gray-400">#{index + 1}</span>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
-      {/* Pied de page */}
-      <div className="mt-8 pt-4 border-t text-center text-sm text-gray-500">
-        Document généré par GeoSearch
+      <div className="mt-8 text-xs text-gray-400 text-center">
+        Généré par GeoSearch - Application de recherche géographique
       </div>
     </div>
   );
-});
-
-PrintView.displayName = 'PrintView';
+};
 
 export default PrintView;

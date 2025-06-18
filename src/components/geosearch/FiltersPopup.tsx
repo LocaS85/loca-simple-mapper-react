@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import { GeoSearchFilters } from '@/types/geosearch';
-import { useTranslation } from 'react-i18next';
 import { FenetreFiltrageUnifiee } from '../filters';
 import { TransportMode, DistanceUnit } from '@/types/map';
 
@@ -20,7 +19,6 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
   open,
   onReset
 }) => {
-  const { t } = useTranslation();
   const [localFilters, setLocalFilters] = React.useState<GeoSearchFilters>({
     ...filters
   });
@@ -31,7 +29,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
   }, [filters]);
 
   // Gérer les changements de filtres avec synchronisation immédiate
-  const handleFilterChange = (key: keyof GeoSearchFilters, value: any) => {
+  const handleFilterChange = (key: keyof GeoSearchFilters, value: string | number | boolean | null) => {
     const newFilters = { ...localFilters, [key]: value };
     setLocalFilters(newFilters);
     

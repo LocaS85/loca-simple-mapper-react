@@ -5,93 +5,74 @@ import EnhancedSearchBar from "../../enhanced/EnhancedSearchBar";
 import FiltersFloatingButton from "../FiltersFloatingButton";
 import PrintButton from "../PrintButton";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Menu } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import { GeoSearchFilters, SearchResult } from "@/types/geosearch";
+
+interface LocationSelectData {
+  name: string;
+  coordinates: [number, number];
+  placeName: string;
+}
 
 interface GeoSearchDesktopHeaderProps {
   isLoading: boolean;
-  filters: any;
-  results: any[];
-  updateFilters: (filters: any) => void;
+  filters: GeoSearchFilters;
+  updateFilters: (filters: Partial<GeoSearchFilters>) => void;
   resetFilters: () => void;
+  results: SearchResult[];
   handleMyLocationClick: () => void;
   handleSearch: (query?: string) => void;
-  handleLocationSelect: (location: { name: string; coordinates: [number, number]; placeName: string }) => void;
-  setShowSidebarPopup: (show: boolean) => void;
+  handleLocationSelect: (location: LocationSelectData) => void;
 }
 
 const GeoSearchDesktopHeader: React.FC<GeoSearchDesktopHeaderProps> = ({
   isLoading,
   filters,
-  results,
   updateFilters,
   resetFilters,
+  results,
   handleMyLocationClick,
   handleSearch,
   handleLocationSelect,
-  setShowSidebarPopup,
 }) => (
-  <div className="absolute top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
-    <div className="p-4 max-w-4xl mx-auto space-y-3">
-      {/* Ligne 1: Menu et titre */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSidebarPopup(true)}
-            className="w-10 h-10 p-0 bg-white shadow-md border hover:bg-gray-50 transition-colors"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-          <h1 className="text-lg font-semibold text-gray-900">
-            Recherche géographique
-          </h1>
-        </div>
-        <div className="text-sm text-gray-500">
-          {results.length} résultat{results.length > 1 ? 's' : ''}
-        </div>
-      </div>
-      
-      {/* Ligne 2: Ma position */}
-      <div className="flex justify-center">
-        <EnhancedLocationButton
-          onLocationDetected={handleMyLocationClick}
-          disabled={isLoading}
-          variant="outline"
-          size="sm"
-          className="w-auto px-6"
-        />
-      </div>
-      
-      {/* Ligne 3: Barre de recherche principale */}
-      <div className="max-w-2xl mx-auto">
+  <div className="hidden md:flex items-center justify-between gap-4 p-4 bg-white/95 backdrop-blur-sm border-b">
+    <div className="flex items-center gap-3 flex-1">
+      <div className="flex-1 max-w-md">
         <EnhancedSearchBar
           value={filters.query || ''}
           onSearch={handleSearch}
           onLocationSelect={handleLocationSelect}
-          placeholder="Rechercher un lieu, un type d'établissement..."
+          placeholder="Rechercher un lieu..."
           className="w-full"
+          isLoading={isLoading}
         />
       </div>
       
-      {/* Ligne 4: Contrôles */}
-      <div className="flex items-center justify-center gap-3">
-        <FiltersFloatingButton
-          filters={filters}
-          onChange={updateFilters}
-          onReset={resetFilters}
-          isLoading={isLoading}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={resetFilters}
-          className="px-3"
-        >
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-        <PrintButton results={results} />
-      </div>
+      <EnhancedLocationButton
+        onLocationDetected={handleMyLocationClick}
+        disabled={isLoading}
+        variant="outline"
+        size="sm"
+      />
+    </div>
+
+    <div className="flex items-center gap-2">
+      <FiltersFloatingButton
+        filters={filters}
+        onChange={updateFilters}
+        onReset={resetFilters}
+        isLoading={isLoading}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={resetFilters}
+        disabled={isLoading}
+        title="Réinitialiser les filtres"
+      >
+        <RotateCcw className="h-4 w-4" />
+      </Button>
+      <PrintButton results={results} />
     </div>
   </div>
 );
