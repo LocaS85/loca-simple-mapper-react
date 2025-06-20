@@ -33,54 +33,98 @@ export const enhancedMapboxService = {
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
     try {
-      const { limit = 5, radius = 50 } = options; // Augmenter le rayon par défaut
+      const { limit = 10, radius = 100 } = options; // Augmenter le rayon et le nombre de résultats
       
-      // Améliorer la requête de recherche pour de meilleurs résultats
-      let searchQuery = query.trim();
+      // Améliorer la requête pour les marques spécifiques
+      let enhancedQuery = query.trim();
       
-      // Pour des marques spécifiques comme IKEA, ajouter des termes de recherche
-      if (searchQuery.toLowerCase().includes('ikea')) {
-        searchQuery = 'IKEA magasin meuble';
+      if (enhancedQuery.toLowerCase().includes('ikea')) {
+        // Recherche spécifique pour IKEA avec plusieurs variantes
+        const ikeaResults = await this.searchSpecificBrand('IKEA', center, limit);
+        if (ikeaResults.length > 0) {
+          console.log('📍 Résultats IKEA trouvés:', ikeaResults.length);
+          return ikeaResults;
+        }
       }
       
-      // Si pas de requête spécifique, rechercher des POI généraux
-      if (!searchQuery || searchQuery.length < 2) {
-        searchQuery = 'restaurant cafe magasin pharmacie';
+      // Recherche générale améliorée
+      if (!enhancedQuery || enhancedQuery.length < 2) {
+        enhancedQuery = 'restaurant commerce magasin';
       }
 
-      // Utiliser un rayon plus large pour la bbox
+      // Recherche principale avec bbox élargie
       const bbox = this.calculateBoundingBox(center, radius);
       
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?` +
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(enhancedQuery)}.json?` +
         `access_token=${MAPBOX_TOKEN}&` +
         `proximity=${center[0]},${center[1]}&` +
         `limit=${limit}&` +
         `country=fr&` +
         `language=fr&` +
-        `types=poi,address,place&` + // Ajouter 'place' pour plus de résultats
+        `types=poi,address,place&` +
         `autocomplete=true&` +
         `bbox=${bbox.join(',')}`;
 
-      console.log('🔍 Enhanced search URL:', url);
+      console.log('🔍 Recherche URL:', url);
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error(`Mapbox API error: ${response.status}`);
+        throw new Error(`Erreur API Mapbox: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('📍 Enhanced Mapbox results:', data.features?.length || 0, data.features);
+      console.log('📍 Résultats Mapbox:', data.features?.length || 0);
       
       if (!data.features || data.features.length === 0) {
-        // Fallback: recherche élargie sans bbox
-        return this.searchWithoutBbox(searchQuery, center, options);
+        // Fallback: recherche sans bbox
+        console.log('🔄 Recherche fallback sans bbox...');
+        return this.searchWithoutBbox(enhancedQuery, center, options);
       }
       
       return data.features.map((feature: MapboxPlace) => this.convertToSearchResult(feature, center));
     } catch (error) {
-      console.error('Enhanced Mapbox search error:', error);
+      console.error('❌ Erreur de recherche:', error);
       return this.getMockResults(center, query);
     }
+  },
+
+  async searchSpecificBrand(
+    brand: string,
+    center: [number, number],
+    limit: number = 5
+  ): Promise<SearchResult[]> {
+    const searches = [
+      `${brand} magasin`,
+      `${brand} store`,
+      brand,
+      `${brand} meuble`,
+      `${brand} furniture`
+    ];
+
+    for (const searchTerm of searches) {
+      try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchTerm)}.json?` +
+          `access_token=${MAPBOX_TOKEN}&` +
+          `proximity=${center[0]},${center[1]}&` +
+          `limit=${limit}&` +
+          `country=fr&` +
+          `language=fr&` +
+          `types=poi,place&` +
+          `autocomplete=true`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          console.log(`✅ Trouvé ${data.features.length} résultats pour "${searchTerm}"`);
+          return data.features.map((feature: MapboxPlace) => this.convertToSearchResult(feature, center));
+        }
+      } catch (error) {
+        console.log(`❌ Erreur recherche "${searchTerm}":`, error);
+      }
+    }
+    
+    return [];
   },
 
   async searchWithoutBbox(
@@ -89,7 +133,7 @@ export const enhancedMapboxService = {
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
     try {
-      const { limit = 5 } = options;
+      const { limit = 10 } = options;
       
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
         `access_token=${MAPBOX_TOKEN}&` +
@@ -103,11 +147,9 @@ export const enhancedMapboxService = {
       const response = await fetch(url);
       const data = await response.json();
       
-      console.log('📍 Fallback search results:', data.features?.length || 0);
-      
       return data.features?.map((feature: MapboxPlace) => this.convertToSearchResult(feature, center)) || [];
     } catch (error) {
-      console.error('Fallback search error:', error);
+      console.error('❌ Erreur recherche fallback:', error);
       return [];
     }
   },
@@ -138,7 +180,7 @@ export const enhancedMapboxService = {
   },
 
   calculateDistance([lng1, lat1]: [number, number], [lng2, lat2]: [number, number]): number {
-    const R = 6371; // Earth's radius in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -153,39 +195,37 @@ export const enhancedMapboxService = {
     const lngDelta = radiusKm / (111.32 * Math.cos(lat * Math.PI / 180));
 
     return [
-      lng - lngDelta, // west
-      lat - latDelta, // south
-      lng + lngDelta, // east
-      lat + latDelta  // north
+      lng - lngDelta,
+      lat - latDelta,
+      lng + lngDelta,
+      lat + latDelta
     ];
   },
 
   getMockResults(center: [number, number], query?: string): SearchResult[] {
-    const mockData = [
-      {
-        id: 'mock-ikea-1',
-        name: 'IKEA Roissy',
-        address: 'Centre Commercial Aéroville, 93290 Tremblay-en-France',
-        coordinates: [center[0] + 0.05, center[1] + 0.03] as [number, number],
-        type: 'shopping',
-        category: 'shopping',
-        distance: 5.2,
-        duration: 15
-      },
-      {
-        id: 'mock-ikea-2',
-        name: 'IKEA Franconville',
-        address: 'ZAC des Closeaux, 95130 Franconville',
-        coordinates: [center[0] - 0.03, center[1] + 0.04] as [number, number],
-        type: 'shopping',
-        category: 'shopping',
-        distance: 8.1,
-        duration: 20
-      }
-    ];
-
     if (query?.toLowerCase().includes('ikea')) {
-      return mockData;
+      return [
+        {
+          id: 'mock-ikea-1',
+          name: 'IKEA Roissy',
+          address: 'Centre Commercial Aéroville, 93290 Tremblay-en-France',
+          coordinates: [center[0] + 0.05, center[1] + 0.03] as [number, number],
+          type: 'shopping',
+          category: 'shopping',
+          distance: 5.2,
+          duration: 15
+        },
+        {
+          id: 'mock-ikea-2',
+          name: 'IKEA Franconville',
+          address: 'ZAC des Closeaux, 95130 Franconville',
+          coordinates: [center[0] - 0.03, center[1] + 0.04] as [number, number],
+          type: 'shopping',
+          category: 'shopping',
+          distance: 8.1,
+          duration: 20
+        }
+      ];
     }
 
     return [

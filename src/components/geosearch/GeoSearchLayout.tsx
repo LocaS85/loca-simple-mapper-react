@@ -25,7 +25,6 @@ const GeoSearchLayout: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [isResultsExpanded, setIsResultsExpanded] = useState(false);
 
-  // Show results panel when we have results
   React.useEffect(() => {
     setShowResults(results.length > 0);
     if (results.length > 0 && isMobile) {
@@ -58,20 +57,18 @@ const GeoSearchLayout: React.FC = () => {
         },
         (error) => {
           console.error('❌ Erreur de géolocalisation:', error);
-          // Fallback vers une position par défaut (Paris)
           const fallbackCoords: [number, number] = [2.3522, 48.8566];
           console.log('📍 Utilisation position par défaut:', fallbackCoords);
           setUserLocation(fallbackCoords);
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 15000,
           maximumAge: 300000
         }
       );
     } else {
       console.warn('Géolocalisation non supportée');
-      // Fallback vers Paris
       const fallbackCoords: [number, number] = [2.3522, 48.8566];
       setUserLocation(fallbackCoords);
     }
@@ -87,22 +84,20 @@ const GeoSearchLayout: React.FC = () => {
     return (
       <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
         <div className="flex-1 relative overflow-hidden">
-          {/* Map avec marge pour le header augmentée */}
-          <div className="absolute inset-0" style={{ paddingTop: '240px' }}>
+          {/* Map avec marge augmentée pour éviter superposition */}
+          <div className="absolute inset-0" style={{ paddingTop: '260px' }}>
             <div className="relative h-full w-full">
-              {/* Zone de carte avec marges pour éviter les superpositions */}
               <div className="absolute inset-0" style={{ 
-                paddingLeft: '8px', 
-                paddingRight: '8px', 
-                paddingTop: '8px',
-                paddingBottom: showResults ? (isResultsExpanded ? '60%' : '200px') : '80px'
+                paddingLeft: '12px', 
+                paddingRight: '120px', // Marge droite pour éviter les contrôles zoom
+                paddingTop: '12px',
+                paddingBottom: showResults ? (isResultsExpanded ? '60%' : '220px') : '100px'
               }}>
                 <MapView transport={filters.transport} />
               </div>
             </div>
           </div>
 
-          {/* Header fixe en haut */}
           <GeoSearchMobileHeader
             isLoading={isLoading}
             filters={filters}
@@ -115,7 +110,6 @@ const GeoSearchLayout: React.FC = () => {
             setShowSidebarPopup={setShowSidebarPopup}
           />
 
-          {/* Résultats en bas */}
           <GeoSearchMobileResults
             results={results}
             isLoading={isLoading}
@@ -125,7 +119,6 @@ const GeoSearchLayout: React.FC = () => {
             onToggleExpanded={() => setIsResultsExpanded(!isResultsExpanded)}
           />
 
-          {/* Sidebar popup */}
           <GeoSearchSidebarPopup
             filters={filters}
             userLocation={userLocation}
@@ -148,12 +141,12 @@ const GeoSearchLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <div className="flex-1 relative overflow-hidden">
-        {/* Map avec marge pour le header desktop et éviter superposition */}
+        {/* Map avec marges améliorées pour éviter les superpositions */}
         <div className="absolute inset-0" style={{ 
-          paddingTop: '180px',
-          paddingRight: '120px', // Marge droite pour éviter les contrôles de zoom
-          paddingLeft: '8px',
-          paddingBottom: '8px'
+          paddingTop: '200px',
+          paddingRight: '140px', // Marge droite augmentée pour éviter les contrôles zoom
+          paddingLeft: '12px',
+          paddingBottom: '12px'
         }}>
           <MapView transport={filters.transport} />
         </div>

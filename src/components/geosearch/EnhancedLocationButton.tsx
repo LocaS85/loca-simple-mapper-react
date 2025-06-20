@@ -29,7 +29,6 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
         description: "Votre navigateur ne supporte pas la géolocalisation",
         variant: "destructive",
       });
-      // Fallback vers Paris
       const fallbackCoords: [number, number] = [2.3522, 48.8566];
       onLocationDetected(fallbackCoords);
       return;
@@ -44,8 +43,8 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
           reject,
           {
             enableHighAccuracy: true,
-            timeout: 15000, // Augmenter le timeout
-            maximumAge: 600000 // 10 minutes
+            timeout: 20000, // Augmenter le timeout à 20 secondes
+            maximumAge: 300000 // 5 minutes
           }
         );
       });
@@ -66,7 +65,6 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
     } catch (error) {
       console.error('❌ Erreur de géolocalisation:', error);
       
-      // Déterminer le type d'erreur
       let errorMessage = "Impossible d'obtenir votre position";
       if (error instanceof GeolocationPositionError) {
         switch (error.code) {
@@ -82,7 +80,6 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
         }
       }
       
-      // Fallback vers Paris
       const fallbackCoords: [number, number] = [2.3522, 48.8566];
       console.log('📍 Utilisation position par défaut:', fallbackCoords);
       onLocationDetected(fallbackCoords);
