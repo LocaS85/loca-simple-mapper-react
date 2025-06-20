@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,7 @@ const SUBCATEGORIES: Record<string, { value: string; label: string }[]> = {
     { value: 'market', label: 'Marché' },
     { value: 'boutique', label: 'Boutique' }
   ]
-];
+};
 
 interface FenetreFiltrageUnifieeProps {
   open: boolean;
