@@ -53,12 +53,27 @@ const GeoSearchLayout: React.FC = () => {
             position.coords.longitude,
             position.coords.latitude
           ];
+          console.log('📍 Position détectée:', coords);
           setUserLocation(coords);
         },
         (error) => {
           console.error('❌ Erreur de géolocalisation:', error);
+          // Fallback vers une position par défaut (Paris)
+          const fallbackCoords: [number, number] = [2.3522, 48.8566];
+          console.log('📍 Utilisation position par défaut:', fallbackCoords);
+          setUserLocation(fallbackCoords);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000
         }
       );
+    } else {
+      console.warn('Géolocalisation non supportée');
+      // Fallback vers Paris
+      const fallbackCoords: [number, number] = [2.3522, 48.8566];
+      setUserLocation(fallbackCoords);
     }
   };
 
@@ -133,8 +148,13 @@ const GeoSearchLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <div className="flex-1 relative overflow-hidden">
-        {/* Map avec marge pour le header desktop */}
-        <div className="absolute inset-0" style={{ paddingTop: '180px' }}>
+        {/* Map avec marge pour le header desktop et éviter superposition */}
+        <div className="absolute inset-0" style={{ 
+          paddingTop: '180px',
+          paddingRight: '120px', // Marge droite pour éviter les contrôles de zoom
+          paddingLeft: '8px',
+          paddingBottom: '8px'
+        }}>
           <MapView transport={filters.transport} />
         </div>
 

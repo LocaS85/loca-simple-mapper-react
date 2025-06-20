@@ -29,6 +29,9 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
         description: "Votre navigateur ne supporte pas la géolocalisation",
         variant: "destructive",
       });
+      // Fallback vers Paris
+      const fallbackCoords: [number, number] = [2.3522, 48.8566];
+      onLocationDetected(fallbackCoords);
       return;
     }
 
@@ -41,8 +44,8 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
           reject,
           {
             enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000
+            timeout: 15000, // Augmenter le timeout
+            maximumAge: 600000 // 10 minutes
           }
         );
       });
@@ -52,19 +55,42 @@ const EnhancedLocationButton: React.FC<EnhancedLocationButtonProps> = ({
         position.coords.latitude
       ];
 
+      console.log('📍 Position détectée avec succès:', coordinates);
       onLocationDetected(coordinates);
       
       toast({
         title: "Position détectée",
-        description: "Votre position a été détectée avec succès",
+        description: `Position: ${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`,
       });
 
     } catch (error) {
-      console.error('Geolocation error:', error);
+      console.error('❌ Erreur de géolocalisation:', error);
+      
+      // Déterminer le type d'erreur
+      let errorMessage = "Impossible d'obtenir votre position";
+      if (error instanceof GeolocationPositionError) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Permission de géolocalisation refusée. Utilisation de Paris par défaut.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Position non disponible. Utilisation de Paris par défaut.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Timeout de géolocalisation. Utilisation de Paris par défaut.";
+            break;
+        }
+      }
+      
+      // Fallback vers Paris
+      const fallbackCoords: [number, number] = [2.3522, 48.8566];
+      console.log('📍 Utilisation position par défaut:', fallbackCoords);
+      onLocationDetected(fallbackCoords);
+      
       toast({
-        title: "Erreur de géolocalisation",
-        description: "Impossible d'obtenir votre position actuelle",
-        variant: "destructive",
+        title: "Position par défaut",
+        description: errorMessage,
+        variant: "default",
       });
     } finally {
       setIsGeolocating(false);
