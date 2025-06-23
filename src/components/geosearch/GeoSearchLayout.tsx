@@ -7,7 +7,6 @@ import { GeoSearchSidebarPopup } from './layout/GeoSearchSidebarPopup';
 import { GeoSearchMobileResults } from './layout/GeoSearchMobileResults';
 import GeoSearchMobileHeader from './layout/GeoSearchMobileHeader';
 import GeoSearchDesktopHeader from './layout/GeoSearchDesktopHeader';
-import LocationButton from '@/components/shared/LocationButton';
 
 const GeoSearchLayout: React.FC = () => {
   const isMobile = useIsMobile();
@@ -45,6 +44,10 @@ const GeoSearchLayout: React.FC = () => {
     performSearch(query);
   };
 
+  const handleMyLocationClick = (coordinates: [number, number]) => {
+    setUserLocation(coordinates);
+  };
+
   const statusInfo = {
     totalResults: results.length,
     hasResults: results.length > 0,
@@ -75,7 +78,7 @@ const GeoSearchLayout: React.FC = () => {
             updateFilters={updateFilters}
             resetFilters={resetFilters}
             results={results}
-            handleMyLocationClick={(coordinates) => setUserLocation(coordinates)}
+            handleMyLocationClick={handleMyLocationClick}
             handleSearch={handleSearch}
             handleLocationSelect={handleLocationSelect}
             setShowSidebarPopup={setShowSidebarPopup}
@@ -98,7 +101,7 @@ const GeoSearchLayout: React.FC = () => {
             statusInfo={statusInfo}
             onLocationSelect={handleLocationSelect}
             onSearch={handleSearch}
-            onMyLocationClick={(coordinates) => setUserLocation(coordinates)}
+            onMyLocationClick={handleMyLocationClick}
             onFiltersChange={updateFilters}
             onResetFilters={resetFilters}
             open={showSidebarPopup}
@@ -128,7 +131,7 @@ const GeoSearchLayout: React.FC = () => {
           results={results}
           updateFilters={updateFilters}
           resetFilters={resetFilters}
-          handleMyLocationClick={(coordinates) => setUserLocation(coordinates)}
+          handleMyLocationClick={handleMyLocationClick}
           handleSearch={handleSearch}
           handleLocationSelect={handleLocationSelect}
           onFiltersClick={() => setShowSidebarPopup(true)}
@@ -142,7 +145,7 @@ const GeoSearchLayout: React.FC = () => {
           statusInfo={statusInfo}
           onLocationSelect={handleLocationSelect}
           onSearch={handleSearch}
-          onMyLocationClick={(coordinates) => setUserLocation(coordinates)}
+          onMyLocationClick={handleMyLocationClick}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}
           open={showSidebarPopup}

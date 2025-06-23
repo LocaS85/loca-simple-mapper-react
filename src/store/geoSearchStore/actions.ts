@@ -1,6 +1,6 @@
 
-import { GetState, SetState } from 'zustand';
-import { GeoSearchStore } from './types';
+import { StateCreator } from 'zustand';
+import { GeoSearchStore, SearchResult } from './types';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { createCacheKey, createMockResults } from './searchLogic';
 import { CacheService } from './cacheService';
@@ -8,18 +8,18 @@ import { CacheService } from './cacheService';
 const cacheService = new CacheService();
 
 export const createGeoSearchActions = (
-  set: SetState<GeoSearchStore>,
-  get: GetState<GeoSearchStore>
+  set: (partial: Partial<GeoSearchStore>) => void,
+  get: () => GeoSearchStore
 ) => ({
   setUserLocation: (location: [number, number] | null) => {
-    set({ userLocation: location }, false, 'setUserLocation');
+    set({ userLocation: location });
     if (location) {
       cacheService.clear();
     }
   },
     
   setStartingPosition: (position: [number, number] | null) => 
-    set({ startingPosition: position }, false, 'setStartingPosition'),
+    set({ startingPosition: position }),
   
   initializeMapbox: async () => {
     try {
@@ -31,14 +31,14 @@ export const createGeoSearchActions = (
           isMapboxReady: true,
           mapboxError: null,
           networkStatus: 'online'
-        }, false, 'initializeMapbox');
+        });
         console.log('✅ Mapbox initialisé avec succès');
       } else {
         set({ 
           isMapboxReady: false,
           mapboxError: 'Token Mapbox invalide - utilisez un token public (pk.) pour le frontend',
           networkStatus: 'offline'
-        }, false, 'mapboxError');
+        });
       }
     } catch (error) {
       console.error('❌ Erreur d\'initialisation Mapbox:', error);
@@ -46,7 +46,7 @@ export const createGeoSearchActions = (
         isMapboxReady: false,
         mapboxError: error instanceof Error ? error.message : 'Erreur de connexion Mapbox',
         networkStatus: 'offline'
-      }, false, 'mapboxError');
+      });
     }
   },
   
@@ -54,7 +54,7 @@ export const createGeoSearchActions = (
     const currentFilters = get().filters;
     const updatedFilters = { ...currentFilters, ...newFilters };
     
-    set({ filters: updatedFilters }, false, 'updateFilters');
+    set({ filters: updatedFilters });
     
     const criticalFilters = ['category', 'subcategory', 'transport', 'distance', 'maxDuration', 'aroundMeCount'];
     const shouldRefresh = Object.keys(newFilters).some(key => criticalFilters.includes(key));
@@ -74,30 +74,30 @@ export const createGeoSearchActions = (
     set({ 
       filters: { ...defaultFilters }, 
       lastSearchParams: null 
-    }, false, 'resetFilters');
+    });
     cacheService.clear();
   },
   
   setResults: (results: SearchResult[]) => 
-    set({ results }, false, 'setResults'),
+    set({ results }),
     
   setIsLoading: (loading: boolean) => 
-    set({ isLoading: loading }, false, 'setIsLoading'),
+    set({ isLoading: loading }),
 
   toggleFilters: () =>
-    set((state) => ({ showFilters: !state.showFilters }), false, 'toggleFilters'),
+    set((state) => ({ showFilters: !state.showFilters })),
     
   setShowFilters: (show: boolean) => 
-    set({ showFilters: show }, false, 'setShowFilters'),
+    set({ showFilters: show }),
 
   setNetworkStatus: (status: 'online' | 'offline' | 'slow') =>
-    set({ networkStatus: status }, false, 'setNetworkStatus'),
+    set({ networkStatus: status }),
 
   incrementRetryCount: () =>
-    set((state) => ({ retryCount: state.retryCount + 1 }), false, 'incrementRetryCount'),
+    set((state) => ({ retryCount: state.retryCount + 1 })),
 
   resetRetryCount: () =>
-    set({ retryCount: 0 }, false, 'resetRetryCount'),
+    set({ retryCount: 0 }),
 
   performSearch: async (query?: string) => {
     const { filters, updateFilters, loadResults } = get();
@@ -200,6 +200,6 @@ export const createGeoSearchActions = (
 
   clearCache: () => {
     cacheService.clear();
-    set({ searchCache: new Map() }, false, 'clearCache');
+    set({ searchCache: new Map() });
   }
 });
