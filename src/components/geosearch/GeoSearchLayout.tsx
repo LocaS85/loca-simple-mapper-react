@@ -7,6 +7,7 @@ import { GeoSearchSidebarPopup } from './layout/GeoSearchSidebarPopup';
 import { GeoSearchMobileResults } from './layout/GeoSearchMobileResults';
 import GeoSearchMobileHeader from './layout/GeoSearchMobileHeader';
 import GeoSearchDesktopHeader from './layout/GeoSearchDesktopHeader';
+import LocationButton from '@/components/shared/LocationButton';
 
 const GeoSearchLayout: React.FC = () => {
   const isMobile = useIsMobile();
@@ -44,36 +45,6 @@ const GeoSearchLayout: React.FC = () => {
     performSearch(query);
   };
 
-  const handleMyLocationClick = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coords: [number, number] = [
-            position.coords.longitude,
-            position.coords.latitude
-          ];
-          console.log('📍 Position détectée:', coords);
-          setUserLocation(coords);
-        },
-        (error) => {
-          console.error('❌ Erreur de géolocalisation:', error);
-          const fallbackCoords: [number, number] = [2.3522, 48.8566];
-          console.log('📍 Utilisation position par défaut:', fallbackCoords);
-          setUserLocation(fallbackCoords);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 300000
-        }
-      );
-    } else {
-      console.warn('Géolocalisation non supportée');
-      const fallbackCoords: [number, number] = [2.3522, 48.8566];
-      setUserLocation(fallbackCoords);
-    }
-  };
-
   const statusInfo = {
     totalResults: results.length,
     hasResults: results.length > 0,
@@ -104,7 +75,7 @@ const GeoSearchLayout: React.FC = () => {
             updateFilters={updateFilters}
             resetFilters={resetFilters}
             results={results}
-            handleMyLocationClick={handleMyLocationClick}
+            handleMyLocationClick={(coordinates) => setUserLocation(coordinates)}
             handleSearch={handleSearch}
             handleLocationSelect={handleLocationSelect}
             setShowSidebarPopup={setShowSidebarPopup}
@@ -127,7 +98,7 @@ const GeoSearchLayout: React.FC = () => {
             statusInfo={statusInfo}
             onLocationSelect={handleLocationSelect}
             onSearch={handleSearch}
-            onMyLocationClick={handleMyLocationClick}
+            onMyLocationClick={(coordinates) => setUserLocation(coordinates)}
             onFiltersChange={updateFilters}
             onResetFilters={resetFilters}
             open={showSidebarPopup}
@@ -157,7 +128,7 @@ const GeoSearchLayout: React.FC = () => {
           results={results}
           updateFilters={updateFilters}
           resetFilters={resetFilters}
-          handleMyLocationClick={handleMyLocationClick}
+          handleMyLocationClick={(coordinates) => setUserLocation(coordinates)}
           handleSearch={handleSearch}
           handleLocationSelect={handleLocationSelect}
           onFiltersClick={() => setShowSidebarPopup(true)}
@@ -171,7 +142,7 @@ const GeoSearchLayout: React.FC = () => {
           statusInfo={statusInfo}
           onLocationSelect={handleLocationSelect}
           onSearch={handleSearch}
-          onMyLocationClick={handleMyLocationClick}
+          onMyLocationClick={(coordinates) => setUserLocation(coordinates)}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}
           open={showSidebarPopup}
