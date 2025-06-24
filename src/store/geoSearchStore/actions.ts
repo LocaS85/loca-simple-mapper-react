@@ -66,6 +66,23 @@ export const createGeoSearchActions = (
       }, 300);
     }
   },
+  
+  setFiltersFromParams: (params: Record<string, string>) => {
+    const { updateFilters } = get();
+    const newFilters: Partial<GeoSearchStore['filters']> = {};
+    
+    if (params.query) newFilters.query = params.query;
+    if (params.category) newFilters.category = params.category;
+    if (params.subcategory) newFilters.subcategory = params.subcategory;
+    if (params.transport) newFilters.transport = params.transport as 'walking' | 'cycling' | 'driving' | 'transit';
+    if (params.distance) newFilters.distance = parseInt(params.distance);
+    if (params.maxDuration) newFilters.maxDuration = parseInt(params.maxDuration);
+    if (params.aroundMeCount) newFilters.aroundMeCount = parseInt(params.aroundMeCount);
+    if (params.unit) newFilters.unit = params.unit as 'km' | 'mi';
+    if (params.showMultiDirections) newFilters.showMultiDirections = params.showMultiDirections === 'true';
+    
+    updateFilters(newFilters);
+  },
     
   resetFilters: () => {
     const { defaultFilters } = get();

@@ -2,7 +2,7 @@
 export interface SearchResult {
   id: string;
   name: string;
-  address?: string; // Rendu optionnel pour correspondre aux types
+  address?: string;
   coordinates: [number, number];
   type: string;
   distance?: number;
@@ -49,6 +49,7 @@ export interface GeoSearchStore {
   setStartingPosition: (position: [number, number] | null) => void;
   initializeMapbox: () => Promise<void>;
   updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
+  setFiltersFromParams: (params: Record<string, string>) => void;
   resetFilters: () => void;
   setResults: (results: SearchResult[]) => void;
   setIsLoading: (loading: boolean) => void;

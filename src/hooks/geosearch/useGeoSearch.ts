@@ -27,7 +27,8 @@ export const useGeoSearch = (options: UseGeoSearchOptions = {}) => {
     performSearch,
     resetFilters,
     clearCache,
-    initializeMapbox
+    initializeMapbox,
+    setFiltersFromParams
   } = useGeoSearchStore();
 
   const debouncedQuery = useDebounce(searchQuery, debounceMs);
@@ -164,6 +165,7 @@ export const useGeoSearch = (options: UseGeoSearchOptions = {}) => {
     setUserLocation,
     resetFilters,
     clearCache,
-    performSearch
+    performSearch,
+    setFiltersFromParams
   };
 };
