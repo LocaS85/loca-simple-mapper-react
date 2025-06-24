@@ -1,5 +1,4 @@
 
-import { StateCreator } from 'zustand';
 import { GeoSearchStore, SearchResult } from './types';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { createCacheKey, createMockResults } from './searchLogic';
@@ -8,7 +7,7 @@ import { CacheService } from './cacheService';
 const cacheService = new CacheService();
 
 export const createGeoSearchActions = (
-  set: (partial: Partial<GeoSearchStore>) => void,
+  set: (partial: Partial<GeoSearchStore> | ((state: GeoSearchStore) => Partial<GeoSearchStore>)) => void,
   get: () => GeoSearchStore
 ) => ({
   setUserLocation: (location: [number, number] | null) => {
@@ -85,7 +84,7 @@ export const createGeoSearchActions = (
     set({ isLoading: loading }),
 
   toggleFilters: () =>
-    set((state) => ({ ...state, showFilters: !state.showFilters })),
+    set((state) => ({ showFilters: !state.showFilters })),
     
   setShowFilters: (show: boolean) => 
     set({ showFilters: show }),
@@ -94,7 +93,7 @@ export const createGeoSearchActions = (
     set({ networkStatus: status }),
 
   incrementRetryCount: () =>
-    set((state) => ({ ...state, retryCount: state.retryCount + 1 })),
+    set((state) => ({ retryCount: state.retryCount + 1 })),
 
   resetRetryCount: () =>
     set({ retryCount: 0 }),
@@ -161,9 +160,10 @@ export const createGeoSearchActions = (
       
       console.log('📍 Résultats Mapbox reçus:', mapboxResults.length);
       
-      const searchResults = mapboxResults.map(result => ({
+      const searchResults: SearchResult[] = mapboxResults.map(result => ({
         ...result,
-        address: result.address || 'Adresse non disponible'
+        address: result.address || 'Adresse non disponible',
+        type: result.category || 'point_of_interest'
       }));
       
       // Cache the results

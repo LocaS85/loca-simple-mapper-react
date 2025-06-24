@@ -4,7 +4,9 @@ export interface SearchResult {
   name: string;
   address: string;
   coordinates: [number, number];
+  type: string;
   distance?: number;
+  duration?: number;
   category?: string;
   rating?: number;
   phone?: string;
@@ -21,6 +23,9 @@ export interface GeoSearchFilters {
   distance: number;
   maxDuration?: number;
   aroundMeCount: number;
+  unit?: 'km' | 'mi';
+  showMultiDirections?: boolean;
+  coordinates?: [number, number];
 }
 
 export interface GeoSearchStore {
@@ -61,7 +66,9 @@ export const defaultFilters: GeoSearchFilters = {
   transport: 'walking',
   distance: 5,
   aroundMeCount: 5,
-  maxDuration: 30
+  maxDuration: 30,
+  unit: 'km',
+  showMultiDirections: false
 };
 
 export const initialState = {

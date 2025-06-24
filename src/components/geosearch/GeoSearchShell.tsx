@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
-import GeoSearchLayout from './layout/GeoSearchLayout';
+import { useGeoSearch } from '@/hooks/geosearch/useGeoSearch';
+import GeoSearchLayout from './GeoSearchLayout';
 import GeoSearchHeader from './layout/GeoSearchHeader';
 import GeoSearchContent from './layout/GeoSearchContent';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -20,12 +20,10 @@ const GeoSearchShell: React.FC = () => {
     updateFiltersWithSearch,
     handleLocationSelect,
     handleSearch,
-    handleTransportChange,
     handleMyLocationClick,
     performSearch,
-    clearCache,
-    setFiltersFromParams
-  } = useGeoSearchManager();
+    clearCache
+  } = useGeoSearch();
 
   if (!isMapboxReady) {
     return (
@@ -60,7 +58,6 @@ const GeoSearchShell: React.FC = () => {
         statusInfo={statusInfo}
         onFiltersChange={updateFiltersWithSearch}
         onLocationSelect={handleLocationSelect}
-        onTransportChange={handleTransportChange}
         onClearCache={clearCache}
       />
     </GeoSearchLayout>
