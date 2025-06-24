@@ -59,14 +59,14 @@ const GeoSearchLayout: React.FC = () => {
     return (
       <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
         <div className="flex-1 relative overflow-hidden">
-          {/* Map avec marge augmentée pour éviter superposition */}
-          <div className="absolute inset-0" style={{ paddingTop: '260px' }}>
+          {/* Map avec marges optimisées pour mobile */}
+          <div className="absolute inset-0" style={{ paddingTop: '240px' }}>
             <div className="relative h-full w-full">
               <div className="absolute inset-0" style={{ 
-                paddingLeft: '12px', 
-                paddingRight: '120px', // Marge droite pour éviter les contrôles zoom
-                paddingTop: '12px',
-                paddingBottom: showResults ? (isResultsExpanded ? '60%' : '220px') : '100px'
+                paddingLeft: '8px', 
+                paddingRight: '80px', // Espace pour les contrôles zoom
+                paddingTop: '8px',
+                paddingBottom: showResults ? (isResultsExpanded ? '60%' : '200px') : '80px'
               }}>
                 <MapView transport={filters.transport} />
               </div>
@@ -80,7 +80,7 @@ const GeoSearchLayout: React.FC = () => {
             resetFilters={resetFilters}
             results={results}
             handleMyLocationClick={() => {
-              // Use LocationButton component for geolocation
+              // Utilisation du LocationButton component pour la géolocalisation
             }}
             handleSearch={handleSearch}
             handleLocationSelect={handleLocationSelect}
@@ -105,7 +105,7 @@ const GeoSearchLayout: React.FC = () => {
             onLocationSelect={handleLocationSelect}
             onSearch={handleSearch}
             onMyLocationClick={() => {
-              // Use LocationButton component for geolocation
+              // Utilisation du LocationButton component pour la géolocalisation
             }}
             onFiltersChange={updateFilters}
             onResetFilters={resetFilters}
@@ -120,12 +120,12 @@ const GeoSearchLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <div className="flex-1 relative overflow-hidden">
-        {/* Map avec marges améliorées pour éviter les superpositions */}
+        {/* Map avec marges optimisées pour desktop */}
         <div className="absolute inset-0" style={{ 
-          paddingTop: '200px',
-          paddingRight: '140px', // Marge droite augmentée pour éviter les contrôles zoom
-          paddingLeft: '12px',
-          paddingBottom: '12px'
+          paddingTop: '180px',
+          paddingRight: '120px', // Espace pour les contrôles zoom
+          paddingLeft: '8px',
+          paddingBottom: '8px'
         }}>
           <MapView transport={filters.transport} />
         </div>
@@ -137,7 +137,7 @@ const GeoSearchLayout: React.FC = () => {
           updateFilters={updateFilters}
           resetFilters={resetFilters}
           handleMyLocationClick={() => {
-            // Use LocationButton component for geolocation
+            // Utilisation du LocationButton component pour la géolocalisation
           }}
           handleSearch={handleSearch}
           handleLocationSelect={handleLocationSelect}
@@ -153,7 +153,7 @@ const GeoSearchLayout: React.FC = () => {
           onLocationSelect={handleLocationSelect}
           onSearch={handleSearch}
           onMyLocationClick={() => {
-            // Use LocationButton component for geolocation
+            // Utilisation du LocationButton component pour la géolocalisation
           }}
           onFiltersChange={updateFilters}
           onResetFilters={resetFilters}

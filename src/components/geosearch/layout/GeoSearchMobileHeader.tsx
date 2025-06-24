@@ -32,21 +32,21 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
   setShowSidebarPopup,
 }) => (
   <div className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b shadow-sm">
-    <div className="px-3 py-2 space-y-3">
+    <div className="px-2 py-2 space-y-2">
       {/* Ligne 1: Menu burger et titre */}
-      <div className="flex items-center justify-between h-10">
+      <div className="flex items-center justify-between h-8">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowSidebarPopup(true)}
-          className="h-8 w-8 p-0 bg-white shadow-sm border hover:bg-gray-50 transition-colors flex-shrink-0"
+          className="h-7 w-7 p-0 bg-white shadow-sm border hover:bg-gray-50 transition-colors flex-shrink-0"
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="h-3 w-3" />
         </Button>
-        <div className="text-sm font-medium text-gray-600 flex-1 text-center">
+        <div className="text-xs font-medium text-gray-600 flex-1 text-center">
           GeoSearch
         </div>
-        <div className="w-8 h-8 flex-shrink-0" />
+        <div className="w-7 h-7 flex-shrink-0" />
       </div>
 
       {/* Ligne 2: Barre de recherche */}
@@ -56,7 +56,7 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
           onSearch={handleSearch}
           onLocationSelect={handleLocationSelect}
           placeholder="Rechercher un lieu..."
-          className="w-full"
+          className="w-full text-sm"
           isLoading={isLoading}
         />
       </div>
@@ -68,12 +68,12 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
           disabled={isLoading}
           variant="outline"
           size="sm"
-          className="px-3 h-8 text-xs"
+          className="px-2 h-7 text-xs"
         />
       </div>
 
-      {/* Ligne 4: Contrôles - Positionnés à gauche pour éviter les contrôles carte */}
-      <div className="flex items-center justify-start gap-2 pb-2">
+      {/* Ligne 4: Contrôles compacts */}
+      <div className="flex items-center justify-center gap-2 pb-1">
         <FiltersFloatingButton
           filters={filters}
           onChange={updateFilters}
@@ -84,7 +84,7 @@ const GeoSearchMobileHeader: React.FC<GeoSearchMobileHeaderProps> = ({
           variant="outline"
           size="sm"
           onClick={resetFilters}
-          className="h-7 w-7 p-0"
+          className="h-6 w-6 p-0"
           disabled={isLoading}
           title="Réinitialiser les filtres"
         >
