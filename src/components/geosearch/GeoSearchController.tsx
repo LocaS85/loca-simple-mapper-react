@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
+import { useGeoSearch } from '@/hooks/geosearch/useGeoSearch';
 import GeoSearchLayout from './GeoSearchLayout';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -9,7 +9,7 @@ const GeoSearchController: React.FC = () => {
   const {
     isMapboxReady,
     networkStatus
-  } = useGeoSearchManager();
+  } = useGeoSearch();
 
   if (!isMapboxReady) {
     return (

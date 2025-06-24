@@ -2,7 +2,7 @@
 export interface SearchResult {
   id: string;
   name: string;
-  address: string;
+  address?: string; // Rendu optionnel pour correspondre aux types
   coordinates: [number, number];
   type: string;
   distance?: number;

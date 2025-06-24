@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
+import { useGeoSearch } from '@/hooks/geosearch/useGeoSearch';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const ExternalNavigationAndExportPDF = () => {
-  const { filters, userLocation, results } = useGeoSearchManager();
+  const { filters, userLocation, results } = useGeoSearch();
   const selectedResult = results[0]; // Premier résultat sélectionné
 
   const openNavigationApp = () => {

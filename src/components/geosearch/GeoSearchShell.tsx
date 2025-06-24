@@ -38,8 +38,12 @@ const GeoSearchShell: React.FC = () => {
     );
   }
 
+  const handleTransportChange = (transport: 'walking' | 'cycling' | 'driving' | 'transit') => {
+    updateFiltersWithSearch({ transport });
+  };
+
   return (
-    <GeoSearchLayout>
+    <>
       <GeoSearchHeader
         searchQuery={searchQuery}
         onSearch={handleSearch}
@@ -58,9 +62,10 @@ const GeoSearchShell: React.FC = () => {
         statusInfo={statusInfo}
         onFiltersChange={updateFiltersWithSearch}
         onLocationSelect={handleLocationSelect}
+        onTransportChange={handleTransportChange}
         onClearCache={clearCache}
       />
-    </GeoSearchLayout>
+    </>
   );
 };
 

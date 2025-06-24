@@ -1,4 +1,3 @@
-
 import { GeoSearchStore, SearchResult } from './types';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { createCacheKey, createMockResults } from './searchLogic';
@@ -160,10 +159,21 @@ export const createGeoSearchActions = (
       
       console.log('📍 Résultats Mapbox reçus:', mapboxResults.length);
       
+      // Transformer les résultats pour s'assurer de la compatibilité des types
       const searchResults: SearchResult[] = mapboxResults.map(result => ({
-        ...result,
-        address: result.address || 'Adresse non disponible',
-        type: result.category || 'point_of_interest'
+        id: result.id,
+        name: result.name,
+        address: result.address, // Déjà optionnel dans mapboxApiService
+        coordinates: result.coordinates,
+        type: result.category || 'point_of_interest',
+        category: result.category,
+        distance: result.distance,
+        duration: result.duration,
+        rating: result.rating,
+        phone: result.phone,
+        website: result.website,
+        openingHours: result.openingHours,
+        price: result.price
       }));
       
       // Cache the results
@@ -190,7 +200,12 @@ export const createGeoSearchActions = (
       
       get().setNetworkStatus('offline');
       const mockResults = createMockResults(userLocation);
-      setResults(mockResults);
+      // Transformer les résultats mock pour garantir la compatibilité
+      const transformedMockResults: SearchResult[] = mockResults.map(result => ({
+        ...result,
+        address: result.address || 'Adresse non disponible'
+      }));
+      setResults(transformedMockResults);
       console.log('🔧 Utilisation de données de test après échec');
       
     } finally {

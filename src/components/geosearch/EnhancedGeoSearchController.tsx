@@ -1,8 +1,7 @@
-
 import React, { useEffect, useRef } from 'react';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import mapboxgl from 'mapbox-gl';
-import { useGeoSearchManager } from '@/hooks/geosearch/useGeoSearchManager';
+import { useGeoSearch } from '@/hooks/geosearch/useGeoSearch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -14,7 +13,7 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoibG9jYXNpbX
 
 const EnhancedGeoSearchController: React.FC<EnhancedGeoSearchControllerProps> = ({ children }) => {
   const geocoderRef = useRef<MapboxGeocoder | null>(null);
-  const { updateFiltersWithSearch, setFiltersFromParams } = useGeoSearchManager();
+  const { updateFiltersWithSearch, setFiltersFromParams } = useGeoSearch();
 
   useEffect(() => {
     if (!MAPBOX_TOKEN || typeof window === 'undefined') {
