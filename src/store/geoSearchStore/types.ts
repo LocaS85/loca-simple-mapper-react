@@ -1,37 +1,49 @@
 
-import { SearchResult, GeoSearchFilters, LocationData } from '@/types/geosearch';
-import { TransportMode, DistanceUnit } from '@/types/map';
+export interface SearchResult {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  distance?: number;
+  category?: string;
+  rating?: number;
+  phone?: string;
+  website?: string;
+  openingHours?: string;
+  price?: string;
+}
 
-export const defaultFilters: GeoSearchFilters = {
-  query: '',
-  transport: 'walking',
-  distance: 10,
-  maxDuration: 30,
-  aroundMeCount: 5,
-  unit: 'km',
-  showMultiDirections: false
-};
+export interface GeoSearchFilters {
+  query?: string;
+  category?: string;
+  subcategory?: string;
+  transport: 'walking' | 'cycling' | 'driving' | 'transit';
+  distance: number;
+  maxDuration?: number;
+  aroundMeCount: number;
+}
 
 export interface GeoSearchStore {
   // State
   userLocation: [number, number] | null;
   startingPosition: [number, number] | null;
   filters: GeoSearchFilters;
+  defaultFilters: GeoSearchFilters;
   results: SearchResult[];
   isLoading: boolean;
+  showFilters: boolean;
   isMapboxReady: boolean;
   mapboxError: string | null;
   networkStatus: 'online' | 'offline' | 'slow';
-  showFilters: boolean;
   retryCount: number;
   searchCache: Map<string, SearchResult[]>;
-  lastSearchParams: string | null;
+  lastSearchParams: any;
 
   // Actions
   setUserLocation: (location: [number, number] | null) => void;
   setStartingPosition: (position: [number, number] | null) => void;
   initializeMapbox: () => Promise<void>;
-  updateFilters: (filters: Partial<GeoSearchFilters>) => void;
+  updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
   resetFilters: () => void;
   setResults: (results: SearchResult[]) => void;
   setIsLoading: (loading: boolean) => void;
@@ -45,17 +57,25 @@ export interface GeoSearchStore {
   clearCache: () => void;
 }
 
+export const defaultFilters: GeoSearchFilters = {
+  transport: 'walking',
+  distance: 5,
+  aroundMeCount: 5,
+  maxDuration: 30
+};
+
 export const initialState = {
   userLocation: null,
   startingPosition: null,
-  filters: defaultFilters,
+  filters: { ...defaultFilters },
+  defaultFilters: { ...defaultFilters },
   results: [],
   isLoading: false,
+  showFilters: false,
   isMapboxReady: false,
   mapboxError: null,
   networkStatus: 'online' as const,
-  showFilters: false,
   retryCount: 0,
-  searchCache: new Map<string, SearchResult[]>(),
+  searchCache: new Map(),
   lastSearchParams: null
 };

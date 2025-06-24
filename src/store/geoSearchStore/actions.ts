@@ -85,7 +85,7 @@ export const createGeoSearchActions = (
     set({ isLoading: loading }),
 
   toggleFilters: () =>
-    set((state) => ({ showFilters: !state.showFilters })),
+    set((state) => ({ ...state, showFilters: !state.showFilters })),
     
   setShowFilters: (show: boolean) => 
     set({ showFilters: show }),
@@ -94,7 +94,7 @@ export const createGeoSearchActions = (
     set({ networkStatus: status }),
 
   incrementRetryCount: () =>
-    set((state) => ({ retryCount: state.retryCount + 1 })),
+    set((state) => ({ ...state, retryCount: state.retryCount + 1 })),
 
   resetRetryCount: () =>
     set({ retryCount: 0 }),
