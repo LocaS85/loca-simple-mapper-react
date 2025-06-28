@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
+import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
 
 interface GeoSearchSidebarPopupProps {
   open: boolean;

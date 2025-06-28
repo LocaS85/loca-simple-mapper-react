@@ -1,28 +1,25 @@
 
-export type TransportMode = 'walking' | 'driving' | 'cycling' | 'transit';
+export type TransportMode = 'walking' | 'cycling' | 'driving' | 'transit';
 export type DistanceUnit = 'km' | 'mi';
 
-export interface MapLocation {
-  id: string;
-  name: string;
-  coordinates: [number, number];
-  address?: string;
-  category?: string;
+export interface MapConfig {
+  center: [number, number];
+  zoom: number;
+  pitch?: number;
+  bearing?: number;
 }
 
-export interface MapFilters {
-  transport: TransportMode;
-  distance: number;
-  unit: DistanceUnit;
-  category?: string;
+export interface RouteOptions {
+  transportMode: TransportMode;
+  avoidTolls?: boolean;
+  avoidHighways?: boolean;
 }
 
-export interface POI {
-  id: string;
-  name: string;
-  coordinates: [number, number];
-  category?: string;
-  description?: string;
-  distance?: number;
-  duration?: number;
+export interface MapboxDirectionsOptions {
+  profile?: 'driving' | 'walking' | 'cycling';
+  geometries?: 'geojson' | 'polyline' | 'polyline6';
+  overview?: 'full' | 'simplified' | 'false';
+  steps?: boolean;
+  continue_straight?: boolean;
+  waypoint_snapping?: string[];
 }

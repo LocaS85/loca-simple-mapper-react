@@ -2,13 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Category } from '@/types/categories';
 
 interface SubcategoriesListProps {
-  category: {
-    id: string;
-    name: string;
-    subcategories?: string[];
-  };
+  category: Category;
   selectedSubcategory?: string;
   onSubcategorySelect?: (subcategory: string) => void;
   parentCategory: string;
