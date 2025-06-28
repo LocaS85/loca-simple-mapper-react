@@ -23,3 +23,13 @@ export interface MapboxDirectionsOptions {
   continue_straight?: boolean;
   waypoint_snapping?: string[];
 }
+
+export interface POI {
+  id: string;
+  name: string;
+  coordinates: [number, number];
+  category?: string;
+  description?: string;
+  distance?: number;
+  duration?: number;
+}
