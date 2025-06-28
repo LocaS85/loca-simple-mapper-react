@@ -1,72 +1,51 @@
 
 import React from 'react';
-import { Clock } from 'lucide-react';
-import SubcategoryCard3D from './SubcategoryCard3D';
-import { Category, DailyAddressData } from '@/types/category';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface SubcategoriesListProps {
-  category: Category;
-  dailyAddresses: DailyAddressData[];
-  onEditAddress: (address: DailyAddressData) => void;
-  onDeleteAddress: (addressId: string) => void;
-  onAddNewAddress: (subcategoryId: string) => void;
-  onSearchClick: (subcategoryId: string) => void;
+  category: {
+    id: string;
+    name: string;
+    subcategories?: string[];
+  };
+  selectedSubcategory?: string;
+  onSubcategorySelect?: (subcategory: string) => void;
+  parentCategory: string;
 }
 
 const SubcategoriesList: React.FC<SubcategoriesListProps> = ({
   category,
-  dailyAddresses,
-  onEditAddress,
-  onDeleteAddress,
-  onAddNewAddress,
-  onSearchClick
+  selectedSubcategory,
+  onSubcategorySelect,
+  parentCategory
 }) => {
-  // Filter addresses that belong to the current category
-  const categoryAddresses = dailyAddresses.filter(address => address.category === category.id);
-  
-  // Count addresses per subcategory
-  const subcategoryAddressCounts: {[key: string]: number} = {};
-  categoryAddresses.forEach(address => {
-    if (address.subcategory && subcategoryAddressCounts[address.subcategory]) {
-      subcategoryAddressCounts[address.subcategory]++;
-    } else if (address.subcategory) {
-      subcategoryAddressCounts[address.subcategory] = 1;
-    }
-  });
-  
+  if (!category.subcategories || category.subcategories.length === 0) {
+    return null;
+  }
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      {category.subcategories.map((subcategory) => {
-        const addressCount = subcategoryAddressCounts[subcategory.id] || 0;
-        const subcategoryAddresses = categoryAddresses.filter(
-          address => address.subcategory === subcategory.id
-        );
-        
-        // Handle icon - either string or React component
-        let iconElement: React.ReactNode;
-        if (typeof subcategory.icon === 'string') {
-          iconElement = <span style={{ color: category.color }}>{subcategory.icon}</span>;
-        } else {
-          const IconComponent = subcategory.icon as React.ComponentType<React.SVGProps<SVGSVGElement>>;
-          iconElement = <IconComponent color={category.color} />;
-        }
-        
-        return (
-          <SubcategoryCard3D
-            key={subcategory.id}
-            title={subcategory.name}
-            icon={iconElement}
-            color={category.color}
-            description={subcategory.description || ''}
-            addressCount={addressCount}
-            addresses={subcategoryAddresses}
-            onEditAddress={onEditAddress}
-            onDeleteAddress={onDeleteAddress}
-            onAddNewAddress={() => onAddNewAddress(subcategory.id)}
-            onSearchClick={() => onSearchClick(subcategory.id)}
-          />
-        );
-      })}
+      {category.subcategories.map((subcategory) => (
+        <Card 
+          key={subcategory}
+          className={`cursor-pointer transition-all hover:shadow-md ${
+            selectedSubcategory === subcategory ? 'ring-2 ring-primary' : ''
+          }`}
+          onClick={() => onSubcategorySelect?.(subcategory)}
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              {subcategory}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <Badge variant="outline" className="text-xs">
+              {parentCategory}
+            </Badge>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

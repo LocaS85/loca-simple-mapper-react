@@ -11,3 +11,12 @@ export interface CategoryItem {
     description: string;
   }[];
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description?: string;
+  subcategories?: string[];
+}

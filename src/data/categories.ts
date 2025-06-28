@@ -1,49 +1,39 @@
 
-import { Category } from "../types";
+import { Category } from "../types/categories";
 
-export const categoriesData: Category[] = [
+export const categories: Category[] = [
   {
     id: 'divertissement',
     name: 'Divertissement',
     icon: '🎬',
     color: '#8e44ad',
-    subcategories: [
-      { id: 'cinema', name: 'Cinéma', icon: '🎬' },
-      { id: 'concert', name: 'Concert', icon: '🎵' },
-      { id: 'theatre', name: 'Théâtre', icon: '🎭' }
-    ]
+    description: 'Cinéma, concerts, théâtres et divertissements',
+    subcategories: ['cinema', 'concert', 'theatre']
   },
   {
     id: 'sante',
     name: 'Santé',
     icon: '🧘',
     color: '#27ae60',
-    subcategories: [
-      { id: 'pharmacie', name: 'Pharmacie', icon: '💊' },
-      { id: 'clinique', name: 'Clinique', icon: '🏥' },
-      { id: 'yoga', name: 'Yoga', icon: '🧘' }
-    ]
+    description: 'Pharmacies, cliniques et bien-être',
+    subcategories: ['pharmacie', 'clinique', 'yoga']
   },
   {
     id: 'alimentation',
     name: 'Alimentation',
     icon: '🍔',
     color: '#e67e22',
-    subcategories: [
-      { id: 'cafe', name: 'Café', icon: '☕' },
-      { id: 'restaurant', name: 'Restaurant', icon: '🍴' },
-      { id: 'bar', name: 'Bar', icon: '🍻' }
-    ]
+    description: 'Restaurants, cafés et bars',
+    subcategories: ['cafe', 'restaurant', 'bar']
   },
   {
     id: 'quotidien',
     name: 'Quotidien',
     icon: '📍',
     color: '#3498db',
-    subcategories: [
-      { id: 'maison', name: 'Maison', icon: '🏠' },
-      { id: 'travail', name: 'Travail', icon: '🏢' },
-      { id: 'autre', name: 'Autre', icon: '📌' }
-    ]
+    description: 'Lieux de vie quotidienne',
+    subcategories: ['maison', 'travail', 'autre']
   },
 ];
+
+export const categoriesData = categories;

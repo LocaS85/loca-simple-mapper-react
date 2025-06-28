@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Category } from '@/types/categories';
-import { renderIcon } from '@/utils/iconRenderer';
 
 interface CategoryPageHeaderProps {
   category: Category;
@@ -37,7 +36,7 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
         <CardHeader className="pb-4">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-white rounded-lg shadow-sm">
-              {renderIcon(category.icon, { className: "h-8 w-8 text-primary" })}
+              <span className="text-2xl">{category.icon}</span>
             </div>
             <div className="flex-1">
               <CardTitle className="text-2xl font-bold text-gray-900 mb-2">

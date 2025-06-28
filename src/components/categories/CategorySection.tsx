@@ -6,10 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Category } from '@/types/categories';
 import { TransportMode, DistanceUnit } from '@/types/map';
-import { renderIcon } from '@/utils/iconRenderer';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import SubcategoriesList from './SubcategoriesList';
 
 interface CategorySectionProps {
   category: Category;
@@ -69,7 +65,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
         <CardHeader className="pb-4">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-primary/5 rounded-lg">
-              {renderIcon(category.icon, { className: "h-8 w-8 text-primary" })}
+              <span className="text-2xl">{category.icon}</span>
             </div>
             <div className="flex-1">
               <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
@@ -112,16 +108,6 @@ const CategorySection: React.FC<CategorySectionProps> = ({
           </div>
         </CardContent>
       </Card>
-
-      {/* Sous-catégories */}
-      {showSubcategories && category.subcategories && (
-        <SubcategoriesList
-          subcategories={category.subcategories}
-          selectedSubcategory={selectedSubcategory}
-          onSubcategorySelect={onSubcategorySelect}
-          parentCategory={category.name}
-        />
-      )}
 
       {/* Informations contextuelles */}
       {userLocation && (
