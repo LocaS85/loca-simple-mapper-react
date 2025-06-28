@@ -1,166 +1,122 @@
 
-import React, { useState } from 'react';
-import { useGeoSearchStore } from '@/store/geoSearchStore';
+import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import MapView from './MapView';
-import { GeoSearchSidebarPopup } from './layout/GeoSearchSidebarPopup';
-import { GeoSearchMobileResults } from './layout/GeoSearchMobileResults';
+import { useGeoSearch } from '@/hooks/geosearch/useGeoSearch';
 import GeoSearchMobileHeader from './layout/GeoSearchMobileHeader';
-import GeoSearchDesktopHeader from './layout/GeoSearchDesktopHeader';
-import { LocationButton } from '@/components/shared';
+import { GeoSearchMobileResults } from './layout/GeoSearchMobileResults';
+import GeoSearchSidebarPopup from './layout/GeoSearchSidebarPopup';
+import FloatingControls from './FloatingControls';
 
 const GeoSearchLayout: React.FC = () => {
   const isMobile = useIsMobile();
+  
   const {
+    searchQuery,
+    setSearchQuery,
     userLocation,
     filters,
     results,
     isLoading,
-    updateFilters,
+    statusInfo,
+    handleSearch,
+    handleLocationSelect,
+    updateFiltersWithSearch,
     resetFilters,
-    performSearch,
     setUserLocation
-  } = useGeoSearchStore();
+  } = useGeoSearch();
 
   const [showSidebarPopup, setShowSidebarPopup] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isResultsExpanded, setIsResultsExpanded] = useState(false);
 
-  React.useEffect(() => {
-    setShowResults(results.length > 0);
-    if (results.length > 0 && isMobile) {
+  // Gérer l'affichage des résultats
+  useEffect(() => {
+    setShowResults(results.length > 0 && !isLoading);
+  }, [results.length, isLoading]);
+
+  // Auto-collapse results when switching to desktop
+  useEffect(() => {
+    if (!isMobile) {
       setIsResultsExpanded(false);
     }
-  }, [results.length, isMobile]);
+  }, [isMobile]);
 
-  const handleLocationSelect = (location: { name: string; coordinates: [number, number]; placeName: string }) => {
-    setUserLocation(location.coordinates);
-    performSearch(location.name);
-  };
-
-  const handleSearch = (query?: string) => {
-    if (query) {
-      updateFilters({ query });
+  const handleLocationClick = () => {
+    if (userLocation) {
+      handleSearch();
     }
-    performSearch(query);
   };
-
-  const handleMyLocationClick = (coordinates: [number, number]) => {
-    setUserLocation(coordinates);
-  };
-
-  const statusInfo = {
-    totalResults: results.length,
-    hasResults: results.length > 0,
-    isReady: !!userLocation
-  };
-
-  if (isMobile) {
-    return (
-      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-        <div className="flex-1 relative overflow-hidden">
-          {/* Map avec marges optimisées pour mobile */}
-          <div className="absolute inset-0" style={{ paddingTop: '240px' }}>
-            <div className="relative h-full w-full">
-              <div className="absolute inset-0" style={{ 
-                paddingLeft: '8px', 
-                paddingRight: '80px', // Espace pour les contrôles zoom
-                paddingTop: '8px',
-                paddingBottom: showResults ? (isResultsExpanded ? '60%' : '200px') : '80px'
-              }}>
-                <MapView transport={filters.transport} />
-              </div>
-            </div>
-          </div>
-
-          <GeoSearchMobileHeader
-            isLoading={isLoading}
-            filters={filters}
-            updateFilters={updateFilters}
-            resetFilters={resetFilters}
-            results={results}
-            handleMyLocationClick={() => {
-              // Utilisation du LocationButton component pour la géolocalisation
-            }}
-            handleSearch={handleSearch}
-            handleLocationSelect={handleLocationSelect}
-            setShowSidebarPopup={setShowSidebarPopup}
-          />
-
-          <GeoSearchMobileResults
-            results={results}
-            isLoading={isLoading}
-            showResults={showResults}
-            isResultsExpanded={isResultsExpanded}
-            statusInfo={statusInfo}
-            onToggleExpanded={() => setIsResultsExpanded(!isResultsExpanded)}
-          />
-
-          <GeoSearchSidebarPopup
-            filters={filters}
-            userLocation={userLocation}
-            results={results}
-            isLoading={isLoading}
-            statusInfo={statusInfo}
-            onLocationSelect={handleLocationSelect}
-            onSearch={handleSearch}
-            onMyLocationClick={() => {
-              // Utilisation du LocationButton component pour la géolocalisation
-            }}
-            onFiltersChange={updateFilters}
-            onResetFilters={resetFilters}
-            open={showSidebarPopup}
-            onOpenChange={setShowSidebarPopup}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <div className="flex-1 relative overflow-hidden">
-        {/* Map avec marges optimisées pour desktop */}
-        <div className="absolute inset-0" style={{ 
-          paddingTop: '180px',
-          paddingRight: '120px', // Espace pour les contrôles zoom
-          paddingLeft: '8px',
-          paddingBottom: '8px'
-        }}>
-          <MapView transport={filters.transport} />
-        </div>
-
-        <GeoSearchDesktopHeader
+    <div className="relative h-screen bg-gray-50 overflow-hidden">
+      {/* Mobile Header */}
+      {isMobile && (
+        <GeoSearchMobileHeader
           isLoading={isLoading}
           filters={filters}
-          results={results}
-          updateFilters={updateFilters}
+          updateFilters={updateFiltersWithSearch}
           resetFilters={resetFilters}
-          handleMyLocationClick={() => {
-            // Utilisation du LocationButton component pour la géolocalisation
-          }}
+          results={results}
+          handleMyLocationClick={handleLocationClick}
           handleSearch={handleSearch}
           handleLocationSelect={handleLocationSelect}
-          onFiltersClick={() => setShowSidebarPopup(true)}
+          setShowSidebarPopup={setShowSidebarPopup}
         />
+      )}
 
-        <GeoSearchSidebarPopup
-          filters={filters}
-          userLocation={userLocation}
+      {/* Map Container - Adjusted margins for mobile */}
+      <div 
+        className={`
+          w-full h-full bg-white flex items-center justify-center
+          ${isMobile ? 'mt-32 mb-4' : 'mt-0 mb-0'}
+        `}
+        id="geo-map-container"
+      >
+        <div className="text-gray-500 text-center p-8">
+          <h3 className="text-lg font-semibold mb-2">Carte Interactive</h3>
+          <p className="text-sm text-gray-400">
+            L'interface de carte sera intégrée ici
+          </p>
+          {userLocation && (
+            <p className="text-xs text-green-600 mt-2">
+              Position: {userLocation[1].toFixed(4)}, {userLocation[0].toFixed(4)}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Results Panel */}
+      {isMobile && showResults && (
+        <GeoSearchMobileResults
           results={results}
           isLoading={isLoading}
+          showResults={showResults}
+          isResultsExpanded={isResultsExpanded}
           statusInfo={statusInfo}
-          onLocationSelect={handleLocationSelect}
-          onSearch={handleSearch}
-          onMyLocationClick={() => {
-            // Utilisation du LocationButton component pour la géolocalisation
-          }}
-          onFiltersChange={updateFilters}
-          onResetFilters={resetFilters}
-          open={showSidebarPopup}
-          onOpenChange={setShowSidebarPopup}
+          onToggleExpanded={() => setIsResultsExpanded(!isResultsExpanded)}
         />
-      </div>
+      )}
+
+      {/* Desktop Floating Controls */}
+      {!isMobile && (
+        <FloatingControls
+          filters={filters}
+          results={results}
+          isLoading={isLoading}
+          updateFilters={updateFiltersWithSearch}
+          resetFilters={resetFilters}
+        />
+      )}
+
+      {/* Sidebar Popup */}
+      <GeoSearchSidebarPopup
+        open={showSidebarPopup}
+        onClose={() => setShowSidebarPopup(false)}
+        results={results}
+        isLoading={isLoading}
+        filters={filters}
+        onFiltersChange={updateFiltersWithSearch}
+      />
     </div>
   );
 };

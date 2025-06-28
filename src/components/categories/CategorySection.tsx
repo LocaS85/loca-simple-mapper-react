@@ -1,142 +1,141 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import CategoryCard3D from '@/components/categories/CategoryCard3D';
-import SubcategoriesList from '@/components/categories/SubcategoriesList';
-import { Category } from '@/types/category';
-import { DailyAddressData } from '@/types/category';
-import { useToast } from '@/hooks/use-toast';
-import { TransportMode } from '@/lib/data/transportModes';
+
+import React from 'react';
+import { MapPin, Navigation, Clock, Ruler } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Category } from '@/types/categories';
+import { TransportMode, DistanceUnit } from '@/types/map';
+import { renderIcon } from '@/utils/iconRenderer';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import SubcategoriesList from './SubcategoriesList';
 
 interface CategorySectionProps {
-  categories: Category[];
-  dailyAddresses: DailyAddressData[];
-  onEditAddress: (address: DailyAddressData) => void;
-  onDeleteAddress: (addressId: string) => void;
-  onAddNewAddress: (subcategoryId: string) => void;
-  onSelectCategory?: (category: Category) => void;
-  selectedCategory: Category | null;
-  transportMode: TransportMode;
-  maxDistance: number;
-  maxDuration: number;
-  distanceUnit: 'km' | 'mi';
-  onSearchClick: (subcategoryId: string) => void;
+  category: Category;
+  userLocation?: [number, number] | null;
+  onCategorySelect?: (category: Category) => void;
+  showSubcategories?: boolean;
+  selectedSubcategory?: string;
+  onSubcategorySelect?: (subcategory: string) => void;
+  transportMode?: TransportMode;
+  maxDistance?: number;
+  maxDuration?: number;
+  distanceUnit?: DistanceUnit;
+  isLoading?: boolean;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
-  categories,
-  dailyAddresses,
-  onEditAddress,
-  onDeleteAddress,
-  onAddNewAddress,
-  onSelectCategory,
-  selectedCategory,
-  transportMode,
-  maxDistance,
-  maxDuration,
-  distanceUnit,
-  onSearchClick
+  category,
+  userLocation,
+  onCategorySelect,
+  showSubcategories = false,
+  selectedSubcategory,
+  onSubcategorySelect,
+  isLoading = false
 }) => {
-  const [animateDirection, setAnimateDirection] = useState<'left' | 'right'>('right');
-  const prevCategoryRef = useRef<string | null>(null);
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (selectedCategory && prevCategoryRef.current) {
-      // Determine animation direction by comparing category indices
-      const prevIndex = categories.findIndex(c => c.id === prevCategoryRef.current);
-      const currentIndex = categories.findIndex(c => c.id === selectedCategory.id);
-      
-      if (prevIndex !== -1 && currentIndex !== -1) {
-        setAnimateDirection(currentIndex > prevIndex ? 'right' : 'left');
-      }
-    }
-    
-    if (selectedCategory) {
-      prevCategoryRef.current = selectedCategory.id;
-    }
-  }, [selectedCategory, categories]);
-
-  const handleCategoryClick = (category: Category) => {
-    if (selectedCategory?.id === category.id) {
-      onSelectCategory?.(null); // Unselect if already selected
-    } else {
-      onSelectCategory?.(category);
+  
+  const handleCategoryClick = () => {
+    if (onCategorySelect) {
+      onCategorySelect(category);
     }
   };
 
-  // We'll use the onSearchClick prop directly instead of defining a local handler
+  const handleStartSearch = () => {
+    if (!userLocation) {
+      return;
+    }
+    
+    const searchParams = new URLSearchParams({
+      category: category.name,
+      lat: userLocation[1].toString(),
+      lng: userLocation[0].toString()
+    });
+
+    if (selectedSubcategory) {
+      searchParams.set('subcategory', selectedSubcategory);
+    }
+
+    window.location.href = `/geosearch?${searchParams.toString()}`;
+  };
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
-        {categories.map((category) => (
-          <CategoryCard3D
-            key={category.id}
-            category={category}
-            isSelected={selectedCategory?.id === category.id}
-            onClick={() => handleCategoryClick(category)}
-          />
-        ))}
-      </div>
-      
-      <AnimatePresence mode="wait">
-        {selectedCategory && (
-          <motion.div
-            key={selectedCategory.id}
-            initial={{ 
-              opacity: 0, 
-              x: animateDirection === 'right' ? 50 : -50,
-              y: 10 
-            }}
-            animate={{ 
-              opacity: 1, 
-              x: 0,
-              y: 0 
-            }}
-            exit={{ 
-              opacity: 0,
-              x: animateDirection === 'right' ? -50 : 50,
-              y: 10 
-            }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
-              damping: 30 
-            }}
-            className="mt-6"
-          >
-            <div className="flex items-center mb-6 space-x-3">
-              <div className="text-2xl md:text-3xl p-2 rounded-full" style={{ backgroundColor: selectedCategory.color + '20' }}>
-                {typeof selectedCategory.icon === 'string' ? selectedCategory.icon : 
-                 React.createElement(selectedCategory.icon as React.ComponentType<any>, { 
-                   size: 30,
-                   color: selectedCategory.color,
-                   strokeWidth: 2
-                 })}
-              </div>
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold" style={{ color: selectedCategory.color }}>
-                  {selectedCategory.name}
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  Sélectionnez une sous-catégorie pour commencer votre recherche
-                </p>
-              </div>
+    <div className="space-y-6">
+      {/* En-tête de la catégorie */}
+      <Card 
+        className="cursor-pointer transition-all hover:shadow-md border-2 hover:border-primary/20"
+        onClick={handleCategoryClick}
+      >
+        <CardHeader className="pb-4">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-primary/5 rounded-lg">
+              {renderIcon(category.icon, { className: "h-8 w-8 text-primary" })}
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
+                {category.name}
+              </CardTitle>
+              <CardDescription className="text-gray-600 leading-relaxed">
+                {category.description}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="pt-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              {userLocation && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  <span>Position détectée</span>
+                </div>
+              )}
+              {category.subcategories && (
+                <Badge variant="secondary">
+                  {category.subcategories.length} sous-catégories
+                </Badge>
+              )}
             </div>
             
-            <SubcategoriesList 
-              category={selectedCategory}
-              dailyAddresses={dailyAddresses}
-              onEditAddress={onEditAddress}
-              onDeleteAddress={onDeleteAddress}
-              onAddNewAddress={onAddNewAddress}
-              onSearchClick={onSearchClick}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStartSearch();
+              }}
+              disabled={!userLocation || isLoading}
+              className="flex items-center gap-2"
+            >
+              <Navigation className="h-4 w-4" />
+              {isLoading ? 'Recherche...' : 'Rechercher'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sous-catégories */}
+      {showSubcategories && category.subcategories && (
+        <SubcategoriesList
+          subcategories={category.subcategories}
+          selectedSubcategory={selectedSubcategory}
+          onSubcategorySelect={onSubcategorySelect}
+          parentCategory={category.name}
+        />
+      )}
+
+      {/* Informations contextuelles */}
+      {userLocation && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 text-sm text-blue-700">
+              <Clock className="h-4 w-4" />
+              <span>Recherche basée sur votre position actuelle</span>
+              <Ruler className="h-4 w-4 ml-2" />
+              <span>Rayon de recherche personnalisable</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

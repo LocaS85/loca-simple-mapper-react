@@ -1,88 +1,72 @@
 
-import React, { useState } from 'react';
-import { MapToggle } from '@/components/categories';
-import { useTranslation } from 'react-i18next';
-import { TransportMode } from '@/lib/data/transportModes';
-import UnifiedFilterSheet from '../filters/UnifiedFilterSheet';
-import FilterButton from '../filters/FilterButton';
-import RouteBackButton from '@/components/ui/RouteBackButton';
+import React from 'react';
+import { ArrowLeft, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Category } from '@/types/categories';
+import { renderIcon } from '@/utils/iconRenderer';
 
 interface CategoryPageHeaderProps {
-  showMap: boolean;
-  setShowMap: (show: boolean) => void;
-  maxDistance: number;
-  setMaxDistance: (distance: number) => void;
-  maxDuration: number;
-  setMaxDuration: (duration: number) => void;
-  aroundMeCount?: number;
-  setAroundMeCount?: (count: number) => void;
-  showMultiDirections?: boolean;
-  setShowMultiDirections?: (show: boolean) => void;
-  distanceUnit?: 'km' | 'mi';
-  setDistanceUnit?: (unit: 'km' | 'mi') => void;
-  transportMode: TransportMode;
-  setTransportMode: (mode: TransportMode) => void;
-  onResetFilters?: () => void;
+  category: Category;
+  onBack: () => void;
+  userLocation?: [number, number] | null;
+  subcategoryCount?: number;
 }
 
 const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
-  showMap,
-  setShowMap,
-  maxDistance,
-  setMaxDistance,
-  maxDuration,
-  setMaxDuration,
-  aroundMeCount = 3,
-  setAroundMeCount,
-  showMultiDirections = false,
-  setShowMultiDirections,
-  distanceUnit = 'km',
-  setDistanceUnit,
-  transportMode,
-  setTransportMode,
-  onResetFilters
+  category,
+  onBack,
+  userLocation,
+  subcategoryCount = 0
 }) => {
-  const { t } = useTranslation();
-  const [showFilters, setShowFilters] = useState(false);
-
   return (
-    <>
-      <div className="mb-6">
-        <RouteBackButton className="mb-4" />
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl md:text-3xl font-bold">Catégories</h1>
-          <div className="flex items-center gap-2">
-            <FilterButton 
-              onClick={() => setShowFilters(true)}
-              transportMode={transportMode}
-              distanceChanged={maxDistance !== 5}
-              durationChanged={maxDuration !== 20}
-              aroundMeChanged={(aroundMeCount || 3) > 3}
-              showMultiDirections={showMultiDirections}
-            />
-            <MapToggle showMap={showMap} setShowMap={setShowMap} />
-          </div>
-        </div>
-      </div>
+    <div className="space-y-4">
+      {/* Bouton retour */}
+      <Button
+        variant="ghost"
+        onClick={onBack}
+        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0 h-auto"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Retour aux catégories
+      </Button>
 
-      <UnifiedFilterSheet
-        open={showFilters}
-        onClose={() => setShowFilters(false)}
-        maxDistance={maxDistance}
-        setMaxDistance={setMaxDistance}
-        maxDuration={maxDuration}
-        setMaxDuration={setMaxDuration}
-        aroundMeCount={aroundMeCount || 3}
-        setAroundMeCount={setAroundMeCount || (() => {})}
-        showMultiDirections={showMultiDirections || false}
-        setShowMultiDirections={setShowMultiDirections || (() => {})}
-        distanceUnit={distanceUnit || 'km'}
-        setDistanceUnit={setDistanceUnit || (() => {})}
-        transportMode={transportMode}
-        setTransportMode={setTransportMode}
-        onReset={onResetFilters}
-      />
-    </>
+      {/* En-tête de la catégorie */}
+      <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardHeader className="pb-4">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-white rounded-lg shadow-sm">
+              {renderIcon(category.icon, { className: "h-8 w-8 text-primary" })}
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
+                {category.name}
+              </CardTitle>
+              <CardDescription className="text-gray-600 text-base leading-relaxed">
+                {category.description}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="pt-0">
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            {userLocation && (
+              <div className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                <span>Position détectée</span>
+              </div>
+            )}
+            {subcategoryCount > 0 && (
+              <Badge variant="secondary">
+                {subcategoryCount} sous-catégories
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

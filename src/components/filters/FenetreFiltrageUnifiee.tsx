@@ -1,61 +1,37 @@
+
 import React from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+import { TransportMode, DistanceUnit } from '@/types/map';
+import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTranslation } from 'react-i18next';
-import { TransportMode } from '@/types/map';
-import { Car, User, Bike, Train, X } from 'lucide-react';
-
-// Données des catégories
-const CATEGORIES = [
-  { value: 'restaurant', label: 'Restaurants' },
-  { value: 'hotel', label: 'Hôtels' },
-  { value: 'shopping', label: 'Shopping' },
-  { value: 'healthcare', label: 'Santé' },
-  { value: 'entertainment', label: 'Divertissement' },
-  { value: 'education', label: 'Éducation' },
-  { value: 'transport', label: 'Transport' }
-];
-
-const SUBCATEGORIES: Record<string, { value: string; label: string }[]> = {
-  restaurant: [
-    { value: 'fast_food', label: 'Fast Food' },
-    { value: 'fine_dining', label: 'Gastronomie' },
-    { value: 'cafe', label: 'Café' },
-    { value: 'bar', label: 'Bar' }
-  ],
-  hotel: [
-    { value: 'budget', label: 'Budget' },
-    { value: 'luxury', label: 'Luxe' },
-    { value: 'boutique', label: 'Boutique' }
-  ],
-  shopping: [
-    { value: 'mall', label: 'Centre commercial' },
-    { value: 'market', label: 'Marché' },
-    { value: 'boutique', label: 'Boutique' }
-  ]
-};
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { RotateCcw, Filter, Car, User, Bike, Train } from 'lucide-react';
+import { categories } from '@/data/categories';
 
 interface FenetreFiltrageUnifieeProps {
   open: boolean;
   onClose: () => void;
   category: string | null;
-  setCategory: (category: string | null) => void;
+  setCategory: (value: string | null) => void;
   subcategory: string | null;
-  setSubcategory: (subcategory: string | null) => void;
+  setSubcategory: (value: string | null) => void;
   maxDistance: number;
-  setMaxDistance: (distance: number) => void;
+  setMaxDistance: (value: number) => void;
   maxDuration: number;
-  setMaxDuration: (duration: number) => void;
+  setMaxDuration: (value: number) => void;
   aroundMeCount: number;
-  setAroundMeCount: (count: number) => void;
+  setAroundMeCount: (value: number) => void;
   showMultiDirections: boolean;
-  setShowMultiDirections: (show: boolean) => void;
-  distanceUnit: 'km' | 'mi';
-  setDistanceUnit: (unit: 'km' | 'mi') => void;
+  setShowMultiDirections: (value: boolean) => void;
+  distanceUnit: DistanceUnit;
+  setDistanceUnit: (value: DistanceUnit) => void;
   transportMode: TransportMode;
-  setTransportMode: (mode: TransportMode) => void;
+  setTransportMode: (value: TransportMode) => void;
   onReset?: () => void;
 }
 
@@ -80,194 +56,224 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
   setTransportMode,
   onReset
 }) => {
-  const { t } = useTranslation();
-
-  const transportModeIcons: Record<TransportMode, React.ReactNode> = {
-    driving: <Car className="h-4 w-4" />,
-    walking: <User className="h-4 w-4" />,
-    cycling: <Bike className="h-4 w-4" />,
-    transit: <Train className="h-4 w-4" />,
-  };
-
-  const handleCategoryChange = (value: string) => {
-    if (value === 'none') {
-      setCategory(null);
-      setSubcategory(null);
-    } else {
-      setCategory(value);
-      setSubcategory(null);
+  const getTransportIcon = (mode: TransportMode) => {
+    switch (mode) {
+      case 'driving': return <Car className="h-4 w-4" />;
+      case 'walking': return <User className="h-4 w-4" />;
+      case 'cycling': return <Bike className="h-4 w-4" />;
+      case 'transit': return <Train className="h-4 w-4" />;
+      default: return <Car className="h-4 w-4" />;
     }
   };
 
-  const handleSubcategoryChange = (value: string) => {
-    if (value === 'none') {
-      setSubcategory(null);
-    } else {
-      setSubcategory(value);
+  const handleReset = () => {
+    if (onReset) {
+      onReset();
     }
+    onClose();
   };
+
+  const selectedCategory = categories.find(cat => cat.name === category);
+  const subcategories = selectedCategory?.subcategories || [];
+
+  if (!open) return null;
 
   return (
-    <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent className="w-[90%] sm:max-w-md overflow-y-auto">
-        <SheetHeader className="flex flex-row items-center justify-between">
-          <SheetTitle>Filtres de recherche</SheetTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </SheetHeader>
+    <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Filter className="h-5 w-5" />
+          Filtres de recherche
+        </DialogTitle>
+      </DialogHeader>
 
-        <div className="py-6 space-y-6">
-          {/* Catégorie */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Catégorie</h3>
-            <Select value={category || 'none'} onValueChange={handleCategoryChange}>
+      <div className="space-y-6">
+        {/* Catégorie */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Catégorie</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Select value={category || ''} onValueChange={(value) => setCategory(value || null)}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Toutes les catégories</SelectItem>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                <SelectItem value="">Toutes les catégories</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.name} value={cat.name}>
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
 
-          {/* Sous-catégorie */}
-          {category && SUBCATEGORIES[category] && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium">Sous-catégorie</h3>
-              <Select value={subcategory || 'none'} onValueChange={handleSubcategoryChange}>
+            {subcategories.length > 0 && (
+              <Select value={subcategory || ''} onValueChange={(value) => setSubcategory(value || null)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une sous-catégorie" />
+                  <SelectValue placeholder="Sous-catégorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Toutes les sous-catégories</SelectItem>
-                  {SUBCATEGORIES[category].map((subcat) => (
-                    <SelectItem key={subcat.value} value={subcat.value}>
-                      {subcat.label}
+                  <SelectItem value="">Toutes les sous-catégories</SelectItem>
+                  {subcategories.map((sub) => (
+                    <SelectItem key={sub} value={sub}>
+                      {sub}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Transport */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              {getTransportIcon(transportMode)}
+              Mode de transport
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={transportMode} onValueChange={(value) => setTransportMode(value as TransportMode)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="walking">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    À pied
+                  </div>
+                </SelectItem>
+                <SelectItem value="cycling">
+                  <div className="flex items-center gap-2">
+                    <Bike className="h-4 w-4" />
+                    Vélo
+                  </div>
+                </SelectItem>
+                <SelectItem value="driving">
+                  <div className="flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    Voiture
+                  </div>
+                </SelectItem>
+                <SelectItem value="transit">
+                  <div className="flex items-center gap-2">
+                    <Train className="h-4 w-4" />
+                    Transports
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Distance et Durée */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Distance et durée</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-xs text-gray-600">
+                Distance maximale: {maxDistance} {distanceUnit}
+              </Label>
+              <Slider
+                value={[maxDistance]}
+                onValueChange={(value) => setMaxDistance(value[0])}
+                max={50}
+                min={1}
+                step={1}
+                className="mt-2"
+              />
             </div>
-          )}
 
-          {/* Mode de transport */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Mode de transport</h3>
-            <div className="flex flex-wrap gap-2">
-              {(['driving', 'walking', 'cycling', 'transit'] as TransportMode[]).map((mode) => (
-                <Button
-                  key={mode}
-                  variant={transportMode === mode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTransportMode(mode)}
-                  className="flex items-center gap-2"
-                >
-                  {transportModeIcons[mode]}
-                  {mode === 'driving' && 'Voiture'}
-                  {mode === 'walking' && 'Marche'}
-                  {mode === 'cycling' && 'Vélo'}
-                  {mode === 'transit' && 'Transport'}
-                </Button>
-              ))}
+            <div>
+              <Label className="text-xs text-gray-600">
+                Durée maximale: {maxDuration} min
+              </Label>
+              <Slider
+                value={[maxDuration]}
+                onValueChange={(value) => setMaxDuration(value[0])}
+                max={60}
+                min={5}
+                step={5}
+                className="mt-2"
+              />
             </div>
-          </div>
 
-          {/* Distance */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-sm font-medium">Distance maximale</h3>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{maxDistance}</span>
-                <div className="flex rounded-md overflow-hidden border border-border">
-                  <button
-                    onClick={() => setDistanceUnit('km')}
-                    className={`px-2 py-1 text-xs ${
-                      distanceUnit === 'km' ? 'bg-primary text-primary-foreground' : 'bg-background'
-                    }`}
-                  >
-                    km
-                  </button>
-                  <button
-                    onClick={() => setDistanceUnit('mi')}
-                    className={`px-2 py-1 text-xs ${
-                      distanceUnit === 'mi' ? 'bg-primary text-primary-foreground' : 'bg-background'
-                    }`}
-                  >
-                    mi
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs">Unité</Label>
+              <Select value={distanceUnit} onValueChange={(value) => setDistanceUnit(value as DistanceUnit)}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="km">km</SelectItem>
+                  <SelectItem value="mi">mi</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Slider
-              value={[maxDistance]}
-              min={1}
-              max={distanceUnit === 'km' ? 50 : 30}
-              step={1}
-              onValueChange={(values) => setMaxDistance(values[0])}
-            />
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Durée maximale */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-sm font-medium">Durée maximale</h3>
-              <span className="font-semibold">{maxDuration} min</span>
+        {/* Résultats */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Nombre de résultats</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div>
+              <Label className="text-xs text-gray-600">
+                Résultats à afficher: {aroundMeCount}
+              </Label>
+              <Slider
+                value={[aroundMeCount]}
+                onValueChange={(value) => setAroundMeCount(value[0])}
+                max={20}
+                min={1}
+                step={1}
+                className="mt-2"
+              />
             </div>
-            <Slider
-              value={[maxDuration]}
-              min={5}
-              max={60}
-              step={5}
-              onValueChange={(values) => setMaxDuration(values[0])}
-            />
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Nombre de résultats */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-sm font-medium">Nombre de résultats</h3>
-              <span className="font-semibold">{aroundMeCount}</span>
+        {/* Options avancées */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Options avancées</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Itinéraires multiples</Label>
+              <Switch
+                checked={showMultiDirections}
+                onCheckedChange={setShowMultiDirections}
+              />
             </div>
-            <Slider
-              value={[aroundMeCount]}
-              min={1}
-              max={10}
-              step={1}
-              onValueChange={(values) => setAroundMeCount(values[0])}
-            />
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Directions multiples */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Afficher toutes les directions</h3>
-            <Button
-              variant={showMultiDirections ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowMultiDirections(!showMultiDirections)}
-            >
-              {showMultiDirections ? 'Oui' : 'Non'}
-            </Button>
-          </div>
-        </div>
+        <Separator />
 
-        <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
-          <Button className="w-full" onClick={onClose}>
-            Appliquer les filtres
+        {/* Actions */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            className="flex items-center gap-2 flex-1"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Réinitialiser
           </Button>
-          {onReset && (
-            <Button variant="outline" className="w-full" onClick={onReset}>
-              Réinitialiser
-            </Button>
-          )}
+          <Button onClick={onClose} className="flex-1">
+            Appliquer
+          </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </DialogContent>
   );
 };
 
