@@ -4,11 +4,17 @@ import { TransportMode } from '@/lib/data/transportModes';
 export interface MapboxSearchResult {
   id: string;
   name: string;
-  address: string;
+  address?: string;
   coordinates: [number, number];
-  category: string;
+  category?: string;
   distance?: number;
+  duration?: number;
   relevance?: number;
+  rating?: number;
+  phone?: string;
+  website?: string;
+  openingHours?: string;
+  price?: string;
   properties?: Record<string, any>;
 }
 

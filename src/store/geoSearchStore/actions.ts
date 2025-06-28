@@ -1,3 +1,4 @@
+
 import { GeoSearchStore, SearchResult } from './types';
 import { mapboxApiService } from '@/services/mapboxApiService';
 import { createCacheKey, createMockResults } from './searchLogic';
@@ -176,21 +177,21 @@ export const createGeoSearchActions = (
       
       console.log('📍 Résultats Mapbox reçus:', mapboxResults.length);
       
-      // Transformer les résultats pour s'assurer de la compatibilité des types
+      // Transformer les résultats en s'assurant que toutes les propriétés sont définies
       const searchResults: SearchResult[] = mapboxResults.map(result => ({
         id: result.id,
         name: result.name,
-        address: result.address, // Déjà optionnel dans mapboxApiService
+        address: result.address,
         coordinates: result.coordinates,
         type: result.category || 'point_of_interest',
         category: result.category,
         distance: result.distance,
         duration: result.duration,
-        rating: result.rating,
-        phone: result.phone,
-        website: result.website,
-        openingHours: result.openingHours,
-        price: result.price
+        rating: result.rating || undefined,
+        phone: result.phone || undefined,
+        website: result.website || undefined,
+        openingHours: result.openingHours || undefined,
+        price: result.price || undefined
       }));
       
       // Cache the results
@@ -217,10 +218,15 @@ export const createGeoSearchActions = (
       
       get().setNetworkStatus('offline');
       const mockResults = createMockResults(userLocation);
-      // Transformer les résultats mock pour garantir la compatibilité
+      // Transformer les résultats mock avec toutes les propriétés
       const transformedMockResults: SearchResult[] = mockResults.map(result => ({
         ...result,
-        address: result.address || 'Adresse non disponible'
+        address: result.address || 'Adresse non disponible',
+        rating: undefined,
+        phone: undefined,
+        website: undefined,
+        openingHours: undefined,
+        price: undefined
       }));
       setResults(transformedMockResults);
       console.log('🔧 Utilisation de données de test après échec');

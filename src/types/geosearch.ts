@@ -10,6 +10,11 @@ export interface SearchResult {
   category?: string;
   distance?: number;
   duration?: number;
+  rating?: number;
+  phone?: string;
+  website?: string;
+  openingHours?: string;
+  price?: string;
 }
 
 export interface LocationData {
