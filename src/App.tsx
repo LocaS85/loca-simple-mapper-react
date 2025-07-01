@@ -1,4 +1,5 @@
 
+import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from '@/routes';
 import { ThemeProvider } from '@/hooks/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
@@ -31,12 +32,14 @@ function App() {
         console.error('Erreur de l\'application:', error, errorInfo);
       }}
     >
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <div className="flex flex-col min-h-screen">
-          <AppRoutes />
-          <Toaster />
-        </div>
-      </ThemeProvider>
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <div className="flex flex-col min-h-screen">
+            <AppRoutes />
+            <Toaster />
+          </div>
+        </ThemeProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }
