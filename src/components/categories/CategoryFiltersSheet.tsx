@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+
 import { Settings } from 'lucide-react';
 import { TransportMode, DistanceUnit } from '@/types/map';
 import FilterBadges from '../filters/FilterBadges';

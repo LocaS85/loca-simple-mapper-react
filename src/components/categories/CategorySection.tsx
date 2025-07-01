@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, Navigation, Clock, Ruler } from 'lucide-react';
+import { MapPin, Navigation } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   onCategorySelect,
   transportMode = 'walking',
   maxDistance = 5,
-  maxDuration = 30,
+  
   distanceUnit = 'km',
   isLoading = false
 }) => {

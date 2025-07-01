@@ -1,37 +1,20 @@
 
-export interface SearchResult {
-  id: string;
-  name: string;
-  address?: string;
-  coordinates: [number, number];
-  type: string;
-  distance?: number;
-  duration?: number;
-  category?: string;
-  rating?: number;
-  phone?: string;
-  website?: string;
-  openingHours?: string;
-  price?: string;
-}
+// IMPORT FROM UNIFIED TYPES
+import type { 
+  SearchResult, 
+  GeoSearchFilters, 
+  CoordinatesPair,
+  NetworkStatus
+} from '@/types/unified';
+import { DEFAULT_FILTERS } from '@/types/unified';
 
-export interface GeoSearchFilters {
-  query?: string;
-  category?: string;
-  subcategory?: string;
-  transport: 'walking' | 'cycling' | 'driving' | 'transit';
-  distance: number;
-  maxDuration?: number;
-  aroundMeCount: number;
-  unit?: 'km' | 'mi';
-  showMultiDirections?: boolean;
-  coordinates?: [number, number];
-}
+// RE-EXPORT FOR EXTERNAL USE
+export type { SearchResult, GeoSearchFilters, CoordinatesPair, NetworkStatus };
 
 export interface GeoSearchStore {
   // State
-  userLocation: [number, number] | null;
-  startingPosition: [number, number] | null;
+  userLocation: CoordinatesPair | null;
+  startingPosition: CoordinatesPair | null;
   filters: GeoSearchFilters;
   defaultFilters: GeoSearchFilters;
   results: SearchResult[];
@@ -39,14 +22,14 @@ export interface GeoSearchStore {
   showFilters: boolean;
   isMapboxReady: boolean;
   mapboxError: string | null;
-  networkStatus: 'online' | 'offline' | 'slow';
+  networkStatus: NetworkStatus;
   retryCount: number;
   searchCache: Map<string, SearchResult[]>;
-  lastSearchParams: any;
+  lastSearchParams: Record<string, unknown>;
 
   // Actions
-  setUserLocation: (location: [number, number] | null) => void;
-  setStartingPosition: (position: [number, number] | null) => void;
+  setUserLocation: (location: CoordinatesPair | null) => void;
+  setStartingPosition: (position: CoordinatesPair | null) => void;
   initializeMapbox: () => Promise<void>;
   updateFilters: (newFilters: Partial<GeoSearchFilters>) => void;
   setFiltersFromParams: (params: Record<string, string>) => void;
@@ -55,7 +38,7 @@ export interface GeoSearchStore {
   setIsLoading: (loading: boolean) => void;
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
-  setNetworkStatus: (status: 'online' | 'offline' | 'slow') => void;
+  setNetworkStatus: (status: NetworkStatus) => void;
   incrementRetryCount: () => void;
   resetRetryCount: () => void;
   performSearch: (query?: string) => Promise<void>;
@@ -63,27 +46,20 @@ export interface GeoSearchStore {
   clearCache: () => void;
 }
 
-export const defaultFilters: GeoSearchFilters = {
-  transport: 'walking',
-  distance: 5,
-  aroundMeCount: 5,
-  maxDuration: 30,
-  unit: 'km',
-  showMultiDirections: false
-};
+export const defaultFilters: GeoSearchFilters = DEFAULT_FILTERS;
 
 export const initialState = {
-  userLocation: null,
-  startingPosition: null,
+  userLocation: null as CoordinatesPair | null,
+  startingPosition: null as CoordinatesPair | null,
   filters: { ...defaultFilters },
   defaultFilters: { ...defaultFilters },
-  results: [],
+  results: [] as SearchResult[],
   isLoading: false,
   showFilters: false,
   isMapboxReady: false,
-  mapboxError: null,
-  networkStatus: 'online' as const,
+  mapboxError: null as string | null,
+  networkStatus: 'online' as NetworkStatus,
   retryCount: 0,
-  searchCache: new Map(),
-  lastSearchParams: null
+  searchCache: new Map<string, SearchResult[]>(),
+  lastSearchParams: {} as Record<string, unknown>
 };

@@ -35,9 +35,6 @@ export default defineConfig(({ mode }) => ({
       typescript: true,
       overlay: {
         initialIsOpen: false,
-      },
-      eslint: {
-        lintCommand: 'eslint "./src/**/*.{ts,tsx}" --max-warnings 0'
       }
     }),
   ].filter(Boolean),

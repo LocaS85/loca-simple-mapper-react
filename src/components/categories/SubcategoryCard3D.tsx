@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { DailyAddressData } from '@/types/category';
-import { renderIcon } from '@/utils/iconRenderer';
+
 
 interface SubcategoryCardProps {
   title: string;

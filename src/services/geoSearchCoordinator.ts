@@ -1,7 +1,6 @@
 
 import { mapboxApiService } from './mapboxApiService';
-import { TransportMode } from '@/lib/data/transportModes';
-import { SearchResult, GeoSearchFilters } from '@/types/geosearch';
+import { TransportMode, SearchResult, GeoSearchFilters } from '@/types/unified';
 
 class GeoSearchCoordinator {
   private static instance: GeoSearchCoordinator;
