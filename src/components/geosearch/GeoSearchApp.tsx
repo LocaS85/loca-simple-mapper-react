@@ -47,8 +47,22 @@ const GeoSearchApp: React.FC = () => {
   // Initialiser Mapbox au montage du composant
   useEffect(() => {
     console.log('🚀 Initialisation de l\'application GeoSearch');
-    initializeMapbox();
+    initializeMapbox().then(() => {
+      // Auto-trigger search for restaurants if we have a location
+      if (userLocation && !results.length) {
+        console.log('🔍 Auto-search restaurants pour position:', userLocation);
+        performSearch('restaurant');
+      }
+    });
   }, [initializeMapbox]);
+
+  // Auto-trigger search when user location is available
+  useEffect(() => {
+    if (userLocation && isMapboxReady && !results.length && !isLoading) {
+      console.log('🔍 Auto-search triggered pour nouvelle position');
+      performSearch('restaurant');
+    }
+  }, [userLocation, isMapboxReady]);
 
   // Status info consolidé
   const statusInfo: StatusInfo = {

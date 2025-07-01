@@ -128,6 +128,8 @@ export const createGeoSearchActions = (
   loadResults: async () => {
     const { userLocation, filters, setIsLoading, setResults, isMapboxReady, retryCount } = get();
     
+    console.log('🚀 Début loadResults avec:', { userLocation, filters, isMapboxReady });
+    
     if (!userLocation) {
       console.log('❌ Aucune localisation utilisateur disponible');
       return;
@@ -146,7 +148,7 @@ export const createGeoSearchActions = (
     const cacheKey = createCacheKey(filters, userLocation);
     const cachedResults = cacheService.get(cacheKey);
     if (cachedResults) {
-      console.log('📦 Résultats trouvés en cache');
+      console.log('📦 Résultats trouvés en cache:', cachedResults.length);
       setResults(cachedResults);
       return;
     }
@@ -155,6 +157,7 @@ export const createGeoSearchActions = (
     console.log('🔍 Recherche avec localisation:', userLocation);
     
     try {
+      // Construire la requête de recherche
       let searchQuery = filters.query || '';
       if (filters.category && !searchQuery) {
         searchQuery = filters.category;
@@ -163,28 +166,30 @@ export const createGeoSearchActions = (
         searchQuery = `${searchQuery} ${filters.subcategory}`.trim();
       }
       
+      // Par défaut, rechercher des restaurants si pas de requête
       if (!searchQuery) {
         searchQuery = 'restaurant';
       }
 
-      console.log('🔍 Requête de recherche:', searchQuery);
+      console.log('🔍 Requête de recherche:', searchQuery, 'avec filtres:', filters);
       
+      // Appel API Mapbox
       const mapboxResults = await mapboxApiService.searchPlaces(searchQuery, userLocation, {
         limit: filters.aroundMeCount || 5,
-        radius: filters.distance,
+        radius: filters.distance || 5,
         categories: filters.category ? [filters.category] : undefined
       });
       
-      console.log('📍 Résultats Mapbox reçus:', mapboxResults.length);
+      console.log('📍 Résultats Mapbox reçus:', mapboxResults.length, mapboxResults);
       
-      // Transformer les résultats en s'assurant que toutes les propriétés sont définies
-      const searchResults: SearchResult[] = mapboxResults.map(result => ({
-        id: result.id,
-        name: result.name,
-        address: result.address,
+      // Transformer les résultats avec toutes les propriétés requises
+      const searchResults: SearchResult[] = mapboxResults.map((result, index) => ({
+        id: result.id || `result-${index}`,
+        name: result.name || 'Lieu sans nom',
+        address: result.address || 'Adresse non disponible',
         coordinates: result.coordinates,
-        type: result.category || 'point_of_interest',
-        category: result.category,
+        type: result.type || 'place',
+        category: result.category || filters.category || 'restaurant',
         distance: result.distance,
         duration: result.duration,
         rating: result.rating || undefined,
@@ -193,6 +198,8 @@ export const createGeoSearchActions = (
         openingHours: result.openingHours || undefined,
         price: result.price || undefined
       }));
+      
+      console.log('🏷️ Résultats transformés:', searchResults);
       
       // Cache the results
       cacheService.set(cacheKey, searchResults);
@@ -203,7 +210,7 @@ export const createGeoSearchActions = (
       console.log('✅ Résultats traités et stockés:', searchResults.length);
       
     } catch (error) {
-      console.error('❌ Erreur de recherche:', error);
+      console.error('❌ Erreur de recherche détaillée:', error);
       
       if (retryCount < 2) {
         console.log(`🔄 Tentative ${retryCount + 1}/3`);
@@ -216,9 +223,9 @@ export const createGeoSearchActions = (
         return;
       }
       
+      // Fallback vers données de test
       get().setNetworkStatus('offline');
       const mockResults = createMockResults(userLocation);
-      // Transformer les résultats mock avec toutes les propriétés
       const transformedMockResults: SearchResult[] = mockResults.map(result => ({
         ...result,
         address: result.address || 'Adresse non disponible',
@@ -229,7 +236,7 @@ export const createGeoSearchActions = (
         price: undefined
       }));
       setResults(transformedMockResults);
-      console.log('🔧 Utilisation de données de test après échec');
+      console.log('🔧 Utilisation de données de test:', transformedMockResults.length);
       
     } finally {
       setIsLoading(false);
