@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { RotateCcw, Filter, Car, User, Bike, Train } from 'lucide-react';
-import { categories } from '@/data/categories';
+import { unifiedCategories } from '@/data/unifiedCategories';
 
 interface FenetreFiltrageUnifieeProps {
   open: boolean;
@@ -73,7 +73,7 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
     onClose();
   };
 
-  const selectedCategory = categories.find(cat => cat.name === category);
+  const selectedCategory = unifiedCategories.find(cat => cat.id === category);
   const subcategories = selectedCategory?.subcategories || [];
 
   if (!open) return null;
@@ -100,8 +100,8 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Toutes les catégories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.name} value={cat.name}>
+                {unifiedCategories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
                   </SelectItem>
                 ))}
@@ -116,8 +116,8 @@ const FenetreFiltrageUnifiee: React.FC<FenetreFiltrageUnifieeProps> = ({
                 <SelectContent>
                   <SelectItem value="">Toutes les sous-catégories</SelectItem>
                   {subcategories.map((sub) => (
-                    <SelectItem key={sub} value={sub}>
-                      {sub}
+                    <SelectItem key={sub.id} value={sub.id}>
+                      {sub.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
