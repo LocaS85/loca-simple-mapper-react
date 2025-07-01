@@ -85,6 +85,7 @@ const GeoSearchApp: React.FC = () => {
   };
 
   const handleMyLocationClick = (): void => {
+    console.log('🎯 Demande de géolocalisation...');
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -92,13 +93,16 @@ const GeoSearchApp: React.FC = () => {
             position.coords.longitude,
             position.coords.latitude
           ];
-          console.log('📍 Position détectée:', coords);
+          console.log('📍 Position détectée dans GeoSearchApp:', coords);
           setUserLocation(coords);
+          console.log('💾 Position stockée dans le store:', coords);
         },
         (error) => {
-          console.error('❌ Erreur de géolocalisation:', error);
+          console.error('❌ Erreur de géolocalisation dans GeoSearchApp:', error);
         }
       );
+    } else {
+      console.error('❌ Géolocalisation non supportée');
     }
   };
 

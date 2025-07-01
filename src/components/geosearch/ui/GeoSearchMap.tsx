@@ -20,8 +20,12 @@ const GeoSearchMap: React.FC<GeoSearchMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const { isMapboxReady } = useGeoSearchStore();
 
-  // Centrer la carte sur les résultats ou la position utilisateur
+  // Debug et centrer la carte sur les résultats ou la position utilisateur
   useEffect(() => {
+    console.log('📍 GeoSearchMap - userLocation:', userLocation);
+    console.log('🔍 GeoSearchMap - results:', results.length);
+    console.log('🗺️ GeoSearchMap - isMapboxReady:', isMapboxReady);
+    
     if (isMapboxReady && userLocation && results.length > 0) {
       console.log('🗺️ Mise à jour de la carte avec', results.length, 'résultats');
     }
