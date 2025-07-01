@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import Map, { NavigationControl, GeolocateControl, Marker } from 'react-map-gl';
+import Map, { NavigationControl, GeolocateControl, Marker, MapRef } from 'react-map-gl';
 import { MapPin } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getMapboxToken, isMapboxTokenValid, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/utils/mapboxConfig';
@@ -33,7 +33,7 @@ export default function MapboxMap({
     zoom: DEFAULT_MAP_ZOOM,
   });
 
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<MapRef>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [mapError, setMapError] = useState<string | null>(null);
@@ -89,7 +89,7 @@ export default function MapboxMap({
   useEffect(() => {
     if (userLocation && mapRef.current) {
       console.log('📍 Centrage de la carte sur:', userLocation);
-      mapRef.current.flyTo({
+      mapRef.current.getMap().flyTo({
         center: [userLocation[0], userLocation[1]],
         zoom: 14,
         duration: 1000
@@ -234,7 +234,7 @@ export default function MapboxMap({
           onClick={() => {
             if (mapRef.current && userLocation) {
               console.log('🎯 Centrage sur la position utilisateur');
-              mapRef.current.flyTo({ 
+              mapRef.current.getMap().flyTo({ 
                 center: [userLocation[0], userLocation[1]], 
                 zoom: 14,
                 duration: 1000 
