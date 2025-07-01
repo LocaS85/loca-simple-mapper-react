@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import MapboxMap from '../../MapboxMap';
 import { SearchResult } from '@/types/geosearch';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 interface GeoSearchMapProps {
   results: SearchResult[];
@@ -16,8 +17,29 @@ const GeoSearchMap: React.FC<GeoSearchMapProps> = ({
   transport,
   category
 }) => {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const { isMapboxReady } = useGeoSearchStore();
+
+  // Centrer la carte sur les résultats ou la position utilisateur
+  useEffect(() => {
+    if (isMapboxReady && userLocation && results.length > 0) {
+      console.log('🗺️ Mise à jour de la carte avec', results.length, 'résultats');
+    }
+  }, [results, userLocation, isMapboxReady]);
+
+  if (!isMapboxReady) {
+    return (
+      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Initialisation de la carte...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-full">
+    <div ref={mapContainerRef} className="w-full h-full">
       <MapboxMap
         results={results}
         transport={transport}

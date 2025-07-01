@@ -9,6 +9,7 @@ import GeoSearchMobilePanel from './ui/GeoSearchMobilePanel';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 
 interface LocationSelectData {
   name: string;
@@ -115,20 +116,33 @@ const GeoSearchApp: React.FC = () => {
 
   if (isMobile) {
     return (
-      <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-        {/* Header mobile compact */}
-        <GeoSearchHeader
-          filters={filters}
-          isLoading={isLoading}
-          onSearch={handleSearch}
-          onLocationSelect={handleLocationSelect}
-          onMyLocationClick={handleMyLocationClick}
-          onFiltersChange={updateFilters}
-          onResetFilters={resetFilters}
-          onToggleSidebar={handleToggleSidebar}
-          isMobile={true}
-          statusInfo={statusInfo}
-        />
+      <div className="flex flex-col h-screen bg-background overflow-hidden">
+        {/* Header mobile avec bouton retour */}
+        <div className="bg-white border-b shadow-sm z-40">
+          <div className="flex items-center gap-3 p-4">
+            <RouteBackButton
+              route="/categories"
+              variant="ghost"
+              size="sm"
+              showLabel={false}
+              className="shrink-0"
+            />
+            <h1 className="text-lg font-semibold text-foreground">GeoSearch</h1>
+          </div>
+          
+          <GeoSearchHeader
+            filters={filters}
+            isLoading={isLoading}
+            onSearch={handleSearch}
+            onLocationSelect={handleLocationSelect}
+            onMyLocationClick={handleMyLocationClick}
+            onFiltersChange={updateFilters}
+            onResetFilters={resetFilters}
+            onToggleSidebar={handleToggleSidebar}
+            isMobile={true}
+            statusInfo={statusInfo}
+          />
+        </div>
 
         {/* Carte plein écran */}
         <div className="flex-1 relative">
@@ -140,13 +154,15 @@ const GeoSearchApp: React.FC = () => {
           />
           
           {/* Panel mobile flottant pour résultats */}
-          <GeoSearchMobilePanel
-            results={results}
-            isLoading={isLoading}
-            isOpen={mobileResultsOpen}
-            onToggle={() => setMobileResultsOpen(!mobileResultsOpen)}
-            onResultSelect={handleLocationSelect}
-          />
+          {results.length > 0 && (
+            <GeoSearchMobilePanel
+              results={results}
+              isLoading={isLoading}
+              isOpen={mobileResultsOpen}
+              onToggle={() => setMobileResultsOpen(!mobileResultsOpen)}
+              onResultSelect={handleLocationSelect}
+            />
+          )}
         </div>
 
         {/* Sidebar mobile en overlay */}
@@ -156,7 +172,7 @@ const GeoSearchApp: React.FC = () => {
               className="absolute inset-0 bg-black/50" 
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="absolute left-0 top-0 bottom-0 w-80">
+            <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw]">
               <GeoSearchSidebar
                 filters={filters}
                 results={results}
@@ -180,51 +196,68 @@ const GeoSearchApp: React.FC = () => {
 
   // Version desktop
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Sidebar desktop */}
-      {sidebarOpen && (
-        <div className="w-80 border-r">
-          <GeoSearchSidebar
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Header desktop avec bouton retour */}
+      <div className="absolute top-0 left-0 right-0 z-40 bg-white border-b shadow-sm">
+        <div className="flex items-center gap-3 p-4">
+          <RouteBackButton
+            route="/categories"
+            variant="ghost"
+            size="sm"
+            label="Catégories"
+            className="shrink-0"
+          />
+          <h1 className="text-xl font-semibold text-foreground">Recherche Géographique</h1>
+        </div>
+      </div>
+
+      {/* Layout principal avec margin-top pour le header */}
+      <div className="flex w-full h-full pt-16">
+        {/* Sidebar desktop */}
+        {sidebarOpen && (
+          <div className="w-80 border-r bg-white shadow-sm">
+            <GeoSearchSidebar
+              filters={filters}
+              results={results}
+              userLocation={userLocation}
+              isLoading={isLoading}
+              statusInfo={statusInfo}
+              onSearch={handleSearch}
+              onLocationSelect={handleLocationSelect}
+              onMyLocationClick={handleMyLocationClick}
+              onFiltersChange={updateFilters}
+              onResetFilters={resetFilters}
+              onClose={() => setSidebarOpen(false)}
+              isMobile={false}
+            />
+          </div>
+        )}
+
+        {/* Zone principale */}
+        <div className="flex-1 flex flex-col">
+          {/* Header de recherche desktop */}
+          <GeoSearchHeader
             filters={filters}
-            results={results}
-            userLocation={userLocation}
             isLoading={isLoading}
-            statusInfo={statusInfo}
             onSearch={handleSearch}
             onLocationSelect={handleLocationSelect}
             onMyLocationClick={handleMyLocationClick}
             onFiltersChange={updateFilters}
             onResetFilters={resetFilters}
-            onClose={() => setSidebarOpen(false)}
+            onToggleSidebar={handleToggleSidebar}
             isMobile={false}
+            statusInfo={statusInfo}
           />
-        </div>
-      )}
 
-      {/* Zone principale */}
-      <div className="flex-1 flex flex-col">
-        {/* Header desktop */}
-        <GeoSearchHeader
-          filters={filters}
-          isLoading={isLoading}
-          onSearch={handleSearch}
-          onLocationSelect={handleLocationSelect}
-          onMyLocationClick={handleMyLocationClick}
-          onFiltersChange={updateFilters}
-          onResetFilters={resetFilters}
-          onToggleSidebar={handleToggleSidebar}
-          isMobile={false}
-          statusInfo={statusInfo}
-        />
-
-        {/* Carte */}
-        <div className="flex-1">
-          <GeoSearchMap
-            results={results}
-            userLocation={userLocation}
-            transport={filters.transport}
-            category={filters.category}
-          />
+          {/* Carte */}
+          <div className="flex-1">
+            <GeoSearchMap
+              results={results}
+              userLocation={userLocation}
+              transport={filters.transport}
+              category={filters.category}
+            />
+          </div>
         </div>
       </div>
     </div>

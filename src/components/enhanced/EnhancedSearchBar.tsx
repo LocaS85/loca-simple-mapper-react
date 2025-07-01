@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { SearchBarProps, LocationSelectData, SearchResultData } from '@/types/searchTypes';
 import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { Input } from '@/components/ui/input';
 import { Search, MapPin, Loader2 } from 'lucide-react';
 
@@ -19,6 +20,9 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
+  
+  // Récupérer la position utilisateur du store
+  const { userLocation } = useGeoSearchStore();
 
   useEffect(() => {
     setQuery(value);
@@ -33,15 +37,15 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
 
     setIsSearching(true);
     try {
-      // Centre par défaut (Paris)
-      const center: [number, number] = [2.3522, 48.8566];
+      // Utiliser la position utilisateur si disponible, sinon Paris par défaut
+      const center: [number, number] = userLocation || [2.3522, 48.8566];
       
       const results = await enhancedGeocodingService.searchPlaces(
         searchQuery, 
         center, 
         {
           limit: 5,
-          radius: 50,
+          radius: userLocation ? 20 : 50, // Rayon plus petit si position précise
           language: 'fr'
         }
       );
@@ -63,11 +67,13 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
     } finally {
       setIsSearching(false);
     }
-  }, []);
+  }, [userLocation]);
 
   useEffect(() => {
-    if (debouncedQuery) {
+    if (debouncedQuery && debouncedQuery.length >= 2) {
       loadSuggestions(debouncedQuery);
+    } else if (debouncedQuery) {
+      // Déclencher la recherche même sans suggestions pour les requêtes courtes
       onSearch(debouncedQuery);
     }
   }, [debouncedQuery, onSearch, loadSuggestions]);
