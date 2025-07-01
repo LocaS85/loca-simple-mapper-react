@@ -20,8 +20,6 @@ const GeoSearchSidebarPopup: React.FC<GeoSearchSidebarPopupProps> = ({
   onClose,
   results,
   isLoading,
-  filters,
-  onFiltersChange
 }) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>

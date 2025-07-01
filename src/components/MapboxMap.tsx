@@ -33,7 +33,7 @@ export default function MapboxMap({
     zoom: DEFAULT_MAP_ZOOM,
   });
 
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [mapError, setMapError] = useState<string | null>(null);
