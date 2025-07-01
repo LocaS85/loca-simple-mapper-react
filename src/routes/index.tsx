@@ -12,6 +12,7 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Payment from '@/pages/Payment';
 import Account from '@/pages/Account';
+import Auth from '@/pages/Auth';
 import ForgotPassword from '@/pages/ForgotPassword';
 import Favorites from '@/pages/Favorites';
 import FAQ from '@/pages/FAQ';
@@ -30,6 +31,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/conditions" element={<TermsOfService />} />
       <Route path="/confidentialite" element={<Privacy />} />
       <Route path="/premium" element={<Premium />} />
+      <Route path="/auth" element={<Auth />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/payment" element={<Payment />} />
