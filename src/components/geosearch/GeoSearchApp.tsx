@@ -64,12 +64,12 @@ const GeoSearchApp: React.FC = () => {
     }
   }, [userLocation, isMapboxReady]);
 
-  // Status info consolidé
+  // Status info simplifié
   const statusInfo: StatusInfo = {
     totalResults: results.length,
     hasResults: results.length > 0,
     isReady: !!userLocation && isMapboxReady,
-    canSearch: isMapboxReady && networkStatus === 'online'
+    canSearch: isMapboxReady
   };
 
   const handleLocationSelect = (location: LocationSelectData): void => {
@@ -131,7 +131,7 @@ const GeoSearchApp: React.FC = () => {
   if (isMobile) {
     return (
       <div className="flex flex-col h-screen bg-background overflow-hidden">
-        {/* Header mobile avec bouton retour */}
+        {/* Header mobile simplifié */}
         <div className="bg-white border-b shadow-sm z-40">
           <div className="flex items-center gap-3 p-4">
             <RouteBackButton
@@ -167,7 +167,7 @@ const GeoSearchApp: React.FC = () => {
             category={filters.category}
           />
           
-          {/* Panel mobile flottant pour résultats */}
+          {/* Panel mobile pour résultats */}
           {results.length > 0 && (
             <GeoSearchMobilePanel
               results={results}
@@ -179,7 +179,7 @@ const GeoSearchApp: React.FC = () => {
           )}
         </div>
 
-        {/* Sidebar mobile en overlay */}
+        {/* Sidebar mobile overlay */}
         {sidebarOpen && (
           <div className="absolute inset-0 z-50">
             <div 
@@ -208,10 +208,10 @@ const GeoSearchApp: React.FC = () => {
     );
   }
 
-  // Version desktop
+  // Version desktop simplifiée
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Header desktop avec bouton retour */}
+      {/* Header desktop */}
       <div className="absolute top-0 left-0 right-0 z-40 bg-white border-b shadow-sm">
         <div className="flex items-center gap-3 p-4">
           <RouteBackButton
@@ -225,7 +225,7 @@ const GeoSearchApp: React.FC = () => {
         </div>
       </div>
 
-      {/* Layout principal avec margin-top pour le header */}
+      {/* Layout principal */}
       <div className="flex w-full h-full pt-16">
         {/* Sidebar desktop */}
         {sidebarOpen && (
@@ -249,7 +249,7 @@ const GeoSearchApp: React.FC = () => {
 
         {/* Zone principale */}
         <div className="flex-1 flex flex-col">
-          {/* Header de recherche desktop */}
+          {/* Header de recherche */}
           <GeoSearchHeader
             filters={filters}
             isLoading={isLoading}

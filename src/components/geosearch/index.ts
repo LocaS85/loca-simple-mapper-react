@@ -1,22 +1,17 @@
-
-// Core components
+// GeoSearch components - refactored and simplified
+export { default as GeoSearchApp } from './GeoSearchApp';
 export { default as GeoSearchController } from './GeoSearchController';
-export { default as GeoSearchLayout } from './GeoSearchLayout';
 export { default as GeoSearchIntegration } from './GeoSearchIntegration';
 export { default as GeoSearchMapIntegration } from './GeoSearchMapIntegration';
-
-// Map components
-export { default as MapView } from './MapView';
+export { default as GeocoderContainer } from './GeocoderContainer';
+export { default as EnhancedGeoSearchController } from './EnhancedGeoSearchController';
+export { default as FloatingControls } from './FloatingControls';
+export { default as FiltersFloatingButton } from './FiltersFloatingButton';
+export { default as MultiMapToggle } from './MultiMapToggle';
 
 // UI components
-export { default as SearchPopup } from './SearchPopup';
-export { default as SearchHeader } from './SearchHeader';
-export { default as AutoSuggestSearch } from './AutoSuggestSearch';
-export { default as FloatingControls } from './FloatingControls';
-export { default as FiltersPopup } from './FiltersPopup';
-export { default as FiltersFloatingButton } from './FiltersFloatingButton';
-export { default as EnhancedLocationButton } from './EnhancedLocationButton';
-
-// Utility components
-export { default as PrintButton } from './PrintButton';
-export { default as MultiMapToggle } from './MultiMapToggle';
+export { default as GeoSearchFiltersSheet } from './ui/GeoSearchFiltersSheet';
+export { default as GeoSearchHeader } from './ui/GeoSearchHeader';
+export { default as GeoSearchMap } from './ui/GeoSearchMap';
+export { default as GeoSearchMobilePanel } from './ui/GeoSearchMobilePanel';
+export { default as GeoSearchSidebar } from './ui/GeoSearchSidebar';

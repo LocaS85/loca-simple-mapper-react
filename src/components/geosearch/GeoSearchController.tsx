@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useGeoSearch } from '@/hooks/geosearch/useGeoSearch';
-import GeoSearchLayout from './GeoSearchLayout';
+import GeoSearchApp from './GeoSearchApp';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -37,7 +37,7 @@ const GeoSearchController: React.FC = () => {
     );
   }
 
-  return <GeoSearchLayout />;
+  return <GeoSearchApp />;
 };
 
 export default GeoSearchController;

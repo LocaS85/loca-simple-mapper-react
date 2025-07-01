@@ -6,7 +6,7 @@ export { default as EnhancedMapboxSearch } from './EnhancedMapboxSearch';
 export { default as EnhancedMapboxDirections } from './EnhancedMapboxDirections';
 export { default as MultiRouteDisplay } from './MultiRouteDisplay';
 export { default as EnhancedLocationButton } from './EnhancedLocationButton';
-export { default as IntegratedSearchBar } from './IntegratedSearchBar';
+// IntegratedSearchBar supprimé - utiliser EnhancedSearchBar
 
 // Re-export enhanced components
 export * from './enhanced-index';
