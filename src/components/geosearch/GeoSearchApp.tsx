@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import GeoSearchHeader from './ui/GeoSearchHeader';
@@ -7,6 +7,7 @@ import GeoSearchSidebar from './ui/GeoSearchSidebar';
 import GeoSearchMap from './ui/GeoSearchMap';
 import GeoSearchMobilePanel from './ui/GeoSearchMobilePanel';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
 
 interface LocationSelectData {
@@ -33,12 +34,20 @@ const GeoSearchApp: React.FC = () => {
     results,
     isLoading,
     isMapboxReady,
+    mapboxError,
     networkStatus,
     updateFilters,
     resetFilters,
     performSearch,
-    setUserLocation
+    setUserLocation,
+    initializeMapbox
   } = useGeoSearchStore();
+
+  // Initialiser Mapbox au montage du composant
+  useEffect(() => {
+    console.log('🚀 Initialisation de l\'application GeoSearch');
+    initializeMapbox();
+  }, [initializeMapbox]);
 
   // Status info consolidé
   const statusInfo: StatusInfo = {
@@ -86,12 +95,20 @@ const GeoSearchApp: React.FC = () => {
   if (!isMapboxReady) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <Alert className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Initialisation des services de cartographie en cours...
-          </AlertDescription>
-        </Alert>
+        {mapboxError ? (
+          <Alert className="max-w-md">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {mapboxError}
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <EnhancedLoadingSpinner
+            type="map"
+            message="Initialisation des services de cartographie..."
+            size="lg"
+          />
+        )}
       </div>
     );
   }
