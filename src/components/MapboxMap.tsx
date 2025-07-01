@@ -42,6 +42,11 @@ export default function MapboxMap({
 
   const handleMapboxError = useMapboxError(setShowTokenSetup);
   const { userLocation, setUserLocation } = useGeoSearchStore();
+  
+  // Debug de la position utilisateur
+  useEffect(() => {
+    console.log('🔍 MapboxMap - userLocation state:', userLocation);
+  }, [userLocation]);
 
   useEffect(() => {
     try {
@@ -57,15 +62,18 @@ export default function MapboxMap({
   }, []);
 
   useEffect(() => {
+    console.log('🔄 Géolocalisation auto - showTokenSetup:', showTokenSetup, 'userLocation:', userLocation);
     if (showTokenSetup || userLocation) return;
 
     if (navigator.geolocation) {
+      console.log('📡 Début géolocalisation automatique...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const coordinates: [number, number] = [
             position.coords.longitude,
             position.coords.latitude
           ];
+          console.log('✅ Géolocalisation auto réussie:', coordinates);
           setViewport(prev => ({ 
             ...prev, 
             latitude: coordinates[1], 
@@ -74,7 +82,7 @@ export default function MapboxMap({
           setUserLocation(coordinates);
         },
         (err) => {
-          console.error('Geolocation error:', err);
+          console.error('❌ Erreur géolocalisation auto:', err);
           toast({
             title: "Localisation",
             description: "Impossible d'obtenir votre position, utilisation de Paris par défaut",
@@ -182,27 +190,30 @@ export default function MapboxMap({
         />
 
         {userLocation && (
-          <Marker 
-            longitude={userLocation[0]} 
-            latitude={userLocation[1]} 
-            anchor="bottom"
-          >
-            <div className="flex flex-col items-center">
-              <div className="relative">
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></div>
-                <div 
-                  className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 border-2 border-white shadow-lg"
-                  role="img"
-                  aria-label="Marqueur de votre position"
-                >
-                  <MapPin className="text-white w-4 h-4" />
+          <>
+            {console.log('🎯 Rendu du marqueur utilisateur à:', userLocation)}
+            <Marker 
+              longitude={userLocation[0]} 
+              latitude={userLocation[1]} 
+              anchor="bottom"
+            >
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></div>
+                  <div 
+                    className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 border-2 border-white shadow-lg"
+                    role="img"
+                    aria-label="Marqueur de votre position"
+                  >
+                    <MapPin className="text-white w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-xs font-bold bg-white px-2 py-1 rounded shadow-sm mt-1 border">
+                  Ma position
                 </div>
               </div>
-              <div className="text-xs font-bold bg-white px-2 py-1 rounded shadow-sm mt-1 border">
-                Ma position
-              </div>
-            </div>
-          </Marker>
+            </Marker>
+          </>
         )}
 
         <ResultMarkers results={results} category={category} />
