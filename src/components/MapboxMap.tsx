@@ -149,30 +149,26 @@ export default function MapboxMap({
         
         {/* DÉSACTIVÉ TEMPORAIREMENT: GeolocateControl pour éviter les conflits */}
 
-        {userLocation ? (
-          <>
-            {console.log('🎯 RENDU MARQUEUR ROUGE à:', userLocation)}
-            <Marker 
-              longitude={userLocation[0]} 
-              latitude={userLocation[1]} 
-              anchor="center"
+        {userLocation && (
+          console.log('🎯 RENDU MARQUEUR ROUGE à:', userLocation),
+          <Marker 
+            longitude={userLocation[0]} 
+            latitude={userLocation[1]} 
+            anchor="center"
+          >
+            <div 
+              className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg"
+              style={{ 
+                zIndex: 1000,
+                position: 'relative',
+                backgroundColor: '#ef4444',
+                border: '4px solid white',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
+              }}
             >
-              <div 
-                className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg"
-                style={{ 
-                  zIndex: 1000,
-                  position: 'relative',
-                  backgroundColor: '#ef4444',
-                  border: '4px solid white',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
-                }}
-              >
-                <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
-              </div>
-            </Marker>
-          </>
-        ) : (
-          console.log('❌ PAS DE MARQUEUR - userLocation est:', userLocation)
+              <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
+            </div>
+          </Marker>
         )}
 
         <ResultMarkers results={results} category={category} />
