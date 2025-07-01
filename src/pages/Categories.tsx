@@ -59,10 +59,10 @@ const Categories = () => {
   // Handle search from subcategory cards
   const handleSearchClick = (subcategoryId: string) => {
     // Navigate to search page with category and subcategory parameters
-    const categoryId = selectedCategory?.id;
-    if (categoryId) {
+    const category = unifiedCategories.find(cat => cat.subcategories?.find(sub => sub.id === subcategoryId));
+    if (category) {
       const unit = distanceUnit === 'km' ? 'km' : 'mi';
-      navigate(`/geosearch?category=${categoryId}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${unit}`);
+      navigate(`/geosearch?category=${category.id}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${unit}&aroundMeCount=${aroundMeCount}`);
     }
   };
   
