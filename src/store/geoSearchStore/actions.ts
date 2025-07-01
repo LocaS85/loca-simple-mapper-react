@@ -11,8 +11,10 @@ export const createGeoSearchActions = (
   get: () => GeoSearchStore
 ) => ({
   setUserLocation: (location: [number, number] | null) => {
+    console.log('🏪 STORE: setUserLocation appelé avec:', location);
     set({ userLocation: location });
     if (location) {
+      console.log('🗑️ Cache vidé car nouvelle position');
       cacheService.clear();
     }
   },

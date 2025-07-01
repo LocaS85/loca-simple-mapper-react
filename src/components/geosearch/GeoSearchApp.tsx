@@ -47,14 +47,16 @@ const GeoSearchApp: React.FC = () => {
   // Initialiser Mapbox au montage du composant
   useEffect(() => {
     console.log('🚀 Initialisation de l\'application GeoSearch');
+    
+    // FORCER LA RÉINITIALISATION DE LA POSITION
+    setUserLocation(null);
+    console.log('🔄 Position utilisateur réinitialisée');
+    
     initializeMapbox().then(() => {
-      // Auto-trigger search for restaurants if we have a location
-      if (userLocation && !results.length) {
-        console.log('🔍 Auto-search restaurants pour position:', userLocation);
-        performSearch('restaurant');
-      }
+      // Ne pas faire de recherche auto si pas de position valide
+      console.log('🗺️ Mapbox initialisé, attente géolocalisation utilisateur');
     });
-  }, [initializeMapbox]);
+  }, [initializeMapbox, setUserLocation]);
 
   // Auto-trigger search when user location is available
   useEffect(() => {
@@ -85,20 +87,34 @@ const GeoSearchApp: React.FC = () => {
   };
 
   const handleMyLocationClick = (): void => {
-    console.log('🎯 Demande de géolocalisation...');
+    console.log('🎯 Demande de géolocalisation FORCÉE...');
+    
+    // Réinitialiser la position d'abord
+    setUserLocation(null);
+    console.log('🔄 Position actuelle effacée');
+    
     if (navigator.geolocation) {
+      console.log('📡 Début géolocalisation avec haute précision...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const coords: [number, number] = [
             position.coords.longitude,
             position.coords.latitude
           ];
-          console.log('📍 Position détectée dans GeoSearchApp:', coords);
+          console.log('📍 NOUVELLE position détectée:', coords);
+          console.log('📍 Précision:', position.coords.accuracy, 'mètres');
           setUserLocation(coords);
           console.log('💾 Position stockée dans le store:', coords);
         },
         (error) => {
-          console.error('❌ Erreur de géolocalisation dans GeoSearchApp:', error);
+          console.error('❌ Erreur de géolocalisation:', error);
+          console.error('❌ Code erreur:', error.code);
+          console.error('❌ Message:', error.message);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0 // FORCER UNE NOUVELLE POSITION
         }
       );
     } else {
