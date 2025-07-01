@@ -5,15 +5,15 @@ import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import { 
   AddressFormDialog,
-  CategoryMapView,
-  CategorySection
+  CategoryMapView
 } from '@/components/categories';
+import CategoryCard from '@/components/categories/CategoryCard';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useAddressManagement } from '@/hooks/use-address-management';
 import { useCategoryManagement } from '@/hooks/use-category-management';
 import { useTranslation } from 'react-i18next';
 import { DailyAddressData } from '@/types/category';
-import { categories } from '@/data/categories';
+import { unifiedCategories } from '@/data/unifiedCategories';
 
 const Categories = () => {
   // State for map toggle
@@ -107,16 +107,18 @@ const Categories = () => {
               initialDistanceUnit={distanceUnit}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category) => (
-                <CategorySection
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {unifiedCategories.map((category) => (
+                <CategoryCard
                   key={category.id}
                   category={category}
+                  userLocation={dailyAddresses.length > 0 ? dailyAddresses[0]?.coordinates : null}
                   onCategorySelect={handleSelectCategory}
                   transportMode={transportMode}
                   maxDistance={maxDistance}
-                  maxDuration={maxDuration}
                   distanceUnit={distanceUnit === 'km' ? 'km' : 'mi'}
+                  isLoading={isLoading}
+                  showSubcategories={true}
                 />
               ))}
             </div>

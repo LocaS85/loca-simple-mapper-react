@@ -4,13 +4,13 @@ import { MapPin, Navigation } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Category } from '@/types/categories';
+import { UnifiedCategory } from '@/data/unifiedCategories';
 import { TransportMode, DistanceUnit } from '@/types/map';
 
 interface CategorySectionProps {
-  category: Category;
+  category: UnifiedCategory;
   userLocation?: [number, number] | null;
-  onCategorySelect?: (category: Category) => void;
+  onCategorySelect?: (category: UnifiedCategory) => void;
   transportMode?: TransportMode;
   maxDistance?: number;
   maxDuration?: number;
@@ -59,7 +59,10 @@ const CategorySection: React.FC<CategorySectionProps> = ({
     >
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-primary/5 rounded-lg">
+          <div 
+            className="p-3 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: category.color + '15' }}
+          >
             <span className="text-2xl">{category.icon}</span>
           </div>
           <div className="flex-1">
