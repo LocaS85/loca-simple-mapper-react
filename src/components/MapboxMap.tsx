@@ -195,29 +195,24 @@ export default function MapboxMap({
         />
 
         {userLocation ? (
-          <>
-            {console.log('🎯 TENTATIVE DE RENDU MARQUEUR à:', userLocation)}
-            <Marker 
-              longitude={userLocation[0]} 
-              latitude={userLocation[1]} 
-              anchor="center"
+          <Marker 
+            longitude={userLocation[0]} 
+            latitude={userLocation[1]} 
+            anchor="center"
+          >
+            <div 
+              className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg"
+              style={{ 
+                zIndex: 1000,
+                position: 'relative',
+                backgroundColor: 'red',
+                border: '4px solid white'
+              }}
             >
-              <div 
-                className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg"
-                style={{ 
-                  zIndex: 1000,
-                  position: 'relative',
-                  backgroundColor: 'red',
-                  border: '4px solid white'
-                }}
-              >
-                <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
-              </div>
-            </Marker>
-          </>
-        ) : (
-          console.log('❌ PAS DE MARQUEUR - userLocation est null/undefined')
-        )}
+              <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
+            </div>
+          </Marker>
+        ) : null}
 
         <ResultMarkers results={results} category={category} />
       </Map>
