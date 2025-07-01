@@ -43,6 +43,8 @@ export default function MapboxMap({
   const handleMapboxError = useMapboxError(setShowTokenSetup);
   const { userLocation, setUserLocation } = useGeoSearchStore();
   
+  console.log('🔥 MapboxMap RENDU avec:', { results: results.length, category, userLocation: userLocation ? 'présent' : 'null' });
+  
   // Debug de la position utilisateur
   useEffect(() => {
     console.log('🔍 MapboxMap - userLocation state:', userLocation);
@@ -97,11 +99,14 @@ export default function MapboxMap({
   useEffect(() => {
     if (userLocation && mapRef.current) {
       console.log('📍 Centrage de la carte sur:', userLocation);
+      console.log('🗺️ Référence carte disponible:', !!mapRef.current);
       mapRef.current.getMap().flyTo({
         center: [userLocation[0], userLocation[1]],
         zoom: 14,
         duration: 1000
       });
+    } else {
+      console.log('📍 Pas de centrage - userLocation:', userLocation, 'mapRef:', !!mapRef.current);
     }
   }, [userLocation]);
 
@@ -189,19 +194,29 @@ export default function MapboxMap({
           }}
         />
 
-        {userLocation && (
-          <Marker 
-            longitude={userLocation[0]} 
-            latitude={userLocation[1]} 
-            anchor="center"
-          >
-            <div 
-              className="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg z-50"
-              style={{ zIndex: 1000 }}
+        {userLocation ? (
+          <>
+            {console.log('🎯 TENTATIVE DE RENDU MARQUEUR à:', userLocation)}
+            <Marker 
+              longitude={userLocation[0]} 
+              latitude={userLocation[1]} 
+              anchor="center"
             >
-              <div className="w-full h-full bg-blue-500 rounded-full animate-pulse" />
-            </div>
-          </Marker>
+              <div 
+                className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg"
+                style={{ 
+                  zIndex: 1000,
+                  position: 'relative',
+                  backgroundColor: 'red',
+                  border: '4px solid white'
+                }}
+              >
+                <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
+              </div>
+            </Marker>
+          </>
+        ) : (
+          console.log('❌ PAS DE MARQUEUR - userLocation est null/undefined')
         )}
 
         <ResultMarkers results={results} category={category} />
