@@ -15,6 +15,7 @@ import { useMapboxError } from './mapbox-map/useMapboxError';
 
 interface MapboxMapProps {
   results?: SearchResult[];
+  userLocation?: [number, number] | null;
   transport?: string;
   radius?: number;
   count?: number;
@@ -23,7 +24,8 @@ interface MapboxMapProps {
 }
 
 export default function MapboxMap({ 
-  results = [], 
+  results = [],
+  userLocation: propUserLocation = null,
   category = "",
   className = ""
 }: MapboxMapProps) {
@@ -41,14 +43,16 @@ export default function MapboxMap({
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   const handleMapboxError = useMapboxError(setShowTokenSetup);
-  const { userLocation, setUserLocation } = useGeoSearchStore();
   
-  console.log('🔥 MapboxMap RENDU avec:', { results: results.length, category, userLocation: userLocation ? 'présent' : 'null' });
+  // Utiliser propUserLocation en priorité, puis fallback sur le store
+  const userLocation = propUserLocation;
   
-  // Debug de la position utilisateur
-  useEffect(() => {
-    console.log('🔍 MapboxMap - userLocation state:', userLocation);
-  }, [userLocation]);
+  console.log('🔥 MapboxMap RENDU avec:', { 
+    results: results.length, 
+    category, 
+    propUserLocation: propUserLocation ? 'présent' : 'null',
+    userLocationFinal: userLocation ? 'présent' : 'null'
+  });
 
   useEffect(() => {
     try {
@@ -63,38 +67,7 @@ export default function MapboxMap({
     }
   }, []);
 
-  useEffect(() => {
-    console.log('🔄 Géolocalisation auto - showTokenSetup:', showTokenSetup, 'userLocation:', userLocation);
-    if (showTokenSetup || userLocation) return;
-
-    if (navigator.geolocation) {
-      console.log('📡 Début géolocalisation automatique...');
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coordinates: [number, number] = [
-            position.coords.longitude,
-            position.coords.latitude
-          ];
-          console.log('✅ Géolocalisation auto réussie:', coordinates);
-          setViewport(prev => ({ 
-            ...prev, 
-            latitude: coordinates[1], 
-            longitude: coordinates[0] 
-          }));
-          setUserLocation(coordinates);
-        },
-        (err) => {
-          console.error('❌ Erreur géolocalisation auto:', err);
-          toast({
-            title: "Localisation",
-            description: "Impossible d'obtenir votre position, utilisation de Paris par défaut",
-            variant: "destructive",
-          });
-        },
-        { maximumAge: 10000, timeout: 5000, enableHighAccuracy: true }
-      );
-    }
-  }, [toast, showTokenSetup, userLocation, setUserLocation]);
+  // SUPPRIMÉ: Géolocalisation automatique - géré maintenant par GeoSearchApp
 
   useEffect(() => {
     if (userLocation && mapRef.current) {
@@ -174,45 +147,33 @@ export default function MapboxMap({
           }}
         />
         
-        <GeolocateControl
-          position={isMobile ? "bottom-right" : "top-left"}
-          trackUserLocation
-          showAccuracyCircle={false}
-          showUserHeading={true}
-          style={isMobile ? { 
-            bottom: '200px', 
-            right: '12px',
-            zIndex: 20
-          } : {
-            top: '80px',
-            left: '12px',
-            zIndex: 20
-          }}
-          positionOptions={{
-            enableHighAccuracy: true,
-            timeout: 6000
-          }}
-        />
+        {/* DÉSACTIVÉ TEMPORAIREMENT: GeolocateControl pour éviter les conflits */}
 
         {userLocation ? (
-          <Marker 
-            longitude={userLocation[0]} 
-            latitude={userLocation[1]} 
-            anchor="center"
-          >
-            <div 
-              className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg"
-              style={{ 
-                zIndex: 1000,
-                position: 'relative',
-                backgroundColor: 'red',
-                border: '4px solid white'
-              }}
+          <>
+            {console.log('🎯 RENDU MARQUEUR ROUGE à:', userLocation)}
+            <Marker 
+              longitude={userLocation[0]} 
+              latitude={userLocation[1]} 
+              anchor="center"
             >
-              <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
-            </div>
-          </Marker>
-        ) : null}
+              <div 
+                className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg"
+                style={{ 
+                  zIndex: 1000,
+                  position: 'relative',
+                  backgroundColor: '#ef4444',
+                  border: '4px solid white',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
+                }}
+              >
+                <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
+              </div>
+            </Marker>
+          </>
+        ) : (
+          console.log('❌ PAS DE MARQUEUR - userLocation est:', userLocation)
+        )}
 
         <ResultMarkers results={results} category={category} />
       </Map>

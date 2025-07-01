@@ -19,6 +19,8 @@ const GeoSearchMap: React.FC<GeoSearchMapProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const { isMapboxReady } = useGeoSearchStore();
+  
+  console.log('🗺️ GeoSearchMap - userLocation reçue:', userLocation);
 
   // Debug et centrer la carte sur les résultats ou la position utilisateur
   useEffect(() => {
@@ -46,6 +48,7 @@ const GeoSearchMap: React.FC<GeoSearchMapProps> = ({
     <div ref={mapContainerRef} className="w-full h-full">
       <MapboxMap
         results={results}
+        userLocation={userLocation}
         transport={transport}
         category={category}
         className="w-full h-full rounded-none border-0"
