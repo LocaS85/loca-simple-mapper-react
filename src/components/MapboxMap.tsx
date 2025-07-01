@@ -190,30 +190,18 @@ export default function MapboxMap({
         />
 
         {userLocation && (
-          <>
-            {console.log('🎯 Rendu du marqueur utilisateur à:', userLocation)}
-            <Marker 
-              longitude={userLocation[0]} 
-              latitude={userLocation[1]} 
-              anchor="bottom"
+          <Marker 
+            longitude={userLocation[0]} 
+            latitude={userLocation[1]} 
+            anchor="center"
+          >
+            <div 
+              className="w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg z-50"
+              style={{ zIndex: 1000 }}
             >
-              <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></div>
-                  <div 
-                    className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center p-1 border-2 border-white shadow-lg"
-                    role="img"
-                    aria-label="Marqueur de votre position"
-                  >
-                    <MapPin className="text-white w-4 h-4" />
-                  </div>
-                </div>
-                <div className="text-xs font-bold bg-white px-2 py-1 rounded shadow-sm mt-1 border">
-                  Ma position
-                </div>
-              </div>
-            </Marker>
-          </>
+              <div className="w-full h-full bg-blue-500 rounded-full animate-pulse" />
+            </div>
+          </Marker>
         )}
 
         <ResultMarkers results={results} category={category} />
