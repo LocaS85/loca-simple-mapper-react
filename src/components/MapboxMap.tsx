@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Map, { NavigationControl, GeolocateControl, Marker, MapRef } from 'react-map-gl';
 import { MapPin } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { getMapboxToken, isMapboxTokenValid, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync, isMapboxTokenValidSync, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import MapboxSetup from '@/components/MapboxSetup';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -56,7 +56,7 @@ export default function MapboxMap({
 
   useEffect(() => {
     try {
-      if (!isMapboxTokenValid()) {
+      if (!isMapboxTokenValidSync()) {
         setShowTokenSetup(true);
         return;
       }
@@ -87,11 +87,11 @@ export default function MapboxMap({
     return <MapboxSetup />;
   }
 
-  if (!isMapboxTokenValid()) {
+  if (!isMapboxTokenValidSync()) {
     return <MapboxError onRetry={() => window.location.reload()} />;
   }
 
-  const mapboxToken = getMapboxToken();
+  const mapboxToken = getMapboxTokenSync();
 
   return (
     <div 

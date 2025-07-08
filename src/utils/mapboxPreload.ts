@@ -6,16 +6,35 @@
 
 // We import mapbox-gl but not its CSS as that's loaded via CDN
 import mapboxgl from 'mapbox-gl';
-import { getMapboxToken } from './mapboxConfig';
+import { getMapboxTokenSync, isMapboxTokenValidSync } from './mapboxConfig';
+import { mapboxConfigService } from '@/services/mapboxConfigService';
 
-export const setupMapbox = () => {
+export const setupMapbox = async () => {
   // This function can be called during app initialization
   // to make sure Mapbox is properly set up
   try {
-    const token = getMapboxToken();
+    const token = await mapboxConfigService.getMapboxToken();
     if (token) {
       mapboxgl.accessToken = token;
       console.log('Mapbox initialized successfully');
+      return true;
+    } else {
+      console.error('Mapbox token not found');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error initializing Mapbox:', error);
+    return false;
+  }
+};
+
+export const setupMapboxSync = () => {
+  // Synchronous version for compatibility
+  try {
+    const token = getMapboxTokenSync();
+    if (token) {
+      mapboxgl.accessToken = token;
+      console.log('Mapbox initialized successfully (sync)');
       return true;
     } else {
       console.error('Mapbox token not found');
@@ -46,8 +65,8 @@ export const checkMapboxSetup = () => {
     console.warn('Mapbox CSS not detected. Maps may not display correctly.');
   }
   
-  if (!getMapboxToken()) {
-    console.error('Mapbox token missing. Set VITE_MAPBOX_TOKEN in your environment variables or use the hardcoded token.');
+  if (!isMapboxTokenValidSync()) {
+    console.error('Mapbox token missing. Set MAPBOX_ACCESS_TOKEN in your environment variables or use the hardcoded token.');
     return false;
   }
   

@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync, isMapboxTokenValidSync } from '@/utils/mapboxConfig';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MAP_CONFIG } from './MapConfig';
 import MapControls from './MapControls';
@@ -32,12 +32,17 @@ export const MapInitializer: React.FC<MapInitializerProps> = ({
     if (!mapContainer.current || !isMapboxReady) return;
     
     try {
-      if (!isMapboxTokenValid()) {
+      if (!isMapboxTokenValidSync()) {
         onError('Token Mapbox invalide');
         return;
       }
 
-      const mapboxToken = getMapboxToken();
+      const mapboxToken = getMapboxTokenSync();
+      if (!mapboxToken) {
+        onError('Token Mapbox manquant');
+        return;
+      }
+      
       mapboxgl.accessToken = mapboxToken;
       
       const newMap = new mapboxgl.Map({

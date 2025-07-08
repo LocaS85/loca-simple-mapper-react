@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MaximizedGeoSearchLayout from './ui/MaximizedGeoSearchLayout';
+import MapboxTokenSetup from './ui/MapboxTokenSetup';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
+import { mapboxConfigService } from '@/services/mapboxConfigService';
 
 interface LocationSelectData {
   name: string;
@@ -23,6 +25,7 @@ interface StatusInfo {
 
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
+  const [showTokenSetup, setShowTokenSetup] = useState(false);
   
   const {
     userLocation,
@@ -39,38 +42,58 @@ const GeoSearchApp: React.FC = () => {
     initializeMapbox
   } = useGeoSearchStore();
 
-  // Initialiser Mapbox et gérer les paramètres URL
+  // Initialisation sécurisée et paramètres URL
   useEffect(() => {
     console.log('🚀 Initialisation de l\'application GeoSearch');
     
-    // Initialiser les filtres depuis les paramètres URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const params: Record<string, string> = {};
-    urlParams.forEach((value, key) => {
-      params[key] = value;
-    });
-    
-    if (Object.keys(params).length > 0) {
-      // Traitement spécial pour les coordonnées depuis les catégories
-      if (params.lat && params.lng) {
-        const coords: [number, number] = [parseFloat(params.lng), parseFloat(params.lat)];
-        setUserLocation(coords);
-        updateFilters({
-          category: params.category || '',
-          query: params.query || params.category || '',
-          transport: (params.transport as any) || 'walking',
-          distance: parseInt(params.distance || '5'),
-          aroundMeCount: parseInt(params.count || '10')
+    const initializeApp = async () => {
+      try {
+        // Vérifier d'abord si un token est disponible
+        try {
+          await mapboxConfigService.getMapboxToken();
+        } catch (error) {
+          console.log('⚠️ Token Mapbox manquant, affichage du setup');
+          setShowTokenSetup(true);
+          return;
+        }
+
+        // Initialiser les filtres depuis les paramètres URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const params: Record<string, string> = {};
+        urlParams.forEach((value, key) => {
+          params[key] = value;
         });
         
-        // Auto-recherche si demandée
-        if (params.autoSearch === 'true' && params.query) {
-          setTimeout(() => performSearch(params.query), 1000);
+        if (Object.keys(params).length > 0) {
+          // Traitement spécial pour les coordonnées depuis les catégories
+          if (params.lat && params.lng) {
+            const coords: [number, number] = [parseFloat(params.lng), parseFloat(params.lat)];
+            setUserLocation(coords);
+            updateFilters({
+              category: params.category || '',
+              query: params.query || params.category || '',
+              transport: (params.transport as any) || 'walking',
+              distance: parseInt(params.distance || '5'),
+              aroundMeCount: parseInt(params.count || '10')
+            });
+            
+            // Auto-recherche si demandée
+            if (params.autoSearch === 'true' && params.query) {
+              setTimeout(() => performSearch(params.query), 1000);
+            }
+          }
         }
+        
+        // Initialiser Mapbox
+        await initializeMapbox();
+        
+      } catch (error) {
+        console.error('❌ Erreur initialisation app:', error);
+        setShowTokenSetup(true);
       }
-    }
-    
-    initializeMapbox();
+    };
+
+    initializeApp();
   }, []);
 
   // Auto-trigger search when user location is available
@@ -141,6 +164,11 @@ const GeoSearchApp: React.FC = () => {
     navigate('/categories');
   };
 
+  // Affichage du setup token si nécessaire
+  if (showTokenSetup) {
+    return <MapboxTokenSetup onTokenValidated={() => setShowTokenSetup(false)} />;
+  }
+
   // Affichage d'erreur si Mapbox non prêt
   if (!isMapboxReady) {
     return (
@@ -150,6 +178,12 @@ const GeoSearchApp: React.FC = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               {mapboxError}
+              <button 
+                onClick={() => setShowTokenSetup(true)}
+                className="ml-2 underline text-blue-600 hover:text-blue-800"
+              >
+                Configurer le token
+              </button>
             </AlertDescription>
           </Alert>
         ) : (

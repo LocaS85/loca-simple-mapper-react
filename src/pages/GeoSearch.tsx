@@ -1,9 +1,9 @@
 
 import React from 'react';
-import GeoSearchController from '@/components/geosearch/GeoSearchController';
+import GeoSearchApp from '@/components/geosearch/GeoSearchApp';
 
 const GeoSearch = () => {
-  return <GeoSearchController />;
+  return <GeoSearchApp />;
 };
 
 export default GeoSearch;

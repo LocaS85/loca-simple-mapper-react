@@ -19,7 +19,6 @@ export { default as SmartBreadcrumb } from './ui/SmartBreadcrumb';
 export { default as GeoSearchFiltersSheet } from './ui/GeoSearchFiltersSheet';
 
 // Composant principal
-export { default as GeoSearchController } from './GeoSearchController';
 export { default as GeoSearchIntegration } from './GeoSearchIntegration';
 export { default as GeoSearchMapIntegration } from './GeoSearchMapIntegration';
 export { default as GeocoderContainer } from './GeocoderContainer';

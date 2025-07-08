@@ -1,5 +1,5 @@
 
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/types';
 import { MapboxDirectionsResult } from './types';
 
