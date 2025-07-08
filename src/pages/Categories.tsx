@@ -122,21 +122,22 @@ const Categories = () => {
   const standardCategories = categories.filter(cat => cat.category_type === 'standard');
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-8">
-      {/* Header */}
-      <motion.div 
-        className="mb-8 text-center"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Gestion des Catégories
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Gérez vos adresses personnelles et explorez les catégories de lieux avec une interface moderne et intuitive
-        </p>
-      </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto px-4 py-6 space-y-6 md:space-y-8 max-w-7xl">
+        {/* Header */}
+        <motion.div 
+          className="mb-6 md:mb-8 text-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Gestion des Catégories
+          </h1>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+            Gérez vos adresses personnelles et explorez les catégories de lieux avec une interface moderne et intuitive
+          </p>
+        </motion.div>
 
       {/* Section des catégories spéciales (gestion d'adresses) */}
       <motion.section
@@ -154,7 +155,7 @@ const Categories = () => {
           </motion.div>
           Mes Adresses
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
           {specialCategories.map((category) => (
             <ModernAddressCard
               key={category.id}
@@ -216,13 +217,14 @@ const Categories = () => {
           </motion.div>
           Catégories de Recherche
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
           {standardCategories.map((category, index) => (
             <motion.div
               key={category.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
+              className="h-full"
             >
               <ModernCategoryCard
                 category={category}
@@ -236,6 +238,7 @@ const Categories = () => {
           ))}
         </div>
       </motion.section>
+    </div>
     </div>
   );
 };
