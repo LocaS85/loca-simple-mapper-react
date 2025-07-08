@@ -1,15 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useIsMobile } from '@/hooks/use-mobile';
-import GeoSearchHeader from './ui/GeoSearchHeader';
-import GeoSearchSidebar from './ui/GeoSearchSidebar';
-import GeoSearchMap from './ui/GeoSearchMap';
-import GeoSearchMobilePanel from './ui/GeoSearchMobilePanel';
+import MaximizedGeoSearchLayout from './ui/MaximizedGeoSearchLayout';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
-import RouteBackButton from '@/components/ui/RouteBackButton';
 
 interface LocationSelectData {
   name: string;
@@ -25,9 +22,7 @@ interface StatusInfo {
 }
 
 const GeoSearchApp: React.FC = () => {
-  const isMobile = useIsMobile();
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-  const [mobileResultsOpen, setMobileResultsOpen] = useState(false);
+  const navigate = useNavigate();
   
   const {
     userLocation,
@@ -122,8 +117,8 @@ const GeoSearchApp: React.FC = () => {
     }
   };
 
-  const handleToggleSidebar = (): void => {
-    setSidebarOpen(!sidebarOpen);
+  const handleBackToCategories = (): void => {
+    navigate('/categories');
   };
 
   // Affichage d'erreur si Mapbox non prêt
@@ -148,153 +143,20 @@ const GeoSearchApp: React.FC = () => {
     );
   }
 
-  if (isMobile) {
-    return (
-      <div className="flex flex-col h-screen bg-background overflow-hidden">
-        {/* Header mobile simplifié */}
-        <div className="bg-white border-b shadow-sm z-40">
-          <div className="flex items-center gap-3 p-4">
-            <RouteBackButton
-              route="/categories"
-              variant="ghost"
-              size="sm"
-              showLabel={false}
-              className="shrink-0"
-            />
-            <h1 className="text-lg font-semibold text-foreground">GeoSearch</h1>
-          </div>
-          
-          <GeoSearchHeader
-            filters={filters}
-            isLoading={isLoading}
-            onSearch={handleSearch}
-            onLocationSelect={handleLocationSelect}
-            onMyLocationClick={handleMyLocationClick}
-            onFiltersChange={updateFilters}
-            onResetFilters={resetFilters}
-            onToggleSidebar={handleToggleSidebar}
-            isMobile={true}
-            statusInfo={statusInfo}
-          />
-        </div>
-
-        {/* Carte plein écran */}
-        <div className="flex-1 relative">
-          <GeoSearchMap
-            results={results}
-            userLocation={userLocation}
-            transport={filters.transport}
-            category={filters.category}
-          />
-          
-          {/* Panel mobile pour résultats */}
-          {results.length > 0 && (
-            <GeoSearchMobilePanel
-              results={results}
-              isLoading={isLoading}
-              isOpen={mobileResultsOpen}
-              onToggle={() => setMobileResultsOpen(!mobileResultsOpen)}
-              onResultSelect={handleLocationSelect}
-            />
-          )}
-        </div>
-
-        {/* Sidebar mobile overlay */}
-        {sidebarOpen && (
-          <div className="absolute inset-0 z-50">
-            <div 
-              className="absolute inset-0 bg-black/50" 
-              onClick={() => setSidebarOpen(false)}
-            />
-            <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw]">
-              <GeoSearchSidebar
-                filters={filters}
-                results={results}
-                userLocation={userLocation}
-                isLoading={isLoading}
-                statusInfo={statusInfo}
-                onSearch={handleSearch}
-                onLocationSelect={handleLocationSelect}
-                onMyLocationClick={handleMyLocationClick}
-                onFiltersChange={updateFilters}
-                onResetFilters={resetFilters}
-                onClose={() => setSidebarOpen(false)}
-                isMobile={true}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Version desktop simplifiée
+  // Interface maximisée unifiée
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Header desktop */}
-      <div className="absolute top-0 left-0 right-0 z-40 bg-white border-b shadow-sm">
-        <div className="flex items-center gap-3 p-4">
-          <RouteBackButton
-            route="/categories"
-            variant="ghost"
-            size="sm"
-            label="Catégories"
-            className="shrink-0"
-          />
-          <h1 className="text-xl font-semibold text-foreground">Recherche Géographique</h1>
-        </div>
-      </div>
-
-      {/* Layout principal */}
-      <div className="flex w-full h-full pt-16">
-        {/* Sidebar desktop */}
-        {sidebarOpen && (
-          <div className="w-80 border-r bg-white shadow-sm">
-            <GeoSearchSidebar
-              filters={filters}
-              results={results}
-              userLocation={userLocation}
-              isLoading={isLoading}
-              statusInfo={statusInfo}
-              onSearch={handleSearch}
-              onLocationSelect={handleLocationSelect}
-              onMyLocationClick={handleMyLocationClick}
-              onFiltersChange={updateFilters}
-              onResetFilters={resetFilters}
-              onClose={() => setSidebarOpen(false)}
-              isMobile={false}
-            />
-          </div>
-        )}
-
-        {/* Zone principale */}
-        <div className="flex-1 flex flex-col">
-          {/* Header de recherche */}
-          <GeoSearchHeader
-            filters={filters}
-            isLoading={isLoading}
-            onSearch={handleSearch}
-            onLocationSelect={handleLocationSelect}
-            onMyLocationClick={handleMyLocationClick}
-            onFiltersChange={updateFilters}
-            onResetFilters={resetFilters}
-            onToggleSidebar={handleToggleSidebar}
-            isMobile={false}
-            statusInfo={statusInfo}
-          />
-
-          {/* Carte */}
-          <div className="flex-1">
-            <GeoSearchMap
-              results={results}
-              userLocation={userLocation}
-              transport={filters.transport}
-              category={filters.category}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    <MaximizedGeoSearchLayout
+      filters={filters}
+      results={results}
+      userLocation={userLocation}
+      isLoading={isLoading}
+      onSearch={handleSearch}
+      onLocationSelect={handleLocationSelect}
+      onMyLocationClick={handleMyLocationClick}
+      onFiltersChange={updateFilters}
+      onResetFilters={resetFilters}
+      onBack={handleBackToCategories}
+    />
   );
 };
 

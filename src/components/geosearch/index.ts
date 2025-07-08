@@ -18,8 +18,7 @@ export { default as GeoSearchSidebar } from './ui/GeoSearchSidebar';
 export { default as GeoSearchMobilePanel } from './ui/GeoSearchMobilePanel';
 export { default as GeoSearchFiltersSheet } from './ui/GeoSearchFiltersSheet';
 
-// Composants avancés existants
-export { default as EnhancedGeoSearchController } from './EnhancedGeoSearchController';
+// Composant principal
 export { default as GeoSearchController } from './GeoSearchController';
 export { default as GeoSearchIntegration } from './GeoSearchIntegration';
 export { default as GeoSearchMapIntegration } from './GeoSearchMapIntegration';

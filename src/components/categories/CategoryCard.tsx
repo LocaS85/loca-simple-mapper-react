@@ -40,14 +40,17 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   const handleSubcategoryClick = (subcategoryId: string) => {
     if (!userLocation) return;
     
+    const subcategory = category.subcategories.find(sub => sub.id === subcategoryId);
     const searchParams = new URLSearchParams({
-      category: category.id,
-      subcategory: subcategoryId,
+      category: category.name,
+      query: subcategory?.name || category.name,
       lat: userLocation[1].toString(),
       lng: userLocation[0].toString(),
       transport: transportMode,
       distance: maxDistance.toString(),
-      unit: distanceUnit
+      unit: distanceUnit,
+      autoSearch: 'true',
+      count: '8'
     });
 
     navigate(`/geosearch?${searchParams.toString()}`);
@@ -57,12 +60,15 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     if (!userLocation) return;
     
     const searchParams = new URLSearchParams({
-      category: category.id,
+      category: category.name,
+      query: category.name,
       lat: userLocation[1].toString(),
       lng: userLocation[0].toString(),
       transport: transportMode,
       distance: maxDistance.toString(),
-      unit: distanceUnit
+      unit: distanceUnit,
+      autoSearch: 'true',
+      count: '10'
     });
 
     navigate(`/geosearch?${searchParams.toString()}`);
