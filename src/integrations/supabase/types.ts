@@ -226,10 +226,13 @@ export type Database = {
       user_addresses: {
         Row: {
           address: string
-          category_type: string
+          category_type: string | null
           company_name: string | null
           coordinates: unknown
           created_at: string
+          custom_category_color: string | null
+          custom_category_icon: string | null
+          custom_category_name: string | null
           id: string
           is_primary: boolean | null
           name: string
@@ -239,10 +242,13 @@ export type Database = {
         }
         Insert: {
           address: string
-          category_type: string
+          category_type?: string | null
           company_name?: string | null
           coordinates: unknown
           created_at?: string
+          custom_category_color?: string | null
+          custom_category_icon?: string | null
+          custom_category_name?: string | null
           id?: string
           is_primary?: boolean | null
           name: string
@@ -252,10 +258,13 @@ export type Database = {
         }
         Update: {
           address?: string
-          category_type?: string
+          category_type?: string | null
           company_name?: string | null
           coordinates?: unknown
           created_at?: string
+          custom_category_color?: string | null
+          custom_category_icon?: string | null
+          custom_category_name?: string | null
           id?: string
           is_primary?: boolean | null
           name?: string

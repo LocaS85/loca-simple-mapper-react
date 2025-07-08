@@ -25,13 +25,16 @@ export interface Subcategory {
 export interface UserAddress {
   id: string;
   user_id: string;
-  category_type: 'main' | 'family' | 'work' | 'school';
+  category_type?: 'main' | 'family' | 'work' | 'school';
   name: string;
   address: string;
   coordinates: [number, number];
   role?: string;
   company_name?: string;
   is_primary: boolean;
+  custom_category_name?: string;
+  custom_category_icon?: string;
+  custom_category_color?: string;
 }
 
 export interface TransportMode {
@@ -97,7 +100,7 @@ export const useSupabaseCategories = () => {
       // Convertir les coordonnées point en array [lng, lat]
       const addressesWithCoords: UserAddress[] = data.map(addr => ({
         ...addr,
-        category_type: addr.category_type as 'main' | 'family' | 'work' | 'school',
+        category_type: addr.category_type as 'main' | 'family' | 'work' | 'school' | undefined,
         is_primary: addr.is_primary || false,
         coordinates: [
           parseFloat((addr.coordinates as string).split(',')[0].replace('(', '')),
@@ -194,7 +197,7 @@ export const useSupabaseCategories = () => {
 
       const updatedAddress: UserAddress = {
         ...data,
-        category_type: data.category_type as 'main' | 'family' | 'work' | 'school',
+        category_type: data.category_type as 'main' | 'family' | 'work' | 'school' | undefined,
         is_primary: data.is_primary || false,
         coordinates: updates.coordinates || userAddresses.find(addr => addr.id === id)?.coordinates || [0, 0]
       };

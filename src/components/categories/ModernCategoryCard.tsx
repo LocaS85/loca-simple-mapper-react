@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { ChevronRight, Search, MapPin, Store, Coffee, Utensils, ShoppingBag, GraduationCap, Building, Car } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Category, Subcategory } from '@/hooks/useSupabaseCategories';
@@ -53,6 +53,36 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
     navigate(`/geosearch?${searchParams.toString()}`);
   };
 
+  // Mapping des icônes modernes basé sur le nom de la catégorie
+  const getModernIcon = () => {
+    const iconMap: { [key: string]: React.ReactNode } = {
+      'Restaurants': <Utensils className="h-6 w-6" />,
+      'Commerces': <Store className="h-6 w-6" />,
+      'Shopping': <ShoppingBag className="h-6 w-6" />,
+      'Cafés': <Coffee className="h-6 w-6" />,
+      'Éducation': <GraduationCap className="h-6 w-6" />,
+      'Services': <Building className="h-6 w-6" />,
+      'Transport': <Car className="h-6 w-6" />,
+      'Lieux': <MapPin className="h-6 w-6" />
+    };
+    
+    // Recherche par nom exact puis par mots-clés
+    const exactMatch = iconMap[category.name];
+    if (exactMatch) return exactMatch;
+    
+    // Recherche par mots-clés dans le nom
+    const lowerName = category.name.toLowerCase();
+    if (lowerName.includes('restaurant') || lowerName.includes('food')) return iconMap['Restaurants'];
+    if (lowerName.includes('shop') || lowerName.includes('magasin')) return iconMap['Shopping'];
+    if (lowerName.includes('café') || lowerName.includes('coffee')) return iconMap['Cafés'];
+    if (lowerName.includes('école') || lowerName.includes('university')) return iconMap['Éducation'];
+    if (lowerName.includes('service') || lowerName.includes('bureau')) return iconMap['Services'];
+    if (lowerName.includes('transport') || lowerName.includes('metro')) return iconMap['Transport'];
+    
+    // Icône par défaut
+    return <MapPin className="h-6 w-6" />;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -72,15 +102,20 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
         >
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg transform transition-transform duration-300 hover:scale-110"
+              <motion.div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg relative overflow-hidden group"
                 style={{ 
                   backgroundColor: category.color,
-                  background: `linear-gradient(135deg, ${category.color}, ${category.color}88)`
+                  background: `linear-gradient(135deg, ${category.color}, ${category.color}dd)`
                 }}
+                whileHover={{ scale: 1.05, rotate: [0, -2, 2, 0] }}
+                transition={{ duration: 0.3 }}
               >
-                <span className="text-xl filter drop-shadow-sm">{category.icon}</span>
-              </div>
+                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <div className="relative z-10 text-white filter drop-shadow-sm">
+                  {getModernIcon()}
+                </div>
+              </motion.div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
                 {subcategories.length > 0 && (
@@ -137,15 +172,22 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
                     >
                       <Button
                         variant="ghost"
-                        className="w-full flex items-center gap-3 p-3 h-auto justify-start text-left hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all duration-200 rounded-lg group/sub"
+                        className="w-full flex items-center gap-3 p-3 h-auto justify-start text-left hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all duration-200 rounded-lg group/sub relative overflow-hidden"
                         onClick={() => handleSubcategoryClick(subcategory)}
                       >
-                        <div 
-                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover/sub:scale-110"
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover/sub:translate-x-[100%] transition-transform duration-700" />
+                        <motion.div 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 relative"
                           style={{ backgroundColor: `${category.color}20` }}
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          transition={{ duration: 0.2 }}
                         >
-                          <span className="text-sm">{subcategory.icon}</span>
-                        </div>
+                          <span className="text-sm relative z-10">{subcategory.icon}</span>
+                          <div 
+                            className="absolute inset-0 rounded-lg opacity-0 group-hover/sub:opacity-100 transition-opacity duration-200"
+                            style={{ backgroundColor: `${category.color}10` }}
+                          />
+                        </motion.div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm text-gray-900 truncate">
                             {subcategory.name}

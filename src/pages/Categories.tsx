@@ -7,8 +7,10 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
 import ModernAddressCard from '@/components/categories/ModernAddressCard';
 import ModernCategoryCard from '@/components/categories/ModernCategoryCard';
-import TransportModeManager from '@/components/categories/TransportModeManager';
+import ModernTransportManager from '@/components/categories/ModernTransportManager';
+import CustomAddressCard from '@/components/categories/CustomAddressCard';
 import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
 
 const Categories = () => {
   const navigate = useNavigate();
@@ -122,21 +124,34 @@ const Categories = () => {
   return (
     <div className="container mx-auto px-4 py-6 space-y-8">
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+      <motion.div 
+        className="mb-8 text-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
           Gestion des Catégories
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Gérez vos adresses personnelles et explorez les catégories de lieux avec une interface moderne et intuitive
         </p>
-      </div>
+      </motion.div>
 
       {/* Section des catégories spéciales (gestion d'adresses) */}
-      <section>
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
         <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+          <motion.div 
+            className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ duration: 0.2 }}
+          >
             <span className="text-white text-sm">📍</span>
-          </div>
+          </motion.div>
           Mes Adresses
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -151,45 +166,76 @@ const Categories = () => {
               maxAddresses={10}
             />
           ))}
+          
+          {/* Section Autre - Catégories personnalisables */}
+          <CustomAddressCard
+            addresses={userAddresses}
+            onAddAddress={handleAddAddress}
+            onUpdateAddress={handleUpdateAddress}
+            onDeleteAddress={handleDeleteAddress}
+            maxAddresses={15}
+          />
         </div>
-      </section>
+      </motion.section>
 
       {/* Section des modes de transport */}
-      <section>
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
         <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center">
+          <motion.div 
+            className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.1, rotate: -5 }}
+            transition={{ duration: 0.2 }}
+          >
             <span className="text-white text-sm">🚗</span>
-          </div>
+          </motion.div>
           Configuration Transport
         </h2>
-        <TransportModeManager
+        <ModernTransportManager
           transportModes={transportModes}
           onUpdateColor={handleUpdateTransportColor}
         />
-      </section>
+      </motion.section>
 
       {/* Section des catégories standards */}
-      <section>
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
         <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 flex items-center justify-center">
+          <motion.div 
+            className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ duration: 0.2 }}
+          >
             <span className="text-white text-sm">🔍</span>
-          </div>
+          </motion.div>
           Catégories de Recherche
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {standardCategories.map((category) => (
-            <ModernCategoryCard
+          {standardCategories.map((category, index) => (
+            <motion.div
               key={category.id}
-              category={category}
-              subcategories={category.subcategories || []}
-              transportMode="walking"
-              maxDistance={5}
-              distanceUnit="km"
-              aroundMeCount={3}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
+            >
+              <ModernCategoryCard
+                category={category}
+                subcategories={category.subcategories || []}
+                transportMode="walking"
+                maxDistance={5}
+                distanceUnit="km"
+                aroundMeCount={3}
+              />
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
     </div>
   );
 };
