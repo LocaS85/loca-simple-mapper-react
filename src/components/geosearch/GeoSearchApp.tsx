@@ -39,19 +39,39 @@ const GeoSearchApp: React.FC = () => {
     initializeMapbox
   } = useGeoSearchStore();
 
-  // Initialiser Mapbox au montage du composant
+  // Initialiser Mapbox et gérer les paramètres URL
   useEffect(() => {
     console.log('🚀 Initialisation de l\'application GeoSearch');
     
-    // FORCER LA RÉINITIALISATION DE LA POSITION
-    setUserLocation(null);
-    console.log('🔄 Position utilisateur réinitialisée');
-    
-    initializeMapbox().then(() => {
-      // Ne pas faire de recherche auto si pas de position valide
-      console.log('🗺️ Mapbox initialisé, attente géolocalisation utilisateur');
+    // Initialiser les filtres depuis les paramètres URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const params: Record<string, string> = {};
+    urlParams.forEach((value, key) => {
+      params[key] = value;
     });
-  }, [initializeMapbox, setUserLocation]);
+    
+    if (Object.keys(params).length > 0) {
+      // Traitement spécial pour les coordonnées depuis les catégories
+      if (params.lat && params.lng) {
+        const coords: [number, number] = [parseFloat(params.lng), parseFloat(params.lat)];
+        setUserLocation(coords);
+        updateFilters({
+          category: params.category || '',
+          query: params.query || params.category || '',
+          transport: (params.transport as any) || 'walking',
+          distance: parseInt(params.distance || '5'),
+          aroundMeCount: parseInt(params.count || '10')
+        });
+        
+        // Auto-recherche si demandée
+        if (params.autoSearch === 'true' && params.query) {
+          setTimeout(() => performSearch(params.query), 1000);
+        }
+      }
+    }
+    
+    initializeMapbox();
+  }, []);
 
   // Auto-trigger search when user location is available
   useEffect(() => {

@@ -11,11 +11,11 @@ export { default as MultiMapToggle } from './MultiMapToggle';
 export { default as PrintButton } from './PrintButton';
 export { default as ExportPDFButton } from './ExportPDFButton';
 
-// Composants de carte
+// Composants de carte et UI
 export { default as GeoSearchMap } from './ui/GeoSearchMap';
-export { default as GeoSearchHeader } from './ui/GeoSearchHeader';
-export { default as GeoSearchSidebar } from './ui/GeoSearchSidebar';
-export { default as GeoSearchMobilePanel } from './ui/GeoSearchMobilePanel';
+export { default as LocationDetailsPopup } from './ui/LocationDetailsPopup';
+export { default as MaximizedGeoSearchLayout } from './ui/MaximizedGeoSearchLayout';
+export { default as SmartBreadcrumb } from './ui/SmartBreadcrumb';
 export { default as GeoSearchFiltersSheet } from './ui/GeoSearchFiltersSheet';
 
 // Composant principal

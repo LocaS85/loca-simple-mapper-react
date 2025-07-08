@@ -161,29 +161,23 @@ const MaximizedGeoSearchLayout: React.FC<MaximizedGeoSearchLayoutProps> = ({
             )}
           </div>
         ) : (
-          // Header collapsed
+          // Header collapsed - version ultra-minimaliste
           <div className="p-3 flex items-center justify-between">
+            <SmartBreadcrumb />
+            
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onBack}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              
               <Badge variant="outline" className="text-xs">
                 {results.length}
               </Badge>
-            </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsHeaderCollapsed(false)}
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsHeaderCollapsed(false)}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
       </div>
