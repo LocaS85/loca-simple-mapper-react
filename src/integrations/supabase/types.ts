@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          category_type: string
+          color: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          name: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_type?: string
+          color: string
+          created_at?: string
+          description?: string | null
+          icon: string
+          id?: string
+          name: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_type?: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           category: string | null
@@ -112,6 +148,157 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          name: string
+          search_terms: string[] | null
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          icon: string
+          id?: string
+          name: string
+          search_terms?: string[] | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          search_terms?: string[] | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_modes: {
+        Row: {
+          created_at: string
+          default_color: string
+          icon: string
+          id: string
+          mapbox_profile: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          default_color: string
+          icon: string
+          id?: string
+          mapbox_profile: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          default_color?: string
+          icon?: string
+          id?: string
+          mapbox_profile?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          address: string
+          category_type: string
+          company_name: string | null
+          coordinates: unknown
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          name: string
+          role: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          category_type: string
+          company_name?: string | null
+          coordinates: unknown
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          name: string
+          role?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          category_type?: string
+          company_name?: string | null
+          coordinates?: unknown
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          name?: string
+          role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_transport_preferences: {
+        Row: {
+          created_at: string
+          custom_color: string
+          id: string
+          transport_mode_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_color: string
+          id?: string
+          transport_mode_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_color?: string
+          id?: string
+          transport_mode_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_transport_preferences_transport_mode_id_fkey"
+            columns: ["transport_mode_id"]
+            isOneToOne: false
+            referencedRelation: "transport_modes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

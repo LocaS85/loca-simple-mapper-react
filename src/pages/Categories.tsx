@@ -3,71 +3,93 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
-import { 
-  AddressFormDialog,
-  CategoryMapView
-} from '@/components/categories';
-import CategoryCard from '@/components/categories/CategoryCard';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { useAddressManagement } from '@/hooks/use-address-management';
-import { useCategoryManagement } from '@/hooks/use-category-management';
-import { useTranslation } from 'react-i18next';
-import { DailyAddressData } from '@/types/category';
-import { unifiedCategories } from '@/data/unifiedCategories';
+import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
+import AddressManagementCard from '@/components/categories/AddressManagementCard';
+import StandardCategoryCard from '@/components/categories/StandardCategoryCard';
+import TransportModeManager from '@/components/categories/TransportModeManager';
+import { useToast } from '@/hooks/use-toast';
 
 const Categories = () => {
-  // State for map toggle
-  const [showMap, setShowMap] = useState(false);
-  
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { toast } = useToast();
   
-  // Use custom hooks for state management
+  // Use Supabase categories hook
   const {
-    dailyAddresses,
-    showAddressForm,
-    setShowAddressForm,
-    editingAddress,
-    setEditingAddress,
-    handleSaveAddress,
-    handleEditAddress,
-    handleDeleteAddress,
-    handleAddNewAddress
-  } = useAddressManagement();
-  
-  const {
-    convertedCategories,
-    selectedCategory,
-    isLoading,
-    transportMode,
-    maxDistance,
-    setMaxDistance,
-    maxDuration,
-    setMaxDuration,
-    aroundMeCount,
-    setAroundMeCount,
-    showMultiDirections,
-    setShowMultiDirections,
-    distanceUnit,
-    setDistanceUnit,
-    handleFiltersChange,
-    handleSelectCategory,
-    setTransportMode,
-    resetFilters
-  } = useCategoryManagement();
+    categories,
+    userAddresses,
+    transportModes,
+    loading,
+    error,
+    addUserAddress,
+    updateUserAddress,
+    deleteUserAddress,
+    updateTransportColor
+  } = useSupabaseCategories();
 
-  // Handle search from subcategory cards
-  const handleSearchClick = (subcategoryId: string) => {
-    // Navigate to search page with category and subcategory parameters
-    const category = unifiedCategories.find(cat => cat.subcategories?.find(sub => sub.id === subcategoryId));
-    if (category) {
-      const unit = distanceUnit === 'km' ? 'km' : 'mi';
-      navigate(`/geosearch?category=${category.id}&subcategory=${subcategoryId}&transport=${transportMode}&distance=${maxDistance}&unit=${unit}&aroundMeCount=${aroundMeCount}`);
+  // Handle address operations with toast notifications
+  const handleAddAddress = async (address: any) => {
+    try {
+      await addUserAddress(address);
+      toast({
+        title: "Adresse ajoutée",
+        description: "L'adresse a été ajoutée avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter l'adresse.",
+        variant: "destructive",
+      });
     }
   };
-  
-  const handleEditAddressWrapper = (address: DailyAddressData) => {
-    handleEditAddress(address);
+
+  const handleUpdateAddress = async (id: string, updates: any) => {
+    try {
+      await updateUserAddress(id, updates);
+      toast({
+        title: "Adresse modifiée",
+        description: "L'adresse a été modifiée avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'adresse.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    try {
+      await deleteUserAddress(id);
+      toast({
+        title: "Adresse supprimée",
+        description: "L'adresse a été supprimée avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'adresse.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateTransportColor = async (transportModeId: string, color: string) => {
+    try {
+      await updateTransportColor(transportModeId, color);
+      toast({
+        title: "Couleur mise à jour",
+        description: "La couleur du mode de transport a été mise à jour.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour la couleur.",
+        variant: "destructive",
+      });
+    }
   };
   
   // Check if Mapbox token is valid
@@ -75,65 +97,82 @@ const Categories = () => {
     return <MapboxError />;
   }
 
-  return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">Catégories</h1>
-        <div className="flex items-center gap-4 mb-4">
-          <button
-            onClick={() => setShowMap(!showMap)}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            {showMap ? 'Liste' : 'Carte'}
-          </button>
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="text-center py-8 text-red-600">
+          <p>Erreur: {error}</p>
         </div>
       </div>
-      
-      {/* Loading indicator */}
-      {isLoading ? (
-        <LoadingSpinner />
-      ) : (
-        <>
-          {/* Main content - Map or List */}
-          {showMap ? (
-            <CategoryMapView 
-              selectedCategory={selectedCategory?.id || ''}
-              initialTransportMode={transportMode}
-              initialMaxDistance={maxDistance}
-              initialMaxDuration={maxDuration}
-              initialAroundMeCount={aroundMeCount}
-              initialShowMultiDirections={showMultiDirections}
-              initialDistanceUnit={distanceUnit}
+    );
+  }
+
+  // Séparer les catégories spéciales et standards
+  const specialCategories = categories.filter(cat => cat.category_type === 'special');
+  const standardCategories = categories.filter(cat => cat.category_type === 'standard');
+
+  return (
+    <div className="container mx-auto px-4 py-6 space-y-8">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Gestion des Catégories</h1>
+        <p className="text-gray-600">
+          Gérez vos adresses personnelles et explorez les catégories de lieux
+        </p>
+      </div>
+
+      {/* Section des catégories spéciales (gestion d'adresses) */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4">Mes Adresses</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {specialCategories.map((category) => (
+            <AddressManagementCard
+              key={category.id}
+              category={category as any}
+              addresses={userAddresses}
+              onAddAddress={handleAddAddress}
+              onUpdateAddress={handleUpdateAddress}
+              onDeleteAddress={handleDeleteAddress}
+              maxAddresses={10}
             />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {unifiedCategories.map((category) => (
-                <CategoryCard
-                  key={category.id}
-                  category={category}
-                  userLocation={dailyAddresses.length > 0 ? dailyAddresses[0]?.coordinates : null}
-                  onCategorySelect={handleSelectCategory}
-                  transportMode={transportMode}
-                  maxDistance={maxDistance}
-                  distanceUnit={distanceUnit === 'km' ? 'km' : 'mi'}
-                  isLoading={isLoading}
-                  showSubcategories={true}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-      
-      {/* Address form dialog */}
-      <AddressFormDialog 
-        showAddressForm={showAddressForm}
-        setShowAddressForm={setShowAddressForm}
-        editingAddress={editingAddress}
-        setEditingAddress={setEditingAddress}
-        onSaveAddress={handleSaveAddress}
-      />
+          ))}
+        </div>
+      </section>
+
+      {/* Section des modes de transport */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4">Configuration Transport</h2>
+        <TransportModeManager
+          transportModes={transportModes}
+          onUpdateColor={handleUpdateTransportColor}
+        />
+      </section>
+
+      {/* Section des catégories standards */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4">Catégories de Recherche</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {standardCategories.map((category) => (
+            <StandardCategoryCard
+              key={category.id}
+              category={category}
+              subcategories={category.subcategories || []}
+              transportMode="walking"
+              maxDistance={5}
+              distanceUnit="km"
+              aroundMeCount={3}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
