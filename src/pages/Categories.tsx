@@ -5,8 +5,8 @@ import { isMapboxTokenValid } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
-import AddressManagementCard from '@/components/categories/AddressManagementCard';
-import StandardCategoryCard from '@/components/categories/StandardCategoryCard';
+import ModernAddressCard from '@/components/categories/ModernAddressCard';
+import ModernCategoryCard from '@/components/categories/ModernCategoryCard';
 import TransportModeManager from '@/components/categories/TransportModeManager';
 import { useToast } from '@/hooks/use-toast';
 
@@ -122,19 +122,26 @@ const Categories = () => {
   return (
     <div className="container mx-auto px-4 py-6 space-y-8">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Gestion des Catégories</h1>
-        <p className="text-gray-600">
-          Gérez vos adresses personnelles et explorez les catégories de lieux
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          Gestion des Catégories
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Gérez vos adresses personnelles et explorez les catégories de lieux avec une interface moderne et intuitive
         </p>
       </div>
 
       {/* Section des catégories spéciales (gestion d'adresses) */}
       <section>
-        <h2 className="text-2xl font-semibold mb-4">Mes Adresses</h2>
+        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+            <span className="text-white text-sm">📍</span>
+          </div>
+          Mes Adresses
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {specialCategories.map((category) => (
-            <AddressManagementCard
+            <ModernAddressCard
               key={category.id}
               category={category as any}
               addresses={userAddresses}
@@ -149,7 +156,12 @@ const Categories = () => {
 
       {/* Section des modes de transport */}
       <section>
-        <h2 className="text-2xl font-semibold mb-4">Configuration Transport</h2>
+        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center">
+            <span className="text-white text-sm">🚗</span>
+          </div>
+          Configuration Transport
+        </h2>
         <TransportModeManager
           transportModes={transportModes}
           onUpdateColor={handleUpdateTransportColor}
@@ -158,10 +170,15 @@ const Categories = () => {
 
       {/* Section des catégories standards */}
       <section>
-        <h2 className="text-2xl font-semibold mb-4">Catégories de Recherche</h2>
+        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 flex items-center justify-center">
+            <span className="text-white text-sm">🔍</span>
+          </div>
+          Catégories de Recherche
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {standardCategories.map((category) => (
-            <StandardCategoryCard
+            <ModernCategoryCard
               key={category.id}
               category={category}
               subcategories={category.subcategories || []}
