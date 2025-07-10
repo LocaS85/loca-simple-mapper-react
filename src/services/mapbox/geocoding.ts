@@ -1,12 +1,12 @@
 
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync } from '@/utils/mapboxConfig';
 import { MapboxSearchResult, MapboxSearchOptions } from './types';
 
 export class MapboxGeocodingService {
   private token: string;
 
   constructor() {
-    this.token = getMapboxToken();
+    this.token = getMapboxTokenSync() || '';
   }
 
   async searchPlaces(

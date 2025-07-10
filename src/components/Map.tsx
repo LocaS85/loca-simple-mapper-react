@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Location } from '../types';
-import { getMapboxToken, isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync, isMapboxTokenValidSync } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 
 interface MapProps {
@@ -23,9 +23,9 @@ const Map: React.FC<MapProps> = ({
 
   // Initialize map when component mounts
   useEffect(() => {
-    if (!mapContainer.current || !isMapboxTokenValid()) return;
+    if (!mapContainer.current || !isMapboxTokenValidSync()) return;
     
-    const mapboxToken = getMapboxToken();
+    const mapboxToken = getMapboxTokenSync();
     mapboxgl.accessToken = mapboxToken;
     
     map.current = new mapboxgl.Map({
@@ -95,7 +95,7 @@ const Map: React.FC<MapProps> = ({
     }
   }, [selectedLocationId, locations, mapLoaded]);
 
-  if (!isMapboxTokenValid()) {
+  if (!isMapboxTokenValidSync()) {
     return <MapboxError />;
   }
 

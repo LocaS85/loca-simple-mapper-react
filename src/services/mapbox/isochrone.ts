@@ -1,12 +1,12 @@
 
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync } from '@/utils/mapboxConfig';
 import { TransportMode } from '@/types';
 
 export class MapboxIsochroneService {
   private token: string;
 
   constructor() {
-    this.token = getMapboxToken();
+    this.token = getMapboxTokenSync() || '';
   }
 
   async createIsochrone(

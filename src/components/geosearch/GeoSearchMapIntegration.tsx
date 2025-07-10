@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { CategoryMapView, EnhancedMapboxSearch, MultiRouteDisplay } from '@/components/map';
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync } from '@/utils/mapboxConfig';
 import { TransportMode, DistanceUnit } from '@/types/map';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,7 +29,7 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
   useEffect(() => {
     if (!mapRef.current && userLocation) {
       try {
-        mapboxgl.accessToken = getMapboxToken();
+        mapboxgl.accessToken = getMapboxTokenSync() || '';
         
         const newMap = new mapboxgl.Map({
           container: 'geo-map-container',

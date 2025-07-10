@@ -7,7 +7,7 @@ export class MapboxDirectionsService {
   private token: string;
 
   constructor() {
-    this.token = getMapboxToken();
+    this.token = getMapboxTokenSync() || '';
   }
 
   async getDirections(

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { getMapboxTokenSync } from '@/utils/mapboxConfig';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from 'react-i18next';
 
@@ -42,7 +42,7 @@ const EnhancedMapboxSearch: React.FC<EnhancedMapboxSearchProps> = ({
     if (!geocoderContainerRef.current || isInitialized) return;
 
     try {
-      const token = getMapboxToken();
+      const token = getMapboxTokenSync();
       if (!token) {
         console.error('Mapbox token manquant');
         return;
