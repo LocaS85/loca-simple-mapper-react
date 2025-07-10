@@ -2,7 +2,7 @@
 import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
 import { getMapboxToken } from './mapboxConfig';
-import { TransportMode } from '@/types';
+import { TransportMode } from '@/types/unified';
 import { 
   directionsService, 
   matrixService, 

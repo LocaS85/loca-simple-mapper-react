@@ -1,7 +1,7 @@
 
 import React, { isValidElement, ComponentType } from "react";
 import { Button } from "@/components/ui/button";
-import { TransportModeItem } from "../types";
+import { TransportModeItem } from "@/types/unified";
 
 interface TransportSelectorProps {
   transportModes: TransportModeItem[];

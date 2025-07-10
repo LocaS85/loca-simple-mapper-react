@@ -1,6 +1,6 @@
 
 import { getMapboxTokenSync } from '@/utils/mapboxConfig';
-import { TransportMode } from '@/types';
+import { TransportMode } from '@/types/unified';
 
 export class MapboxIsochroneService {
   private token: string;

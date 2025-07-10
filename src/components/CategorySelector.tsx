@@ -1,7 +1,7 @@
 
 import React, { isValidElement, ComponentType } from "react";
 import { Button } from "@/components/ui/button";
-import { Category } from "../types";
+import { Category } from "@/types/unified";
 
 interface CategorySelectorProps {
   categories: Category[];

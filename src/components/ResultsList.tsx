@@ -1,6 +1,6 @@
 
 import React from "react";
-import { MapResult } from "@/types";
+import { MapResult } from "@/types/unified";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";

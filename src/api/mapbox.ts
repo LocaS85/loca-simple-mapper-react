@@ -1,5 +1,14 @@
 
-import { SearchParams, Place } from '../types';
+import { Place } from '@/types/unified';
+
+// Interface locale pour SearchParams (compatibility)
+interface SearchParams {
+  query: string;
+  proximity: [number, number];
+  limit?: number;
+  radius?: number;
+  categories?: string[];
+}
 
 export const fetchPlaces = async (params: SearchParams): Promise<Place[]> => {
   const { query, proximity, limit, radius, categories } = params;

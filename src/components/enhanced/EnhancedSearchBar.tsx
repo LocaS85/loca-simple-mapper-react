@@ -1,7 +1,23 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { SearchBarProps, LocationSelectData, SearchResultData } from '@/types/searchTypes';
+import { SearchBarProps } from '@/types/unified';
+
+// Interfaces locales pour compatibilité 
+interface LocationSelectData {
+  name: string;
+  coordinates: [number, number];
+  placeName: string;
+}
+
+interface SearchResultData {
+  id: string;
+  name: string;
+  address: string;
+  coordinates: [number, number];
+  distance?: number;
+  category?: string;
+}
 import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { Input } from '@/components/ui/input';

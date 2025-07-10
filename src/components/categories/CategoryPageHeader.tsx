@@ -36,7 +36,7 @@ const CategoryPageHeader: React.FC<CategoryPageHeaderProps> = ({
         <CardHeader className="pb-4">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-white rounded-lg shadow-sm">
-              <span className="text-2xl">{category.icon}</span>
+              <span className="text-2xl">{typeof category.icon === 'string' ? category.icon : '📍'}</span>
             </div>
             <div className="flex-1">
               <CardTitle className="text-2xl font-bold text-gray-900 mb-2">

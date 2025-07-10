@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Location } from '../types';
+import { Location } from '@/types/unified';
 
 interface LocationCardProps {
   location: Location;

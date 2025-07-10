@@ -18,7 +18,7 @@ import { Car, User, Bike, Bus, Compass, Route, Filter, RefreshCw } from 'lucide-
 import { TransportMode } from '@/lib/data/transportModes';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { Category } from '@/types';
+import { Category } from '@/types/unified';
 
 export interface UnifiedFiltersProps {
   open: boolean;

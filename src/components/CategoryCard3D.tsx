@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Category } from '@/types/category';
+import { Category } from '@/types/unified';
 import { renderIcon } from '@/utils/iconRenderer';
 
 interface CategoryCardProps {

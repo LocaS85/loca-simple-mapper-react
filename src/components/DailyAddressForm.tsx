@@ -11,8 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DailyAddressItem, DailyAddressData } from '../types/category';
-import { TransportMode } from '@/types/map';
+import { DailyAddressData, TransportMode } from '@/types/unified';
 
 interface DailyAddressFormProps {
   onSave: (address: Partial<DailyAddressData>) => void;

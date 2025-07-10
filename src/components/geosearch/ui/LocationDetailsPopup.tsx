@@ -70,7 +70,7 @@ const LocationDetailsPopup: React.FC<LocationDetailsPopupProps> = ({
                 📏 À {location.distance.toFixed(1)} km
                 {location.duration && (
                   <span className="ml-2">
-                    ⏱️ {Math.round(location.duration)} min
+                    ⏱️ {Math.round(typeof location.duration === 'number' ? location.duration : parseFloat(location.duration.toString()) || 0)} min
                   </span>
                 )}
               </div>

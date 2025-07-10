@@ -1,5 +1,5 @@
 
-import { DailyAddressItem } from '@/types/category';
+import { DailyAddressItem } from '@/types/unified';
 
 export const loadAddresses = (): DailyAddressItem[] => {
   try {

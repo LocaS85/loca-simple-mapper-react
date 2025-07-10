@@ -1,7 +1,7 @@
 
 import { useMemo } from 'react';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
-import { POI } from '@/types/map';
+import { POI } from '@/types/unified';
 
 export const usePOIIntegration = () => {
   const { results, userLocation } = useGeoSearchStore();
@@ -13,9 +13,10 @@ export const usePOIIntegration = () => {
       name: result.name,
       coordinates: result.coordinates,
       category: result.category || result.type || 'general',
-      description: result.address,
-      distance: result.distance,
-      duration: result.duration
+      description: result.address || result.description || '',
+      distance: result.distance || 0,
+      duration: typeof result.duration === 'number' ? result.duration : 
+                typeof result.duration === 'string' ? parseInt(result.duration) || 0 : 0
     }));
   }, [results]);
 

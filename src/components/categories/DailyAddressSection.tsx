@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DailyAddressItem } from '@/types/category';
+import { DailyAddressItem } from '@/types/unified';
 
 interface DailyAddressSectionProps {
   subcategoryId: string;

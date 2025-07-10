@@ -241,7 +241,10 @@ export const createExportGeoJSON = (
 
     if (includeDetails) {
       if (result.distance) properties.distance = `${result.distance.toFixed(2)} km`;
-      if (result.duration) properties.duration = `${result.duration.toFixed(0)} min`;
+      if (result.duration) {
+        const duration = typeof result.duration === 'number' ? result.duration : parseFloat(result.duration.toString()) || 0;
+        properties.duration = `${duration.toFixed(0)} min`;
+      }
       if (result.rating) properties.rating = result.rating;
       if (result.phone) properties.phone = result.phone;
       if (result.website) properties.website = result.website;

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Category } from '@/types';
+import { Category } from '@/types/unified';
 
 interface CategoryCard3DProps {
   category: Category;

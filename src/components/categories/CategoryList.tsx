@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Category } from '@/types/category';
+import { Category } from '@/types/unified';
 import { renderIcon } from '@/utils/iconRenderer';
 
 interface CategoryListProps {

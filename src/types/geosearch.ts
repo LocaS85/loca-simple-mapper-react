@@ -1,5 +1,7 @@
 
-// RE-EXPORT FROM UNIFIED TYPES
+// ===== DÉPRÉCIÉ - Utiliser './unified' directement =====
+// Ce fichier sera supprimé en Phase 2
+
 export type {
   TransportMode,
   DistanceUnit,
@@ -9,5 +11,9 @@ export type {
   GeoSearchState,
   GeoLocationOptions,
   CoordinatesPair,
-  NetworkStatus
+  NetworkStatus,
+  Category,
+  CategoryItem,
+  Subcategory,
+  SubcategoryItem
 } from './unified';

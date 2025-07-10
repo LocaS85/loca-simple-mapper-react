@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { loadAddresses, saveAddresses, createOrUpdateAddress } from '@/services/addressService';
-import { DailyAddressData, DailyAddressItem } from '@/types/category';
+import { DailyAddressData, DailyAddressItem } from '@/types/unified';
 
 export function useAddressManagement() {
   const [dailyAddresses, setDailyAddresses] = useState<DailyAddressData[]>([]);

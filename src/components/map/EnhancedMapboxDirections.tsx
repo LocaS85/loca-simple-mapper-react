@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions';
 import { getMapboxToken } from '@/utils/mapboxConfig';
-import { TransportMode } from '@/types';
+import { TransportMode } from '@/types/unified';
 import { useTranslation } from 'react-i18next';
 
 interface EnhancedMapboxDirectionsProps {

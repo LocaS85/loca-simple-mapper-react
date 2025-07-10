@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Location } from '../types';
+import { Location } from '@/types/unified';
 import { getMapboxTokenSync, isMapboxTokenValidSync } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 

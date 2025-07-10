@@ -1,6 +1,6 @@
 
 import { getMapboxTokenSync } from '@/utils/mapboxConfig';
-import { TransportMode } from '@/types';
+import { TransportMode } from '@/types/unified';
 import { MapboxDirectionsResult } from './types';
 
 export class MapboxDirectionsService {

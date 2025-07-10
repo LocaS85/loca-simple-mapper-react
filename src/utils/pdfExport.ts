@@ -171,7 +171,8 @@ export const exportToPDF = async (
         }
 
         if (result.duration) {
-          pdf.text(`   ⏱️ Durée: ${Math.round(result.duration)} min`, 20, yPosition);
+          const duration = typeof result.duration === 'number' ? result.duration : parseFloat(result.duration.toString()) || 0;
+          pdf.text(`   ⏱️ Durée: ${Math.round(duration)} min`, 20, yPosition);
           yPosition += 6;
         }
 

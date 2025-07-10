@@ -7,7 +7,7 @@ import {
   DialogTitle 
 } from '@/components/ui/dialog';
 import DailyAddressForm from '@/components/DailyAddressForm';
-import { DailyAddressItem } from '@/types/category';
+import { DailyAddressItem } from '@/types/unified';
 
 interface AddressFormDialogProps {
   showAddressForm: boolean;

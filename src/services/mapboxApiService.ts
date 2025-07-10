@@ -16,7 +16,10 @@ const getMapboxProfile = (transportMode: TransportMode): string => {
     driving: 'driving',
     walking: 'walking',
     cycling: 'cycling',
-    transit: 'walking'
+    transit: 'walking',
+    car: 'driving',
+    bus: 'walking',
+    train: 'walking'
   };
   
   return profileMap[transportMode] || 'walking';
