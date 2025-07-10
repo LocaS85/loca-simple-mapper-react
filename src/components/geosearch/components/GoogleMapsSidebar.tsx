@@ -13,13 +13,15 @@ import {
   PersonStanding,
   Bike,
   Bus,
-  ChevronRight
+  ChevronRight,
+  Download
 } from 'lucide-react';
-import { GeoSearchFilters } from '@/types/geosearch';
+import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import { useIsMobile } from '@/hooks/use-mobile';
 import GoogleMapsTransportSelector from './GoogleMapsTransportSelector';
 import GoogleMapsCategorySelector from './GoogleMapsCategorySelector';
 import GoogleMapsDistanceSelector from './GoogleMapsDistanceSelector';
+import ExportPDFButton from './ExportPDFButton';
 
 interface GoogleMapsSidebarProps {
   isOpen: boolean;
@@ -30,6 +32,7 @@ interface GoogleMapsSidebarProps {
   userLocation: [number, number] | null;
   onMyLocationClick: () => void;
   isLoading: boolean;
+  results?: SearchResult[];
 }
 
 const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
@@ -40,7 +43,8 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
   onResetFilters,
   userLocation,
   onMyLocationClick,
-  isLoading
+  isLoading,
+  results = []
 }) => {
   const isMobile = useIsMobile();
 
@@ -164,6 +168,33 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
                   onChange={(categories) => onFiltersChange({ category: categories.join(',') })}
                 />
               </div>
+
+              {/* Export PDF - Desktop uniquement */}
+              {!isMobile && (
+                <>
+                  <Separator />
+                  
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                      <Download className="h-4 w-4" />
+                      Export
+                    </h3>
+                    
+                    <ExportPDFButton
+                      results={results}
+                      userLocation={userLocation}
+                      filters={{
+                        query: filters.query,
+                        category: filters.category,
+                        distance: filters.distance,
+                        transport: filters.transport
+                      }}
+                      size="sm"
+                      className="w-full"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </ScrollArea>
 

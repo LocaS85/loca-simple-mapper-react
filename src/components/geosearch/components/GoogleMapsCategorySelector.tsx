@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { unifiedCategories } from '@/data/unifiedCategories';
+import CategoryIcon from './CategoryIcon';
 
 interface GoogleMapsCategorySelectorProps {
   selectedCategories: string[];
@@ -54,8 +55,6 @@ const GoogleMapsCategorySelector: React.FC<GoogleMapsCategorySelectorProps> = ({
               const category = unifiedCategories.find(cat => cat.id === categoryId);
               if (!category) return null;
               
-              const IconComponent = category.icon;
-              
               return (
                 <Badge
                   key={categoryId}
@@ -63,7 +62,7 @@ const GoogleMapsCategorySelector: React.FC<GoogleMapsCategorySelectorProps> = ({
                   className="px-2 py-1 text-xs flex items-center gap-1"
                   style={{ backgroundColor: `${category.color}20`, color: category.color }}
                 >
-                  <div className="w-3 h-3 rounded bg-current opacity-80"></div>
+                  <CategoryIcon iconName={category.icon} className="w-3 h-3" />
                   {category.name}
                   <button
                     onClick={() => handleRemoveCategory(categoryId)}
@@ -86,7 +85,6 @@ const GoogleMapsCategorySelector: React.FC<GoogleMapsCategorySelectorProps> = ({
           <div className="space-y-1">
             {unifiedCategories.map(category => {
               const isSelected = selectedCategories.includes(category.id);
-              const IconComponent = category.icon;
               
               return (
                 <Button
@@ -107,7 +105,11 @@ const GoogleMapsCategorySelector: React.FC<GoogleMapsCategorySelectorProps> = ({
                       className="w-8 h-8 rounded-lg flex items-center justify-center"
                       style={{ backgroundColor: `${category.color}20` }}
                     >
-                      <div className="w-4 h-4 rounded bg-current opacity-80"></div>
+                      <CategoryIcon 
+                        iconName={category.icon} 
+                        className="w-4 h-4" 
+                        color={category.color}
+                      />
                     </div>
                     
                     <span className="text-sm font-medium">{category.name}</span>

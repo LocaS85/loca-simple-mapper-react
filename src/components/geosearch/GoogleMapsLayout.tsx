@@ -9,6 +9,7 @@ import GoogleMapsSidebar from './components/GoogleMapsSidebar';
 import HorizontalCategoryScroll from './components/HorizontalCategoryScroll';
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
+import ExportPDFButton from './components/ExportPDFButton';
 
 interface GoogleMapsLayoutProps {
   filters: GeoSearchFilters;
@@ -86,6 +87,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         userLocation={userLocation}
         onMyLocationClick={onMyLocationClick}
         isLoading={isLoading}
+        results={results}
       />
 
       {/* Zone principale */}
@@ -126,6 +128,14 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
             {/* Boutons flottants mobiles */}
             {isMobile && (
               <div className="absolute bottom-6 right-6 flex flex-col gap-3 z-10">
+                <ExportPDFButton
+                  results={results}
+                  userLocation={userLocation}
+                  filters={filters}
+                  size="sm"
+                  className="w-12 h-12 rounded-full shadow-lg"
+                />
+                
                 <Button
                   onClick={onMyLocationClick}
                   size="lg"
