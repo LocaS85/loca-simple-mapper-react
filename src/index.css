@@ -142,6 +142,31 @@
   }
 }
 
+/* Horizontal scroll utilities */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth touch scrolling for mobile */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Custom scroll snap for categories */
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.scroll-snap-center {
+  scroll-snap-align: center;
+}
+
 /* Animation for map markers */
 @keyframes dropIn {
   from { transform: translateY(-20px); opacity: 0; }
@@ -150,4 +175,23 @@
 
 .mapboxgl-marker {
   animation: dropIn 0.3s ease-out forwards;
+}
+
+/* Category card animations */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
 }

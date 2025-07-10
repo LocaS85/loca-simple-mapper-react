@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isMapboxTokenValid } from '@/utils/mapboxConfig';
+import { isMapboxTokenValidSync } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
@@ -9,12 +9,19 @@ import ModernAddressCard from '@/components/categories/ModernAddressCard';
 import ModernCategoryCard from '@/components/categories/ModernCategoryCard';
 import ModernTransportManager from '@/components/categories/ModernTransportManager';
 import CustomAddressCard from '@/components/categories/CustomAddressCard';
+import CategoryScrollManager from '@/components/categories/CategoryScrollManager';
+import CategoryDetailModal from '@/components/categories/CategoryDetailModal';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useHorizontalScroll } from '@/hooks/useHorizontalScroll';
 
 const Categories = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const scrollRef = useHorizontalScroll({ sensitivity: 0.5, momentum: true });
   
   // Use Supabase categories hook
   const {
@@ -95,7 +102,7 @@ const Categories = () => {
   };
   
   // Check if Mapbox token is valid
-  if (!isMapboxTokenValid()) {
+  if (!isMapboxTokenValidSync()) {
     return <MapboxError />;
   }
 
@@ -217,29 +224,74 @@ const Categories = () => {
           </motion.div>
           Catégories de Recherche
         </h2>
-        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-4">
-          <div className="flex gap-4 md:gap-6 min-w-max">
-          {standardCategories.map((category, index) => (
-            <motion.div
-              key={category.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
-               className="flex-shrink-0 w-80"
-             >
-               <ModernCategoryCard
-                 category={category}
-                 subcategories={category.subcategories || []}
-                 transportMode="walking"
-                 maxDistance={5}
-                 distanceUnit="km"
-                 aroundMeCount={3}
-               />
-             </motion.div>
-           ))}
-           </div>
-         </div>
+        <div className="relative">
+          {/* Smart scroll management */}
+          <CategoryScrollManager 
+            containerId="categories-scroll-container"
+            itemCount={standardCategories.length}
+            itemWidth={320}
+          />
+          
+          {/* Horizontal scrolling container */}
+          <div 
+            ref={scrollRef}
+            id="categories-scroll-container"
+            className="flex overflow-x-auto gap-4 md:gap-6 pb-4 px-2 md:px-12 scroll-smooth scrollbar-hide scroll-touch scroll-snap-x"
+          >
+            <div className="flex gap-4 md:gap-6 min-w-max">
+              {standardCategories.map((category, index) => (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
+                  className="flex-shrink-0 w-80 md:w-96 scroll-snap-center"
+                >
+                  <ModernCategoryCard
+                    category={category}
+                    subcategories={category.subcategories || []}
+                    transportMode="walking"
+                    maxDistance={5}
+                    distanceUnit="km"
+                    aroundMeCount={3}
+                    onDetailClick={() => {
+                      setSelectedCategory(category);
+                      setIsModalOpen(true);
+                    }}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Mobile scroll indicators */}
+          <div className="flex justify-center mt-4 md:hidden">
+            <div className="flex gap-2">
+              {standardCategories.map((_, index) => (
+                <div
+                  key={index}
+                  className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
+                  id={`indicator-${index}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </motion.section>
+      
+      {/* Category Detail Modal */}
+      <CategoryDetailModal
+        category={selectedCategory}
+        subcategories={selectedCategory?.subcategories || []}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedCategory(null);
+        }}
+        transportMode="walking"
+        maxDistance={5}
+        distanceUnit="km"
+      />
     </div>
     </div>
   );
