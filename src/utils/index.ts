@@ -8,7 +8,7 @@ export * from './geoJsonHelpers';
 export * from './pdfExport';
 
 // Autres utilitaires existants
-export * from './formatting';
+export { formatDuration, formatAddress, formatCategory } from './formatting';
 export * from './geoCoordinates';
 export * from './routeUtils';
 export { cn } from '../lib/utils';

@@ -41,6 +41,17 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   const [showResultsList, setShowResultsList] = useState(false);
   const [searchQuery, setSearchQuery] = useState(filters.query || '');
 
+  // État pour les catégories sélectionnées
+  const selectedCategories = filters.category ? [filters.category] : [];
+
+  const handleCategorySelect = (categoryId: string) => {
+    onFiltersChange({ category: categoryId });
+  };
+
+  const handleCategoryRemove = (categoryId: string) => {
+    onFiltersChange({ category: undefined });
+  };
+
   const handleResultSelect = (result: SearchResult) => {
     setSelectedLocation(result);
     onLocationSelect({
