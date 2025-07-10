@@ -1,5 +1,5 @@
 
-import { getMapboxToken } from './mapboxConfig';
+import { getMapboxTokenSync } from './mapboxConfig';
 
 /**
  * Valide un token Mapbox via un appel API de test avec retry
@@ -73,7 +73,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export async function checkMapboxToken(): Promise<boolean> {
   try {
-    const token = getMapboxToken();
+    const token = getMapboxTokenSync();
     
     // Vérifier le cache
     if (tokenValidationCache && 
@@ -109,7 +109,7 @@ export async function testMapboxConnectivity(): Promise<{
   const startTime = Date.now();
   
   try {
-    const token = getMapboxToken();
+    const token = getMapboxTokenSync();
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout

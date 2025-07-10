@@ -61,7 +61,7 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
       transition={{ duration: 0.3 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className="h-full"
+      className="h-full w-full"
     >
       <Card 
         className="w-full h-full overflow-hidden border-2 transition-all duration-300 hover:shadow-xl hover:border-primary/50 cursor-pointer relative group bg-gradient-to-br from-white to-gray-50/30"
@@ -137,7 +137,7 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
               className="overflow-hidden"
             >
               <CardContent className="pt-0 pb-4">
-                <div className="grid grid-cols-1 gap-2">
+                <div className="flex flex-wrap gap-2">
                   {subcategories.map((subcategory, index) => (
                     <motion.div
                       key={subcategory.id}
@@ -147,17 +147,17 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
                     >
                       <Button
                         variant="ghost"
-                        className="w-full flex items-center gap-3 p-3 h-auto justify-start text-left hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all duration-200 rounded-lg group/sub relative overflow-hidden"
+                        className="flex items-center gap-2 px-3 py-2 h-auto text-left hover:bg-primary/5 hover:border-primary/20 border border-transparent transition-all duration-200 rounded-lg group/sub relative overflow-hidden whitespace-nowrap"
                         onClick={() => handleSubcategoryClick(subcategory)}
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover/sub:translate-x-[100%] transition-transform duration-700" />
                         <motion.div 
-                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 relative"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 relative"
                           style={{ backgroundColor: `${category.color}15` }}
                           whileHover={{ scale: 1.1, rotate: 5 }}
                           transition={{ duration: 0.2 }}
                         >
-                          <div className="relative z-10">
+                          <div className="relative z-10 text-xs">
                             {getSubcategoryIcon(subcategory.name, category.name, subcategory.icon)}
                           </div>
                           <div 
@@ -166,16 +166,10 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
                           />
                         </motion.div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground truncate">
+                          <div className="font-medium text-sm text-foreground">
                             {subcategory.name}
                           </div>
-                          {subcategory.description && (
-                            <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {subcategory.description}
-                            </div>
-                          )}
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover/sub:opacity-100 transition-opacity duration-200 flex-shrink-0" />
                       </Button>
                     </motion.div>
                   ))}

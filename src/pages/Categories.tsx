@@ -217,26 +217,28 @@ const Categories = () => {
           </motion.div>
           Catégories de Recherche
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-4">
+          <div className="flex gap-4 md:gap-6 min-w-max">
           {standardCategories.map((category, index) => (
             <motion.div
               key={category.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
-              className="h-full"
-            >
-              <ModernCategoryCard
-                category={category}
-                subcategories={category.subcategories || []}
-                transportMode="walking"
-                maxDistance={5}
-                distanceUnit="km"
-                aroundMeCount={3}
-              />
-            </motion.div>
-          ))}
-        </div>
+               className="flex-shrink-0 w-80"
+             >
+               <ModernCategoryCard
+                 category={category}
+                 subcategories={category.subcategories || []}
+                 transportMode="walking"
+                 maxDistance={5}
+                 distanceUnit="km"
+                 aroundMeCount={3}
+               />
+             </motion.div>
+           ))}
+           </div>
+         </div>
       </motion.section>
     </div>
     </div>

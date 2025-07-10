@@ -8,7 +8,7 @@ import Map, {
 import "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { BBox } from "geojson";
-import { getMapboxToken, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/utils/mapboxConfig";
+import { getMapboxTokenSync, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/utils/mapboxConfig";
 import { POI } from "@/types/map";
 import MapControls from "./map/MapControls";
 import MapCluster from "./map/MapCluster";
@@ -121,7 +121,7 @@ const YourMapComponent: React.FC<YourMapComponentProps> = ({
     <div className="relative w-full h-[calc(100vh-80px)] md:h-[70vh] rounded-2xl overflow-hidden shadow-xl">
       <Map
         ref={mapRef}
-        mapboxAccessToken={getMapboxToken()}
+        mapboxAccessToken={getMapboxTokenSync()}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         initialViewState={{
           ...initialViewState,

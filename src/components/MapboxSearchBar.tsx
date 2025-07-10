@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-import { getMapboxToken, isMapboxTokenValid } from "@/utils/mapboxConfig";
+import { getMapboxTokenSync, isMapboxTokenValid } from "@/utils/mapboxConfig";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGeoSearchStore } from "@/store/geoSearchStore";
 
@@ -32,7 +32,7 @@ const MapboxSearchBar: React.FC<MapboxSearchBarProps> = ({
     if (!mapRef.current || !geocoderContainerRef.current || !isMapboxTokenValid()) return;
 
     const geocoder = new MapboxGeocoder({
-      accessToken: getMapboxToken(),
+      accessToken: getMapboxTokenSync(),
       mapboxgl: mapboxgl,
       placeholder,
       marker: false,

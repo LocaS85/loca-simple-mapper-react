@@ -10,7 +10,7 @@ import {
 import mapboxgl from "mapbox-gl";
 import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-import { getMapboxToken } from "@/utils/mapboxConfig";
+import { getMapboxTokenSync } from "@/utils/mapboxConfig";
 
 interface MapControlsProps {
   mapRef: React.RefObject<MapRef>;
@@ -30,7 +30,7 @@ const MapControls: React.FC<MapControlsProps> = ({ mapRef, initialViewState }) =
 
     // Add directions control with proper typing
     const directionsControl = new MapboxDirections({
-      accessToken: getMapboxToken(),
+      accessToken: getMapboxTokenSync(),
       unit: 'metric',
       profile: 'mapbox/driving',
       alternatives: true,
@@ -48,7 +48,7 @@ const MapControls: React.FC<MapControlsProps> = ({ mapRef, initialViewState }) =
 
     // Add geocoder control for searching addresses with proper typing
     const geocoder = new MapboxGeocoder({
-      accessToken: getMapboxToken(),
+      accessToken: getMapboxTokenSync(),
       mapboxgl: mapboxgl,
       placeholder: 'Rechercher une adresse...',
       language: 'fr-FR',
