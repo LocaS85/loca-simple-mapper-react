@@ -23,9 +23,10 @@ export const MapboxError: React.FC<MapboxErrorProps> = ({ onRetry }) => {
             Il semble que la configuration de Mapbox ne soit pas complète. Veuillez vérifier que :
           </p>
           <ul className="list-disc pl-6 space-y-2 text-gray-600">
-            <li>La variable d'environnement <code className="bg-gray-100 px-1 rounded">VITE_MAPBOX_TOKEN</code> est définie</li>
+            <li>Le token Mapbox est configuré dans la fenêtre ou localStorage</li>
             <li>Le fichier CSS de Mapbox est bien chargé depuis le CDN</li>
             <li>La connexion Internet est active</li>
+            <li>L'Edge Function Supabase fonctionne correctement</li>
           </ul>
         </CardContent>
         <CardFooter className="flex justify-center">

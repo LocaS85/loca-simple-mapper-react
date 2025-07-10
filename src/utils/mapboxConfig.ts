@@ -5,7 +5,15 @@ export const DEFAULT_MAP_ZOOM = 12;
 // Fonction sécurisée pour récupérer le token depuis Supabase Edge Function
 export const getMapboxToken = async (): Promise<string> => {
   try {
-    // Essayer de récupérer le token depuis le secret Supabase via Edge Function
+    // 1. Vérifier window.__MAPBOX_TOKEN__ en premier
+    if (typeof window !== 'undefined' && (window as any).__MAPBOX_TOKEN__) {
+      const windowToken = (window as any).__MAPBOX_TOKEN__;
+      if (windowToken && windowToken.startsWith('pk.')) {
+        return windowToken;
+      }
+    }
+    
+    // 2. Essayer de récupérer le token depuis le secret Supabase via Edge Function
     const response = await fetch('/api/mapbox-config', {
       method: 'GET',
       headers: {
@@ -15,10 +23,12 @@ export const getMapboxToken = async (): Promise<string> => {
     
     if (response.ok) {
       const data = await response.json();
-      return data.token;
+      if (data.token && data.token.startsWith('pk.')) {
+        return data.token;
+      }
     }
     
-    // Fallback vers localStorage si l'API n'est pas disponible
+    // 3. Fallback vers localStorage si l'API n'est pas disponible
     const localToken = localStorage.getItem('MAPBOX_ACCESS_TOKEN');
     if (localToken && localToken.startsWith('pk.')) {
       return localToken;
@@ -33,6 +43,15 @@ export const getMapboxToken = async (): Promise<string> => {
 
 // Version synchrone pour compatibilité avec l'ancien code
 export const getMapboxTokenSync = (): string | null => {
+  // 1. Vérifier window.__MAPBOX_TOKEN__ en premier
+  if (typeof window !== 'undefined' && (window as any).__MAPBOX_TOKEN__) {
+    const windowToken = (window as any).__MAPBOX_TOKEN__;
+    if (windowToken && windowToken.startsWith('pk.')) {
+      return windowToken;
+    }
+  }
+  
+  // 2. Fallback vers localStorage
   const localToken = localStorage.getItem('MAPBOX_ACCESS_TOKEN');
   return localToken && localToken.startsWith('pk.') ? localToken : null;
 };
