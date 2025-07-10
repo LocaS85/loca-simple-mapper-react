@@ -58,6 +58,33 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				// Nuancier Google Maps Style
+				google: {
+					blue: '#4285f4',
+					red: '#ea4335',
+					yellow: '#fbbc04', 
+					green: '#34a853',
+					grey: {
+						50: '#f8f9fa',
+						100: '#f1f3f4',
+						200: '#e8eaed',
+						300: '#dadce0',
+						400: '#bdc1c6',
+						500: '#9aa0a6',
+						600: '#80868b',
+						700: '#5f6368',
+						800: '#3c4043',
+						900: '#202124'
+					}
+				},
+				// Transport colors (exactes comme demandé)
+				transport: {
+					car: '#0074D9',
+					walking: '#2ECC40',
+					cycling: '#FF851B',
+					bus: '#B10DC9',
+					train: '#FF4136'
+				},
 				// Add our app-specific colors
 				locasimple: {
 					blue: '#3B82F6',

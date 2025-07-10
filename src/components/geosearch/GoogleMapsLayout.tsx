@@ -6,6 +6,7 @@ import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import GoogleMapsHeader from './components/GoogleMapsHeader';
 import GoogleMapsMap from './components/GoogleMapsMap';
 import GoogleMapsSidebar from './components/GoogleMapsSidebar';
+import HorizontalCategoryScroll from './components/HorizontalCategoryScroll';
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
 
@@ -91,7 +92,16 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
           showSidebar={showSidebar}
         />
 
-        {/* Zone carte et résultats */}
+      {/* Menu horizontal de catégories */}
+      <HorizontalCategoryScroll
+        selectedCategories={selectedCategories}
+        onCategorySelect={handleCategorySelect}
+        onCategoryRemove={handleCategoryRemove}
+        onClearAll={onResetFilters}
+        showSubcategories={true}
+      />
+
+      {/* Zone carte et résultats */}
         <div className="flex-1 flex overflow-hidden">
           {/* Carte maximisée */}
           <div className="flex-1 relative">

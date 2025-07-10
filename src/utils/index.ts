@@ -2,7 +2,7 @@
 export * from './mapboxConfig';
 
 // Helpers GeoJSON et géographie
-export * from './geojsonHelpers';
+export * from './geoJsonHelpers';
 
 // Export PDF
 export * from './pdfExport';
