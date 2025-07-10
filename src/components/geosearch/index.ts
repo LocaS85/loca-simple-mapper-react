@@ -12,9 +12,7 @@ export { default as PrintButton } from './PrintButton';
 export { default as ExportPDFButton } from './ExportPDFButton';
 
 // Composants de carte et UI
-export { default as GeoSearchMap } from './ui/GeoSearchMap';
 export { default as LocationDetailsPopup } from './ui/LocationDetailsPopup';
-export { default as MaximizedGeoSearchLayout } from './ui/MaximizedGeoSearchLayout';
 export { default as SmartBreadcrumb } from './ui/SmartBreadcrumb';
 export { default as GeoSearchFiltersSheet } from './ui/GeoSearchFiltersSheet';
 
