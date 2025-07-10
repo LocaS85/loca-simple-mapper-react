@@ -6,6 +6,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import des styles pour la barre de catégories */
+@import './styles/scrollbar-hide.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -1,0 +1,19 @@
+/* Masquer les barres de défilement pour un style propre */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Smooth scroll pour une meilleure UX */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* Touch scrolling pour mobile */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+}

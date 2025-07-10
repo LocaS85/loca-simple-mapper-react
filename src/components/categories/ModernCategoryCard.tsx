@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Search, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { Category, Subcategory } from '@/hooks/useSupabaseCategories';
 import { getCategoryIcon, getSubcategoryIcon } from '@/utils/categoryIcons';
+import { useCategorySync } from '@/hooks/useCategorySync';
 
 interface ModernCategoryCardProps {
   category: Category;
@@ -26,34 +26,37 @@ const ModernCategoryCard: React.FC<ModernCategoryCardProps> = ({
   aroundMeCount = 3,
   onDetailClick
 }) => {
-  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Utiliser le hook de synchronisation pour navigation seamless
+  const { navigateToGeoSearch, currentLocation } = useCategorySync();
 
   const handleSubcategoryClick = (subcategory: Subcategory) => {
-    const searchParams = new URLSearchParams({
+    console.log('🎯 Clic sur sous-catégorie:', subcategory.name);
+    
+    navigateToGeoSearch({
       category: category.id,
       subcategory: subcategory.id,
+      query: subcategory.search_terms?.[0] || subcategory.name,
       transport: transportMode,
-      distance: maxDistance.toString(),
-      unit: distanceUnit,
-      aroundMeCount: aroundMeCount.toString(),
-      query: subcategory.search_terms?.[0] || subcategory.name
+      distance: maxDistance,
+      autoSearch: true,
+      coordinates: currentLocation || undefined
     });
-
-    navigate(`/geosearch?${searchParams.toString()}`);
   };
 
   const handleCategoryClick = () => {
-    const searchParams = new URLSearchParams({
+    console.log('🏷️ Clic sur catégorie:', category.name);
+    
+    navigateToGeoSearch({
       category: category.id,
-      transport: transportMode,
-      distance: maxDistance.toString(),
-      unit: distanceUnit,
-      aroundMeCount: aroundMeCount.toString(),
-      query: category.name
+      query: category.name,
+      transport: transportMode as any,
+      distance: maxDistance,
+      autoSearch: true,
+      coordinates: currentLocation || undefined
     });
-    navigate(`/geosearch?${searchParams.toString()}`);
   };
 
   return (

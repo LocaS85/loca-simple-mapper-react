@@ -10,9 +10,11 @@ import EnhancedLocationButton from '../EnhancedLocationButton';
 import GeoSearchMap from './GeoSearchMap';
 import LocationDetailsPopup from './LocationDetailsPopup';
 import GeoSearchFiltersSheet from './GeoSearchFiltersSheet';
+import HorizontalCategoryBar from './HorizontalCategoryBar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import EnhancedResultsList from '../../enhanced/EnhancedResultsList';
+import { useCategorySync } from '@/hooks/useCategorySync';
 
 interface MaximizedGeoSearchLayoutProps {
   filters: GeoSearchFilters;
@@ -44,6 +46,9 @@ const MaximizedGeoSearchLayout: React.FC<MaximizedGeoSearchLayoutProps> = ({
   const [showFilters, setShowFilters] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  
+  // Synchronisation avec les catégories
+  const { navigateToCategories, updateFilters, performSearch } = useCategorySync();
 
   const hasActiveFilters = 
     filters.category || 
@@ -59,6 +64,52 @@ const MaximizedGeoSearchLayout: React.FC<MaximizedGeoSearchLayoutProps> = ({
       coordinates: result.coordinates,
       placeName: result.address || result.name
     });
+  };
+
+  // Gestion des catégories Google Maps style
+  const handleCategorySelect = (categoryId: string) => {
+    console.log('🏷️ Catégorie sélectionnée:', categoryId);
+    
+    // Mettre à jour les filtres avec la nouvelle catégorie
+    const currentCategories = filters.category ? filters.category.split(',') : [];
+    const newCategories = [...currentCategories, categoryId];
+    
+    const newFilters = {
+      ...filters,
+      category: newCategories.join(','),
+      query: categoryId // Utiliser la catégorie comme query
+    };
+    
+    onFiltersChange(newFilters);
+    
+    // Déclencher une recherche automatique
+    setTimeout(() => {
+      onSearch(categoryId);
+    }, 100);
+  };
+
+  const handleCategoryRemove = (categoryId: string) => {
+    console.log('🗑️ Catégorie supprimée:', categoryId);
+    
+    const currentCategories = filters.category ? filters.category.split(',') : [];
+    const newCategories = currentCategories.filter(cat => cat !== categoryId);
+    
+    const newFilters = {
+      ...filters,
+      category: newCategories.length > 0 ? newCategories.join(',') : ''
+    };
+    
+    onFiltersChange(newFilters);
+    
+    // Recherche mise à jour
+    if (newCategories.length > 0) {
+      onSearch(newCategories[0]);
+    }
+  };
+
+  const handleClearAllCategories = () => {
+    console.log('🧹 Effacement de toutes les catégories');
+    onResetFilters();
   };
 
   return (
@@ -181,6 +232,15 @@ const MaximizedGeoSearchLayout: React.FC<MaximizedGeoSearchLayoutProps> = ({
           </div>
         )}
       </div>
+
+      {/* Barre horizontale de catégories Google Maps */}
+      <HorizontalCategoryBar
+        filters={filters}
+        onCategorySelect={handleCategorySelect}
+        onCategoryRemove={handleCategoryRemove}
+        onClearAll={handleClearAllCategories}
+        isLoading={isLoading}
+      />
 
       {/* Carte maximisée */}
       <div className="flex-1 relative">
