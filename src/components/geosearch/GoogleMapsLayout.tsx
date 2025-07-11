@@ -189,7 +189,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         </div>
       </div>
 
-      {/* Sidebar - DÉPLACÉE À DROITE */}
+      {/* Sidebar - Positionnée à droite */}
       <GoogleMapsSidebar
         isOpen={showSidebar}
         onToggle={toggleSidebar}

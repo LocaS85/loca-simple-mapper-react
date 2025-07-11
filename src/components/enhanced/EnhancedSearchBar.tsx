@@ -114,7 +114,7 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className={`relative ${className}`}>
       <form onSubmit={handleSubmit} className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
         <Input
           type="text"
           value={query}
@@ -122,11 +122,11 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           placeholder={placeholder}
-          className="pl-10 pr-10 h-10 bg-white/95 backdrop-blur-sm border-gray-200 focus:border-blue-500"
+          className="pl-8 pr-8 h-8 bg-white/95 backdrop-blur-sm border-gray-200 focus:border-blue-500 text-sm"
           disabled={isLoading}
         />
         {(isSearching || isLoading) && (
-          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
+          <Loader2 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 animate-spin text-blue-500" />
         )}
       </form>
 
