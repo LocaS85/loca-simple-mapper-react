@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import GoogleMapsLayout from './GoogleMapsLayout';
 import MapboxTokenSetup from './ui/MapboxTokenSetup';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
@@ -150,27 +151,36 @@ const GeoSearchApp: React.FC = () => {
   // Chargement initial
   if (!isMapboxReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        {mapboxError ? (
-          <Alert className="max-w-md">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {mapboxError}
-              <button 
-                onClick={() => setShowTokenSetup(true)}
-                className="ml-2 underline text-blue-600 hover:text-blue-800"
-              >
-                Configurer le token
-              </button>
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <EnhancedLoadingSpinner
-            type="map"
-            message="Initialisation des services de cartographie..."
-            size="lg"
+      <div className="min-h-screen flex flex-col">
+        <div className="p-4">
+          <RouteBackButton 
+            route="/categories"
+            showLabel={true}
+            variant="ghost"
           />
-        )}
+        </div>
+        <div className="flex-1 flex items-center justify-center p-4">
+          {mapboxError ? (
+            <Alert className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {mapboxError}
+                <button 
+                  onClick={() => setShowTokenSetup(true)}
+                  className="ml-2 underline text-blue-600 hover:text-blue-800"
+                >
+                  Configurer le token
+                </button>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <EnhancedLoadingSpinner
+              type="map"
+              message="Initialisation des services de cartographie..."
+              size="lg"
+            />
+          )}
+        </div>
       </div>
     );
   }

@@ -11,6 +11,7 @@ import ModernTransportManager from '@/components/categories/ModernTransportManag
 import CustomAddressCard from '@/components/categories/CustomAddressCard';
 import CategoryScrollManager from '@/components/categories/CategoryScrollManager';
 import CategoryDetailModal from '@/components/categories/CategoryDetailModal';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -131,19 +132,29 @@ const Categories = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-6 space-y-6 md:space-y-8 max-w-7xl">
-        {/* Header */}
+        {/* Header avec bouton retour */}
         <motion.div 
-          className="mb-6 md:mb-8 text-center"
+          className="mb-6 md:mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Gestion des Catégories
-          </h1>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Gérez vos adresses personnelles et explorez les catégories de lieux avec une interface moderne et intuitive
-          </p>
+          <div className="flex items-center mb-4">
+            <RouteBackButton 
+              route="/"
+              showLabel={true}
+              variant="ghost"
+              className="mr-4"
+            />
+          </div>
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Gestion des Catégories
+            </h1>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+              Gérez vos adresses personnelles et explorez les catégories de lieux avec une interface moderne et intuitive
+            </p>
+          </div>
         </motion.div>
 
       {/* Section des catégories spéciales (gestion d'adresses) */}
