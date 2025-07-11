@@ -164,8 +164,8 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
                 </h3>
                 
                 <GoogleMapsCategorySelector
-                  selectedCategories={filters.category ? filters.category.split(',') : []}
-                  onChange={(categories) => onFiltersChange({ category: categories.join(',') })}
+                  selectedCategories={Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : []}
+                  onChange={(categories) => onFiltersChange({ category: categories.length > 0 ? categories : undefined })}
                 />
               </div>
 
@@ -185,7 +185,7 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
                       userLocation={userLocation}
                       filters={{
                         query: filters.query,
-                        category: filters.category,
+                        category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
                         distance: filters.distance,
                         transport: filters.transport
                       }}

@@ -66,7 +66,7 @@ const GeoSearchFiltersSheet: React.FC<GeoSearchFiltersSheetProps> = ({
           <div className="space-y-3">
             <h3 className="text-lg font-medium">Catégorie</h3>
             <Select 
-              value={filters.category || ''} 
+              value={Array.isArray(filters.category) ? filters.category[0] || '' : filters.category || ''} 
               onValueChange={(value) => onFiltersChange({ category: value || null })}
             >
               <SelectTrigger className="w-full">

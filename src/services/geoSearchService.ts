@@ -31,7 +31,7 @@ export class GeoSearchService {
       const results = await mapboxApiService.searchPlaces(searchQuery, userLocation, {
         limit: filters.aroundMeCount || 10,
         radius: filters.distance || 10,
-        categories: filters.category ? [filters.category] : undefined
+        categories: Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : undefined
       });
 
       if (!Array.isArray(results)) {
@@ -69,7 +69,7 @@ export class GeoSearchService {
       const results = await mapboxApiService.searchPlaces(query.trim(), userLocation, {
         limit: 15,
         radius: filters.distance || 10,
-        categories: filters.category ? [filters.category] : undefined
+        categories: Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : undefined
       });
 
       if (!Array.isArray(results)) {
@@ -109,7 +109,7 @@ export class GeoSearchService {
     let query = (filters.query || '').trim();
     
     if (filters.category && !query) {
-      query = filters.category;
+      query = Array.isArray(filters.category) ? filters.category[0] : filters.category;
     }
     
     if (filters.subcategory) {

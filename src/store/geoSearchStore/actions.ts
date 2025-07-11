@@ -162,7 +162,7 @@ export const createGeoSearchActions = (
       // Construire la requête de recherche
       let searchQuery = filters.query || '';
       if (filters.category && !searchQuery) {
-        searchQuery = filters.category;
+        searchQuery = Array.isArray(filters.category) ? filters.category[0] : filters.category;
       }
       if (filters.subcategory) {
         searchQuery = `${searchQuery} ${filters.subcategory}`.trim();
@@ -179,7 +179,7 @@ export const createGeoSearchActions = (
       const mapboxResults = await mapboxApiService.searchPlaces(searchQuery, userLocation, {
         limit: filters.aroundMeCount || 5,
         radius: filters.distance || 5,
-        categories: filters.category ? [filters.category] : undefined
+        categories: Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : undefined
       });
       
       console.log('📍 Résultats Mapbox reçus:', mapboxResults.length, mapboxResults);
@@ -191,7 +191,7 @@ export const createGeoSearchActions = (
         address: result.address || 'Adresse non disponible',
         coordinates: result.coordinates,
         type: result.type || 'place',
-        category: result.category || filters.category || 'restaurant',
+        category: result.category || (Array.isArray(filters.category) ? filters.category[0] : filters.category) || 'restaurant',
         distance: result.distance,
         duration: result.duration,
         rating: result.rating || undefined,

@@ -54,7 +54,9 @@ const HorizontalCategoryBar: React.FC<HorizontalCategoryBarProps> = ({
   // Gérer les catégories sélectionnées
   useEffect(() => {
     if (filters.category) {
-      const categories = filters.category.split(',').filter(Boolean);
+      const categories = Array.isArray(filters.category) 
+        ? filters.category 
+        : filters.category.split(',').filter(Boolean);
       setSelectedCategories(categories);
     } else {
       setSelectedCategories([]);

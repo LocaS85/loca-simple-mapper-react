@@ -29,7 +29,7 @@ export const unifiedApiService = {
       const results = await enhancedMapboxService.searchPlaces(query, location, {
         limit: filters.aroundMeCount || 5,
         radius: filters.distance,
-        categories: filters.category ? [filters.category] : undefined
+        categories: Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : undefined
       });
 
       console.log('✅ Unified search results:', results.length);

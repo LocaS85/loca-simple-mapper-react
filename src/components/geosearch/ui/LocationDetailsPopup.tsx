@@ -4,6 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Navigation, Heart, Share2, Phone, ExternalLink } from 'lucide-react';
 import { SearchResult } from '@/types/geosearch';
+import { 
+  openGoogleMaps, 
+  openWaze, 
+  openAppleMaps, 
+  getAvailableNavigationApps,
+  NavigationDestination 
+} from '@/utils/externalNavigation';
 
 interface LocationDetailsPopupProps {
   location: SearchResult | null;
@@ -78,25 +85,71 @@ const LocationDetailsPopup: React.FC<LocationDetailsPopupProps> = ({
           </div>
 
           {/* Actions principales */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={() => onNavigate(location.coordinates)}
-              className="flex items-center gap-2"
-            >
-              <Navigation className="h-4 w-4" />
-              Itinéraire
-            </Button>
-
-            {onAddFavorite && (
+          <div className="space-y-3">
+            {/* Navigation rapide */}
+            <div className="grid grid-cols-2 gap-3">
               <Button
-                variant="outline"
-                onClick={() => onAddFavorite(location)}
+                onClick={() => {
+                  const destination: NavigationDestination = {
+                    lat: location.coordinates[1],
+                    lng: location.coordinates[0],
+                    name: location.name,
+                    address: location.address
+                  };
+                  openGoogleMaps(destination);
+                }}
                 className="flex items-center gap-2"
               >
-                <Heart className="h-4 w-4" />
-                Favoris
+                <Navigation className="h-4 w-4" />
+                Google Maps
               </Button>
-            )}
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const destination: NavigationDestination = {
+                    lat: location.coordinates[1],
+                    lng: location.coordinates[0],
+                    name: location.name,
+                    address: location.address
+                  };
+                  openWaze(destination);
+                }}
+                className="flex items-center gap-2"
+              >
+                🚗 Waze
+              </Button>
+            </div>
+
+            {/* Actions secondaires */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const destination: NavigationDestination = {
+                    lat: location.coordinates[1],
+                    lng: location.coordinates[0],
+                    name: location.name,
+                    address: location.address
+                  };
+                  openAppleMaps(destination);
+                }}
+                className="flex items-center gap-2"
+              >
+                🧭 Plans
+              </Button>
+
+              {onAddFavorite && (
+                <Button
+                  variant="outline"
+                  onClick={() => onAddFavorite(location)}
+                  className="flex items-center gap-2"
+                >
+                  <Heart className="h-4 w-4" />
+                  Favoris
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Actions secondaires */}

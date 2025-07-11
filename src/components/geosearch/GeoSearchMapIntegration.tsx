@@ -122,7 +122,7 @@ const GeoSearchMapIntegration: React.FC<GeoSearchMapIntegrationProps> = ({
       {/* Hidden integrated category view (connected but hidden) */}
       <div className="hidden">
         <CategoryMapView
-          selectedCategory={filters.category || ''}
+          selectedCategory={Array.isArray(filters.category) ? filters.category[0] || '' : filters.category || ''}
           transport={filters.transport}
           radius={filters.distance}
           count={filters.aroundMeCount}

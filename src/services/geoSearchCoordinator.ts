@@ -1,6 +1,6 @@
 
 import { mapboxApiService } from './mapboxApiService';
-import { TransportMode, SearchResult, GeoSearchFilters } from '@/types/unified';
+import { TransportMode, SearchResult, GeoSearchFilters, getCategoryAsArray, getCategoryAsString } from '@/types/unified';
 
 class GeoSearchCoordinator {
   private static instance: GeoSearchCoordinator;
@@ -21,7 +21,7 @@ class GeoSearchCoordinator {
       const results = await mapboxApiService.searchPlaces(query, userLocation, {
         limit: filters.aroundMeCount || 5,
         radius: filters.distance,
-        categories: filters.category ? [filters.category] : undefined
+        categories: getCategoryAsArray(filters.category)
       });
 
       return results.map(result => ({
@@ -30,7 +30,7 @@ class GeoSearchCoordinator {
         address: result.address,
         coordinates: result.coordinates,
         type: this.extractPlaceType(result),
-        category: result.category || filters.category || 'general',
+        category: result.category || getCategoryAsString(filters.category) || 'general',
         distance: result.distance,
         duration: this.estimateDuration(result.distance, filters.transport)
       }));

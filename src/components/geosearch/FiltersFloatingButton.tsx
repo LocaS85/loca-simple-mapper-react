@@ -60,7 +60,7 @@ const FiltersFloatingButton: React.FC<FiltersFloatingButtonProps> = ({
         <FenetreFiltrageUnifiee
           open={true}
           onClose={() => setOpen(false)}
-          category={filters.category}
+          category={Array.isArray(filters.category) ? filters.category[0] : filters.category}
           setCategory={(value) => onChange({ category: value })}
           subcategory={filters.subcategory}
           setSubcategory={(value) => onChange({ subcategory: value })}

@@ -43,14 +43,26 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   const [searchQuery, setSearchQuery] = useState(filters.query || '');
 
   // État pour les catégories sélectionnées
-  const selectedCategories = filters.category ? [filters.category] : [];
+  const selectedCategories = Array.isArray(filters.category) 
+    ? filters.category 
+    : filters.category 
+      ? [filters.category] 
+      : [];
 
   const handleCategorySelect = (categoryId: string) => {
-    onFiltersChange({ category: categoryId });
+    const current = Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : [];
+    if (current.includes(categoryId)) {
+      const updated = current.filter(id => id !== categoryId);
+      onFiltersChange({ category: updated.length > 0 ? updated : undefined });
+    } else {
+      onFiltersChange({ category: [...current, categoryId] });
+    }
   };
 
   const handleCategoryRemove = (categoryId: string) => {
-    onFiltersChange({ category: undefined });
+    const current = Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : [];
+    const updated = current.filter(id => id !== categoryId);
+    onFiltersChange({ category: updated.length > 0 ? updated : undefined });
   };
 
   const handleResultSelect = (result: SearchResult) => {
@@ -127,11 +139,16 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
 
             {/* Boutons flottants mobiles */}
             {isMobile && (
-              <div className="absolute bottom-6 right-6 flex flex-col gap-3 z-10">
+              <div className="absolute bottom-6 right-6 flex flex-col gap-3 z-50">
                 <ExportPDFButton
                   results={results}
                   userLocation={userLocation}
-                  filters={filters}
+                  filters={{
+                    query: filters.query,
+                    category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
+                    distance: filters.distance,
+                    transport: filters.transport
+                  }}
                   size="sm"
                   className="w-12 h-12 rounded-full shadow-lg"
                 />
@@ -184,7 +201,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
 
       {/* Sheet résultats mobile */}
       {isMobile && showResultsList && (
-        <div className="fixed inset-x-0 bottom-0 top-1/3 bg-white z-50 rounded-t-xl shadow-2xl">
+        <div className="fixed inset-x-0 bottom-0 top-1/3 bg-white z-40 rounded-t-xl shadow-2xl">
           <div className="h-full flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="font-semibold">Résultats ({results.length})</h3>

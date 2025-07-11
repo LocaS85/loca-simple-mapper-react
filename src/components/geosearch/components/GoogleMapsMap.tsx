@@ -133,7 +133,7 @@ const GoogleMapsMap: React.FC<GoogleMapsMapProps> = ({
 
   return (
     <div className="relative w-full h-full">
-      <div ref={mapContainerRef} className="absolute inset-0" />
+      <div id="google-maps-container" ref={mapContainerRef} className="absolute inset-0" />
       
       {/* Gestionnaires de couches */}
       {mapRef.current && isMapReady && (

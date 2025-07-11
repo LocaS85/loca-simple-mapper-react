@@ -79,7 +79,7 @@ const FiltersPopup: React.FC<FiltersPopupProps> = ({
     <FenetreFiltrageUnifiee
       open={open}
       onClose={onClose}
-      category={localFilters.category}
+      category={Array.isArray(localFilters.category) ? localFilters.category[0] : localFilters.category}
       setCategory={handleCategoryChange}
       subcategory={localFilters.subcategory}
       setSubcategory={handleSubcategoryChange}

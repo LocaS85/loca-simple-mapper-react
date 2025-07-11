@@ -65,16 +65,36 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
 
   // Get subcategories for selected main category
   const getSubcategories = (mainCategoryId: string) => {
-    // This would be populated from your subcategories data
-    // For now, returning mock data
-    const mockSubcategories = [
-      { id: 'fast-food', name: 'Fast Food', mainCategory: 'restaurant' },
-      { id: 'fine-dining', name: 'Fine Dining', mainCategory: 'restaurant' },
-      { id: 'cafes', name: 'Cafés', mainCategory: 'restaurant' },
-      { id: 'bars', name: 'Bars', mainCategory: 'restaurant' }
-    ];
+    const category = unifiedCategories.find(cat => cat.id === mainCategoryId);
+    if (category && category.subcategories) {
+      return category.subcategories.map(sub => ({
+        id: sub.id,
+        name: sub.name,
+        mainCategory: mainCategoryId
+      }));
+    }
     
-    return mockSubcategories.filter(sub => sub.mainCategory === mainCategoryId);
+    // Fallback to mock data for categories without subcategories
+    const mockSubcategories: Record<string, Array<{id: string, name: string, mainCategory: string}>> = {
+      restaurant: [
+        { id: 'fast-food', name: 'Fast Food', mainCategory: 'restaurant' },
+        { id: 'fine-dining', name: 'Fine Dining', mainCategory: 'restaurant' },
+        { id: 'cafes', name: 'Cafés', mainCategory: 'restaurant' },
+        { id: 'bars', name: 'Bars', mainCategory: 'restaurant' }
+      ],
+      health: [
+        { id: 'pharmacy', name: 'Pharmacie', mainCategory: 'health' },
+        { id: 'hospital', name: 'Hôpital', mainCategory: 'health' },
+        { id: 'doctor', name: 'Médecin', mainCategory: 'health' }
+      ],
+      shopping: [
+        { id: 'supermarket', name: 'Supermarché', mainCategory: 'shopping' },
+        { id: 'clothing', name: 'Vêtements', mainCategory: 'shopping' },
+        { id: 'electronics', name: 'Électronique', mainCategory: 'shopping' }
+      ]
+    };
+    
+    return mockSubcategories[mainCategoryId] || [];
   };
 
   return (

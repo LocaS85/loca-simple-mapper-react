@@ -101,7 +101,7 @@ export const useCategorySync = (options: CategorySyncOptions = {}) => {
     // Construire les paramètres URL
     const urlParams = new URLSearchParams();
     
-    if (newFilters.category) urlParams.set('category', newFilters.category);
+    if (newFilters.category) urlParams.set('category', Array.isArray(newFilters.category) ? newFilters.category.join(',') : newFilters.category);
     if (newFilters.query) urlParams.set('query', newFilters.query);
     if (newFilters.transport) urlParams.set('transport', newFilters.transport);
     if (newFilters.distance) urlParams.set('distance', newFilters.distance.toString());

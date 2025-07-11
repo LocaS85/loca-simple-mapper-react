@@ -143,7 +143,7 @@ export interface TransportModeItem {
 export interface GeoSearchFilters {
   query?: string;
   coordinates?: CoordinatesPair;
-  category?: string;
+  category?: string | string[]; // Support single or multiple categories
   subcategory?: string;
   transport: TransportMode;
   distance: number;
@@ -272,6 +272,21 @@ export const isValidCoordinates = (coords: any): coords is CoordinatesPair => {
          coords.length === 2 && 
          typeof coords[0] === 'number' && 
          typeof coords[1] === 'number';
+};
+
+// Category helpers for backward compatibility
+export const getCategoryAsString = (category: string | string[] | undefined): string | undefined => {
+  if (!category) return undefined;
+  return Array.isArray(category) ? category[0] : category;
+};
+
+export const getCategoryAsArray = (category: string | string[] | undefined): string[] => {
+  if (!category) return [];
+  return Array.isArray(category) ? category : [category];
+};
+
+export const normalizeCategoryToString = (category: string | string[] | undefined): string | undefined => {
+  return getCategoryAsString(category);
 };
 
 // Helper function to convert DailyAddressData to DailyAddressItem
