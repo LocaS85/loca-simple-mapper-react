@@ -113,7 +113,7 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 py-1 px-3">
+    <div className="bg-white border-b border-gray-200 py-1 px-2 md:px-3 overflow-hidden">
       {/* Pills sélectionnées - Optimisées */}
       {selectedCategories.length > 0 && (
         <div className="flex items-center gap-1 mb-1">
@@ -173,7 +173,7 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
           <div 
             ref={scrollRef}
             onScroll={checkScrollPosition}
-            className="flex gap-1 overflow-x-auto scrollbar-hide py-0.5 px-8"
+            className="flex gap-1 overflow-x-auto scrollbar-hide py-0.5 px-6 md:px-8"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {unifiedCategories.map(category => {

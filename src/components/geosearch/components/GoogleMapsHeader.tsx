@@ -44,8 +44,8 @@ const GoogleMapsHeader: React.FC<GoogleMapsHeaderProps> = ({
             <ArrowLeft className="h-4 w-4" />
           </Button>
 
-          {/* Barre de recherche */}
-          <div className="flex-1 max-w-lg">
+          {/* Barre de recherche - Responsive */}
+          <div className="flex-1 max-w-xs md:max-w-lg">
             <EnhancedSearchBar
               value={searchQuery}
               onSearch={onSearch}

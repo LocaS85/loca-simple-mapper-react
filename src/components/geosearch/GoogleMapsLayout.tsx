@@ -99,9 +99,9 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   };
 
   return (
-    <div className="h-screen flex bg-white overflow-hidden">
-      {/* Zone principale - Carte à gauche */}
-      <div className="flex-1 flex flex-col">
+    <div className="h-screen flex flex-col md:flex-row bg-white overflow-hidden">
+      {/* Zone principale */}
+      <div className="flex-1 flex flex-col order-1">
         {/* Header Google Maps */}
         <GoogleMapsHeader
           searchQuery={searchQuery}
@@ -189,19 +189,37 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         </div>
       </div>
 
-      {/* Sidebar - Positionnée à droite */}
-      <GoogleMapsSidebar
-        isOpen={showSidebar}
-        onToggle={toggleSidebar}
-        filters={filters}
-        onFiltersChange={onFiltersChange}
-        onResetFilters={onResetFilters}
-        userLocation={userLocation}
-        onMyLocationClick={onMyLocationClick}
-        isLoading={isLoading}
-        results={results}
-        onCategoryClick={handleSidebarCategoryClick}
-      />
+      {/* Sidebar - Positionnée à droite - Hidden sur mobile par défaut */}
+      {!isMobile && (
+        <GoogleMapsSidebar
+          isOpen={showSidebar}
+          onToggle={toggleSidebar}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          onResetFilters={onResetFilters}
+          userLocation={userLocation}
+          onMyLocationClick={onMyLocationClick}
+          isLoading={isLoading}
+          results={results}
+          onCategoryClick={handleSidebarCategoryClick}
+        />
+      )}
+
+      {/* Sidebar mobile - Overlay */}
+      {isMobile && (
+        <GoogleMapsSidebar
+          isOpen={showSidebar}
+          onToggle={toggleSidebar}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          onResetFilters={onResetFilters}
+          userLocation={userLocation}
+          onMyLocationClick={onMyLocationClick}
+          isLoading={isLoading}
+          results={results}
+          onCategoryClick={handleSidebarCategoryClick}
+        />
+      )}
 
       {/* Popup détails de lieu */}
       <LocationDetailsPopup

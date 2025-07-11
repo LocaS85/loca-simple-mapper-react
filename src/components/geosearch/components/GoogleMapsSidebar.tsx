@@ -105,12 +105,15 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
         />
       )}
 
-      {/* Sidebar - POSITIONNÉE À DROITE */}
+      {/* Sidebar - POSITIONNÉE À DROITE - Responsive */}
       <div className={`
-        ${isMobile ? 'fixed right-0 top-0 h-full z-50' : 'relative'}
-        bg-white border-l border-gray-200 shadow-lg transition-transform duration-300
+        ${isMobile 
+          ? 'fixed right-0 top-0 h-full z-50 transition-transform duration-300' 
+          : 'relative border-l border-gray-200'
+        }
+        bg-white shadow-lg 
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        ${isMobile ? 'w-72' : 'w-64'}
+        ${isMobile ? 'w-80' : 'w-64'}
       `}>
         <div className="h-full flex flex-col">
           {/* Header - Optimisé */}
