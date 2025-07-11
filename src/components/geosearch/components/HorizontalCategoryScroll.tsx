@@ -113,12 +113,12 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 py-2 px-4">
-      {/* Pills sélectionnées */}
+    <div className="bg-white border-b border-gray-200 py-1 px-3">
+      {/* Pills sélectionnées - Optimisées */}
       {selectedCategories.length > 0 && (
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm text-gray-600 mr-2">Filtres actifs:</span>
-          <div className="flex flex-wrap gap-1">
+        <div className="flex items-center gap-1 mb-1">
+          <span className="text-xs text-gray-600 mr-1">Actifs:</span>
+          <div className="flex flex-wrap gap-0.5">
             {selectedCategories.map(categoryId => {
               const category = unifiedCategories.find(cat => cat.id === categoryId);
               if (!category) return null;
@@ -127,16 +127,16 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
                 <Badge
                   key={categoryId}
                   variant="secondary"
-                  className="pl-2 pr-1 py-0.5 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  className="pl-1.5 pr-0.5 py-0 h-5 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                 >
-                  <span className="text-sm">{category.name}</span>
+                  <span className="text-xs">{category.name}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onCategoryRemove(categoryId)}
-                    className="ml-1 h-4 w-4 p-0 hover:bg-white/20 rounded-full"
+                    className="ml-1 h-3 w-3 p-0 hover:bg-white/20 rounded-full"
                   >
-                    <X className="h-2.5 w-2.5" />
+                    <X className="h-2 w-2" />
                   </Button>
                 </Badge>
               );
@@ -146,9 +146,9 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
               variant="outline"
               size="sm"
               onClick={onClearAll}
-              className="h-6 px-2 text-xs"
+              className="h-5 px-1.5 text-xs"
             >
-              Tout effacer
+              ✕ Tout
             </Button>
           </div>
         </div>
@@ -163,9 +163,9 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => scroll('left')}
-              className="absolute left-0 z-10 h-8 w-8 rounded-full bg-white shadow-md border"
+              className="absolute left-0 z-10 h-6 w-6 rounded-full bg-white shadow-md border"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3 w-3" />
             </Button>
           )}
 
@@ -173,7 +173,7 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
           <div 
             ref={scrollRef}
             onScroll={checkScrollPosition}
-            className="flex gap-2 overflow-x-auto scrollbar-hide py-1 px-10"
+            className="flex gap-1 overflow-x-auto scrollbar-hide py-0.5 px-8"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {unifiedCategories.map(category => {
@@ -186,14 +186,14 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
                   size="sm"
                   onClick={() => handleCategoryClick(category.id)}
                   className={`
-                    flex-shrink-0 h-8 px-3 rounded-full border-2 transition-all duration-200
+                    flex-shrink-0 h-6 px-2 rounded-full border transition-all duration-200
                     ${isSelected 
                       ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
                       : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                     }
                   `}
                 >
-                  <span className="text-sm font-medium whitespace-nowrap">
+                  <span className="text-xs font-medium whitespace-nowrap">
                     {category.name}
                   </span>
                 </Button>
@@ -207,27 +207,27 @@ const HorizontalCategoryScroll: React.FC<HorizontalCategoryScrollProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => scroll('right')}
-              className="absolute right-0 z-10 h-8 w-8 rounded-full bg-white shadow-md border"
+              className="absolute right-0 z-10 h-6 w-6 rounded-full bg-white shadow-md border"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3 w-3" />
             </Button>
           )}
         </div>
       </div>
 
-      {/* Sous-catégories dynamiques */}
+      {/* Sous-catégories dynamiques - Optimisées */}
       {showSubcategories && selectedMainCategory && (
-        <div className="mt-2 pt-2 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 mr-2">Sous-catégories:</span>
-            <div className="flex gap-1">
+        <div className="mt-1 pt-1 border-t border-gray-100">
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-gray-500 mr-1">Sous:</span>
+            <div className="flex gap-0.5">
               {getSubcategories(selectedMainCategory).map(subcategory => (
                 <Button
                   key={subcategory.id}
                   variant="outline"
                   size="sm"
                   onClick={() => onCategorySelect(subcategory.id)}
-                  className="h-6 px-2 text-xs rounded-full border-gray-200 hover:bg-gray-50"
+                  className="h-5 px-1.5 text-xs rounded-full border-gray-200 hover:bg-gray-50"
                 >
                   {subcategory.name}
                 </Button>

@@ -100,21 +100,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
 
   return (
     <div className="h-screen flex bg-white overflow-hidden">
-      {/* Sidebar - Style Google Maps */}
-      <GoogleMapsSidebar
-        isOpen={showSidebar}
-        onToggle={toggleSidebar}
-        filters={filters}
-        onFiltersChange={onFiltersChange}
-        onResetFilters={onResetFilters}
-        userLocation={userLocation}
-        onMyLocationClick={onMyLocationClick}
-        isLoading={isLoading}
-        results={results}
-        onCategoryClick={handleSidebarCategoryClick}
-      />
-
-      {/* Zone principale */}
+      {/* Zone principale - Carte à gauche */}
       <div className="flex-1 flex flex-col">
         {/* Header Google Maps */}
         <GoogleMapsHeader
@@ -129,18 +115,18 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
           showSidebar={showSidebar}
         />
 
-      {/* Menu horizontal de catégories */}
-      <HorizontalCategoryScroll
-        selectedCategories={selectedCategories}
-        onCategorySelect={handleCategorySelect}
-        onCategoryRemove={handleCategoryRemove}
-        onClearAll={onResetFilters}
-        showSubcategories={true}
-        selectedMainCategory={selectedMainCategory}
-        onMainCategoryChange={handleMainCategoryChange}
-      />
+        {/* Menu horizontal de catégories - Optimisé */}
+        <HorizontalCategoryScroll
+          selectedCategories={selectedCategories}
+          onCategorySelect={handleCategorySelect}
+          onCategoryRemove={handleCategoryRemove}
+          onClearAll={onResetFilters}
+          showSubcategories={true}
+          selectedMainCategory={selectedMainCategory}
+          onMainCategoryChange={handleMainCategoryChange}
+        />
 
-      {/* Zone carte et résultats */}
+        {/* Zone carte et résultats */}
         <div className="flex-1 flex overflow-hidden">
           {/* Carte maximisée */}
           <div className="flex-1 relative">
@@ -151,9 +137,9 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
               onResultClick={handleResultSelect}
             />
 
-            {/* Boutons flottants mobiles */}
+            {/* Boutons flottants mobiles - À droite */}
             {isMobile && (
-              <div className="absolute bottom-6 right-6 flex flex-col gap-3 z-50">
+              <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-50">
                 <ExportPDFButton
                   results={results}
                   userLocation={userLocation}
@@ -164,26 +150,26 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
                     transport: filters.transport
                   }}
                   size="sm"
-                  className="w-12 h-12 rounded-full shadow-lg"
+                  className="w-10 h-10 rounded-full shadow-lg"
                 />
                 
                 <Button
                   onClick={onMyLocationClick}
-                  size="lg"
-                  className="w-12 h-12 rounded-full shadow-lg bg-white text-gray-700 hover:bg-gray-50"
+                  size="sm"
+                  className="w-10 h-10 rounded-full shadow-lg bg-white text-gray-700 hover:bg-gray-50"
                   variant="outline"
                 >
-                  <MapPin className="h-5 w-5" />
+                  <MapPin className="h-4 w-4" />
                 </Button>
                 
                 {results.length > 0 && (
                   <Button
                     onClick={toggleResultsList}
-                    size="lg"
-                    className="w-12 h-12 rounded-full shadow-lg bg-white text-gray-700 hover:bg-gray-50"
+                    size="sm"
+                    className="w-10 h-10 rounded-full shadow-lg bg-white text-gray-700 hover:bg-gray-50"
                     variant="outline"
                   >
-                    <List className="h-5 w-5" />
+                    <List className="h-4 w-4" />
                   </Button>
                 )}
               </div>
@@ -202,6 +188,20 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
           )}
         </div>
       </div>
+
+      {/* Sidebar - DÉPLACÉE À DROITE */}
+      <GoogleMapsSidebar
+        isOpen={showSidebar}
+        onToggle={toggleSidebar}
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        onResetFilters={onResetFilters}
+        userLocation={userLocation}
+        onMyLocationClick={onMyLocationClick}
+        isLoading={isLoading}
+        results={results}
+        onCategoryClick={handleSidebarCategoryClick}
+      />
 
       {/* Popup détails de lieu */}
       <LocationDetailsPopup
