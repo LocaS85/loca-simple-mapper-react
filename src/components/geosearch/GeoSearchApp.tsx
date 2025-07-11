@@ -4,6 +4,7 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import GoogleMapsLayout from './GoogleMapsLayout';
 import MapboxTokenSetup from './ui/MapboxTokenSetup';
 import RouteBackButton from '@/components/ui/RouteBackButton';
+import Logo from '@/components/ui/Logo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
@@ -152,12 +153,13 @@ const GeoSearchApp: React.FC = () => {
   if (!isMapboxReady) {
     return (
       <div className="min-h-screen flex flex-col">
-        <div className="p-4">
+        <div className="p-4 flex items-center justify-between">
           <RouteBackButton 
             route="/categories"
             showLabel={true}
             variant="ghost"
           />
+          <Logo size="sm" variant="primary" showText={true} />
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
           {mapboxError ? (

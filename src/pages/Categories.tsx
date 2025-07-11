@@ -12,6 +12,7 @@ import CustomAddressCard from '@/components/categories/CustomAddressCard';
 import CategoryScrollManager from '@/components/categories/CategoryScrollManager';
 import CategoryDetailModal from '@/components/categories/CategoryDetailModal';
 import RouteBackButton from '@/components/ui/RouteBackButton';
+import Logo from '@/components/ui/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -139,13 +140,13 @@ const Categories = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="flex items-center mb-4">
+          <div className="flex items-center justify-between mb-4">
             <RouteBackButton 
               route="/"
               showLabel={true}
               variant="ghost"
-              className="mr-4"
             />
+            <Logo size="md" variant="primary" showText={true} />
           </div>
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">

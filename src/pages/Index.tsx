@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useTranslations } from "@/hooks/useTranslations";
 import { ErrorBoundary } from 'react-error-boundary';
+import Logo from "@/components/ui/Logo";
 
 // Fallback component pour la page d'accueil
 function HomeErrorFallback({ error }: { error: Error }) {
@@ -42,6 +43,10 @@ export default function Index() {
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted">
           <Container>
             <div className="space-y-6 text-center">
+              {/* Logo principal */}
+              <div className="flex justify-center mb-8">
+                <Logo size="lg" variant="primary" showText={true} />
+              </div>
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                 {t('home.title')}
               </h1>
