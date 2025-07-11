@@ -6,6 +6,7 @@ import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
+import "./i18n"; // Import i18n configuration
 
 // Désactiver les logs de développement en production
 if (import.meta.env.PROD) {

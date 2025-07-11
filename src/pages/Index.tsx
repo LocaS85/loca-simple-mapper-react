@@ -4,16 +4,40 @@ import { Container } from "@/components/ui/container";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useTranslations } from "@/hooks/useTranslations";
+import { ErrorBoundary } from 'react-error-boundary';
+
+// Fallback component pour la page d'accueil
+function HomeErrorFallback({ error }: { error: Error }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg text-center">
+        <h2 className="text-xl font-semibold text-red-600 mb-4">Erreur sur la page d'accueil</h2>
+        <p className="text-gray-600 mb-4">
+          {error.message || "Impossible de charger la page d'accueil"}
+        </p>
+        <Button asChild>
+          <Link to="/geosearch">Aller à la recherche</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function Index() {
   const { t } = useTranslations();
   
   const handleExplore = () => {
-    toast.success(t('home.exploreToast', 'Commençons l\'exploration !'));
+    try {
+      toast.success(t('home.exploreToast', 'Commençons l\'exploration !'));
+    } catch (error) {
+      console.error('Toast error:', error);
+      toast.success('Commençons l\'exploration !');
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <ErrorBoundary FallbackComponent={HomeErrorFallback}>
+      <div className="flex flex-col min-h-screen">
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted">
           <Container>
@@ -87,5 +111,6 @@ export default function Index() {
         </section>
       </main>
     </div>
+    </ErrorBoundary>
   );
 }

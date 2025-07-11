@@ -3,28 +3,63 @@ import mapboxSdk from '@mapbox/mapbox-sdk';
 import mapboxGeocoding from '@mapbox/mapbox-sdk/services/geocoding';
 import mapboxDirections from '@mapbox/mapbox-sdk/services/directions';
 import mapboxMatrix from '@mapbox/mapbox-sdk/services/matrix';
-import { getMapboxToken } from './mapboxConfig';
+import { getMapboxTokenSync } from './mapboxConfig';
 
 /**
  * Centralized configuration for Mapbox SDK services
  */
 
-// Create base client with authentication
-const baseClient = mapboxSdk({ accessToken: getMapboxToken() });
+// Get token synchronously to avoid Promise issues
+const getToken = (): string => {
+  const token = getMapboxTokenSync();
+  if (!token) {
+    console.warn('No Mapbox token available - services will be disabled');
+    return 'pk.placeholder'; // Placeholder to prevent crashes
+  }
+  return token;
+};
 
-// Initialize geocoding service
-export const geocodingService = mapboxGeocoding(baseClient);
+// Create base client with authentication - use lazy initialization
+let baseClient: any = null;
+let geocodingServiceInstance: any = null;
+let directionsServiceInstance: any = null;
+let matrixServiceInstance: any = null;
 
-// Initialize directions service
-export const directionsService = mapboxDirections(baseClient);
+const initializeServices = () => {
+  if (!baseClient) {
+    const token = getToken();
+    baseClient = mapboxSdk({ accessToken: token });
+    geocodingServiceInstance = mapboxGeocoding(baseClient);
+    directionsServiceInstance = mapboxDirections(baseClient);
+    matrixServiceInstance = mapboxMatrix(baseClient);
+  }
+};
 
-// Initialize matrix service
-export const matrixService = mapboxMatrix(baseClient);
+// Initialize services
+export const geocodingService = () => {
+  initializeServices();
+  return geocodingServiceInstance;
+};
+
+export const directionsService = () => {
+  initializeServices();
+  return directionsServiceInstance;
+};
+
+export const matrixService = () => {
+  initializeServices();
+  return matrixServiceInstance;
+};
 
 // Geocoding helpers
 export const forwardGeocode = async (searchText: string) => {
   try {
-    const response = await geocodingService
+    const token = getMapboxTokenSync();
+    if (!token || token === 'pk.placeholder') {
+      throw new Error('No valid Mapbox token available');
+    }
+    
+    const response = await geocodingService()
       .forwardGeocode({
         query: searchText,
         limit: 5,
@@ -42,7 +77,12 @@ export const forwardGeocode = async (searchText: string) => {
 
 export const reverseGeocode = async (coordinates: [number, number]) => {
   try {
-    const response = await geocodingService
+    const token = getMapboxTokenSync();
+    if (!token || token === 'pk.placeholder') {
+      throw new Error('No valid Mapbox token available');
+    }
+    
+    const response = await geocodingService()
       .reverseGeocode({
         query: coordinates,
         limit: 1,
@@ -64,7 +104,12 @@ export const getDirections = async (
   mode: 'driving' | 'walking' | 'cycling' = 'driving'
 ) => {
   try {
-    const response = await directionsService
+    const token = getMapboxTokenSync();
+    if (!token || token === 'pk.placeholder') {
+      throw new Error('No valid Mapbox token available');
+    }
+    
+    const response = await directionsService()
       .getDirections({
         profile: `mapbox/${mode}`,
         waypoints: [
@@ -92,12 +137,17 @@ export const getDistanceMatrix = async (
   mode: 'driving' | 'walking' | 'cycling' = 'driving'
 ) => {
   try {
+    const token = getMapboxTokenSync();
+    if (!token || token === 'pk.placeholder') {
+      throw new Error('No valid Mapbox token available');
+    }
+    
     // Matrix API has limits - check that we're within them
     if (origins.length * destinations.length > 25) {
       console.warn('Matrix API request exceeds free tier limits (25 pairs max)');
     }
     
-    const response = await matrixService
+    const response = await matrixService()
       .getMatrix({
         profile: `mapbox/${mode}`,
         sources: origins.map(coordinates => ({ coordinates })),

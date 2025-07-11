@@ -11,6 +11,7 @@ import { mapboxConfigService } from '@/services/mapboxConfigService';
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
   const [showTokenSetup, setShowTokenSetup] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
   
   const {
     userLocation,
@@ -26,14 +27,17 @@ const GeoSearchApp: React.FC = () => {
     initializeMapbox
   } = useGeoSearchStore();
 
-  // Initialisation et paramètres URL
+  // Initialisation de l'application
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        console.log('🚀 Initialisation GeoSearchApp...');
+        
         // Vérifier token Mapbox
         try {
           await mapboxConfigService.getMapboxToken();
         } catch (error) {
+          console.warn('Token Mapbox non disponible, affichage du setup');
           setShowTokenSetup(true);
           return;
         }
@@ -50,7 +54,7 @@ const GeoSearchApp: React.FC = () => {
             const coords: [number, number] = [parseFloat(params.lng), parseFloat(params.lat)];
             setUserLocation(coords);
             updateFilters({
-              category: params.category || '',
+              category: params.category || undefined,
               query: params.query || params.category || '',
               transport: (params.transport as any) || 'walking',
               distance: parseInt(params.distance || '5'),
@@ -63,11 +67,13 @@ const GeoSearchApp: React.FC = () => {
           }
         }
         
+        // Initialiser Mapbox
         await initializeMapbox();
+        console.log('✅ GeoSearchApp initialisé avec succès');
         
       } catch (error) {
-        console.error('Erreur initialisation app:', error);
-        setShowTokenSetup(true);
+        console.error('❌ Erreur d\'initialisation GeoSearchApp:', error);
+        setInitError(error instanceof Error ? error.message : 'Erreur d\'initialisation');
       }
     };
 
@@ -77,6 +83,7 @@ const GeoSearchApp: React.FC = () => {
   // Auto-search quand position disponible
   useEffect(() => {
     if (userLocation && isMapboxReady && !results.length && !isLoading) {
+      console.log('🔍 Auto-recherche de restaurants...');
       performSearch('restaurant');
     }
   }, [userLocation, isMapboxReady]);
@@ -94,8 +101,6 @@ const GeoSearchApp: React.FC = () => {
   };
 
   const handleMyLocationClick = (): void => {
-    setUserLocation(null);
-    
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -104,6 +109,7 @@ const GeoSearchApp: React.FC = () => {
             position.coords.latitude
           ];
           setUserLocation(coords);
+          console.log('📍 Position mise à jour:', coords);
         },
         (error) => {
           console.error('Erreur géolocalisation:', error);
@@ -117,10 +123,31 @@ const GeoSearchApp: React.FC = () => {
     }
   };
 
+  // Gestion des erreurs d'initialisation
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-red-600 mb-4">Erreur d'initialisation</h2>
+          <p className="text-gray-600 mb-4">{initError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+          >
+            Recharger la page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Configuration du token Mapbox
   if (showTokenSetup) {
     return <MapboxTokenSetup onTokenValidated={() => setShowTokenSetup(false)} />;
   }
 
+  // Chargement initial
   if (!isMapboxReady) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -148,6 +175,7 @@ const GeoSearchApp: React.FC = () => {
     );
   }
 
+  // Interface principale
   return (
     <GoogleMapsLayout
       filters={filters}

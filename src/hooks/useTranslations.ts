@@ -15,7 +15,12 @@ export const useTranslations = (): UseTranslationsReturn => {
   const { t, i18n } = useTranslation();
 
   const getSafeTranslation = (key: string, fallback?: string): string => {
-    return translationService.get(key, { fallback });
+    try {
+      return translationService.get(key, { fallback });
+    } catch (error) {
+      console.warn('Translation service error:', error);
+      return fallback || key;
+    }
   };
 
   const changeLanguage = async (language: string): Promise<void> => {
@@ -27,14 +32,33 @@ export const useTranslations = (): UseTranslationsReturn => {
   };
 
   const getSection = (section: string): Record<string, any> => {
-    return translationService.getSection(section);
+    try {
+      return translationService.getSection(section);
+    } catch (error) {
+      console.warn('Translation section error:', error);
+      return {};
+    }
+  };
+
+  // Safe t function with fallback
+  const safeT = (key: string, fallback?: string): string => {
+    try {
+      const translation = t(key);
+      if (translation === key && fallback) {
+        return fallback;
+      }
+      return translation;
+    } catch (error) {
+      console.warn('Translation error:', error);
+      return fallback || key;
+    }
   };
 
   return {
-    t,
+    t: safeT,
     changeLanguage,
-    currentLanguage: i18n.language,
-    availableLanguages: translationService.getAvailableLanguages(),
+    currentLanguage: i18n?.language || 'fr',
+    availableLanguages: translationService?.getAvailableLanguages() || ['fr', 'en'],
     getSection,
     getSafeTranslation
   };
