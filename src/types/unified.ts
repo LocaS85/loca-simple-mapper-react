@@ -152,6 +152,7 @@ export interface GeoSearchFilters {
   unit?: DistanceUnit;
   showMultiDirections?: boolean;
   selectedLocation?: LocationData;
+  selectedMainCategory?: string | null;
 }
 
 // ===== ÉTAT DE LA RECHERCHE UNIFIÉ =====

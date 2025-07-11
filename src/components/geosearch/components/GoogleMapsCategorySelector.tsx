@@ -93,10 +93,10 @@ const GoogleMapsCategorySelector: React.FC<GoogleMapsCategorySelectorProps> = ({
                   size="sm"
                   onClick={() => handleCategoryToggle(category.id)}
                   className={`
-                    w-full justify-start h-10 px-3
+                    w-full justify-start h-10 px-3 transition-all duration-200
                     ${isSelected 
-                      ? 'bg-gray-100 text-gray-900' 
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
+                      : 'text-gray-700 hover:bg-gray-50 border-gray-300 hover:border-gray-400'
                     }
                   `}
                 >

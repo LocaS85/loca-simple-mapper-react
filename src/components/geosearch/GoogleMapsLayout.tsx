@@ -41,6 +41,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   const [showSidebar, setShowSidebar] = useState(!isMobile);
   const [showResultsList, setShowResultsList] = useState(false);
   const [searchQuery, setSearchQuery] = useState(filters.query || '');
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(filters.selectedMainCategory || null);
 
   // État pour les catégories sélectionnées
   const selectedCategories = Array.isArray(filters.category) 
@@ -87,6 +88,16 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
     setShowResultsList(!showResultsList);
   };
 
+  const handleSidebarCategoryClick = (categoryId: string) => {
+    setSelectedMainCategory(categoryId);
+    onFiltersChange({ selectedMainCategory: categoryId });
+  };
+
+  const handleMainCategoryChange = (categoryId: string | null) => {
+    setSelectedMainCategory(categoryId);
+    onFiltersChange({ selectedMainCategory: categoryId });
+  };
+
   return (
     <div className="h-screen flex bg-white overflow-hidden">
       {/* Sidebar - Style Google Maps */}
@@ -100,6 +111,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         onMyLocationClick={onMyLocationClick}
         isLoading={isLoading}
         results={results}
+        onCategoryClick={handleSidebarCategoryClick}
       />
 
       {/* Zone principale */}
@@ -124,6 +136,8 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         onCategoryRemove={handleCategoryRemove}
         onClearAll={onResetFilters}
         showSubcategories={true}
+        selectedMainCategory={selectedMainCategory}
+        onMainCategoryChange={handleMainCategoryChange}
       />
 
       {/* Zone carte et résultats */}

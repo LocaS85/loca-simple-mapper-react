@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface DistanceUnitToggleProps {
-  value: 'km' | 'miles';
-  onChange: (unit: 'km' | 'miles') => void;
+  value: 'km' | 'mi';
+  onChange: (unit: 'km' | 'mi') => void;
   variant?: 'button' | 'toggle' | 'compact';
   size?: 'sm' | 'default' | 'lg';
   className?: string;
@@ -23,7 +23,7 @@ const DistanceUnitToggle: React.FC<DistanceUnitToggleProps> = ({
       <Button
         variant="outline"
         size={size}
-        onClick={() => onChange(value === 'km' ? 'miles' : 'km')}
+        onClick={() => onChange(value === 'km' ? 'mi' : 'km')}
         className={`min-w-[60px] ${className}`}
       >
         {value === 'km' ? 'km' : 'mi'}
@@ -47,10 +47,10 @@ const DistanceUnitToggle: React.FC<DistanceUnitToggleProps> = ({
           km
         </button>
         <button
-          onClick={() => onChange('miles')}
+          onClick={() => onChange('mi')}
           className={`
             px-3 py-1 text-xs font-medium rounded-r-md transition-colors border-l border-gray-200
-            ${value === 'miles' 
+            ${value === 'mi' 
               ? 'bg-blue-600 text-white' 
               : 'text-gray-600 hover:bg-gray-50'
             }
@@ -67,7 +67,7 @@ const DistanceUnitToggle: React.FC<DistanceUnitToggleProps> = ({
     <ToggleGroup
       type="single"
       value={value}
-      onValueChange={(newValue: 'km' | 'miles') => {
+      onValueChange={(newValue: 'km' | 'mi') => {
         if (newValue) onChange(newValue);
       }}
       className={className}
@@ -80,7 +80,7 @@ const DistanceUnitToggle: React.FC<DistanceUnitToggleProps> = ({
         km
       </ToggleGroupItem>
       <ToggleGroupItem 
-        value="miles" 
+        value="mi" 
         aria-label="Miles"
         size={size}
       >

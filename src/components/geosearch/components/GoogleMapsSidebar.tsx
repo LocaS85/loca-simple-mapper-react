@@ -14,13 +14,15 @@ import {
   Bike,
   Bus,
   ChevronRight,
-  Download
+  Download,
+  Timer
 } from 'lucide-react';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import { useIsMobile } from '@/hooks/use-mobile';
 import GoogleMapsTransportSelector from './GoogleMapsTransportSelector';
 import GoogleMapsCategorySelector from './GoogleMapsCategorySelector';
 import GoogleMapsDistanceSelector from './GoogleMapsDistanceSelector';
+import DurationSelector from './DurationSelector';
 import ExportPDFButton from './ExportPDFButton';
 
 interface GoogleMapsSidebarProps {
@@ -33,6 +35,7 @@ interface GoogleMapsSidebarProps {
   onMyLocationClick: () => void;
   isLoading: boolean;
   results?: SearchResult[];
+  onCategoryClick?: (categoryId: string) => void;
 }
 
 const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
@@ -44,7 +47,8 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
   userLocation,
   onMyLocationClick,
   isLoading,
-  results = []
+  results = [],
+  onCategoryClick
 }) => {
   const isMobile = useIsMobile();
 
@@ -53,7 +57,8 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
     filters.transport !== 'walking' || 
     filters.distance !== 10 ||
     filters.maxDuration !== 20 ||
-    filters.aroundMeCount !== 5;
+    filters.aroundMeCount !== 5 ||
+    filters.unit !== 'km';
 
   if (!isOpen && !isMobile) return null;
 
@@ -151,6 +156,23 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
                 <GoogleMapsDistanceSelector
                   value={filters.distance}
                   onChange={(distance) => onFiltersChange({ distance })}
+                  unit={filters.unit || 'km'}
+                  onUnitChange={(unit) => onFiltersChange({ unit })}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Distance en durée */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                  <Timer className="h-4 w-4" />
+                  Distance en durée
+                </h3>
+                
+                <DurationSelector
+                  value={filters.maxDuration || 20}
+                  onChange={(maxDuration) => onFiltersChange({ maxDuration })}
                 />
               </div>
 
@@ -165,7 +187,13 @@ const GoogleMapsSidebar: React.FC<GoogleMapsSidebarProps> = ({
                 
                 <GoogleMapsCategorySelector
                   selectedCategories={Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : []}
-                  onChange={(categories) => onFiltersChange({ category: categories.length > 0 ? categories : undefined })}
+                  onChange={(categories) => {
+                    onFiltersChange({ category: categories.length > 0 ? categories : undefined });
+                    // Déclencher l'affichage des sous-catégories si une catégorie est sélectionnée
+                    if (categories.length > 0 && onCategoryClick) {
+                      onCategoryClick(categories[categories.length - 1]);
+                    }
+                  }}
                 />
               </div>
 
