@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useTranslations } from '@/hooks/useTranslations';
 import LanguageSelector from './LanguageSelector';
+import Logo from './ui/Logo';
 
 const Header = () => {
   const location = useLocation();
@@ -34,7 +35,9 @@ const Header = () => {
   return (
     <header className="py-2 flex justify-between items-center relative border-b border-gray-100">
       <div>
-        <Link to="/" className="text-lg font-bold text-blue-600">LocaSimple</Link>
+        <Link to="/" className="hover:opacity-80 transition-opacity">
+          <Logo size="md" variant="primary" showText={true} />
+        </Link>
       </div>
 
       {/* Mobile burger menu */}
