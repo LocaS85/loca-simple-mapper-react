@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, MapPin, Building, Users, GraduationCap, Home } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Building, Users, GraduationCap, Home, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { UserAddress } from '@/hooks/useSupabaseCategories';
+import { useFavorites } from '@/contexts/FavoritesContext';
 
 interface ModernAddressCardProps {
   category: {
@@ -257,6 +258,18 @@ const ModernAddressCard: React.FC<ModernAddressCardProps> = ({
                 </div>
               </div>
               <div className="flex gap-2 opacity-0 group-hover/address:opacity-100 transition-opacity duration-200">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    // TODO: Add to favorites functionality
+                    console.log('Add to favorites:', address);
+                  }}
+                  className="h-8 w-8 p-0 hover:bg-yellow-100 hover:text-yellow-700"
+                  title="Ajouter aux favoris"
+                >
+                  <Star className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

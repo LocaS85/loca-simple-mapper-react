@@ -1,13 +1,15 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus, Settings as SettingsIcon } from 'lucide-react';
 import { isMapboxTokenValidSync } from '@/utils/mapboxConfig';
 import { MapboxError } from '@/components/MapboxError';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
 import ModernAddressCard from '@/components/categories/ModernAddressCard';
 import ModernCategoryCard from '@/components/categories/ModernCategoryCard';
-import ModernTransportManager from '@/components/categories/ModernTransportManager';
 import CustomAddressCard from '@/components/categories/CustomAddressCard';
 import CategoryScrollManager from '@/components/categories/CategoryScrollManager';
 import CategoryDetailModal from '@/components/categories/CategoryDetailModal';
@@ -146,7 +148,15 @@ const Categories = () => {
               showLabel={true}
               variant="ghost"
             />
-            <Logo size="md" variant="primary" showText={true} />
+            <div className="flex items-center gap-4">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/settings" className="flex items-center gap-2">
+                  <SettingsIcon className="w-4 h-4" />
+                  Réglages
+                </Link>
+              </Button>
+              <Logo size="md" variant="primary" showText={true} />
+            </div>
           </div>
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -198,26 +208,31 @@ const Categories = () => {
         </div>
       </motion.section>
 
-      {/* Section des modes de transport */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
-        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-          <motion.div 
-            className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center shadow-lg"
-            whileHover={{ scale: 1.1, rotate: -5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <span className="text-white text-sm">🚗</span>
-          </motion.div>
-          Configuration Transport
-        </h2>
-        <ModernTransportManager
-          transportModes={transportModes}
-          onUpdateColor={handleUpdateTransportColor}
-        />
+        {/* Section "Autre" pour catégories personnalisées */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <Card className="overflow-hidden border-dashed border-2 hover:border-solid transition-all">
+            <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50">
+              <CardTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-white" />
+                </div>
+                Autre
+              </CardTitle>
+              <CardDescription>
+                Créez vos propres catégories personnalisées (foot, associations, etc.)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <Button variant="outline" className="w-full" disabled>
+                Bientôt disponible - Créer une catégorie
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.section>
 
       {/* Section des catégories standards */}
@@ -304,7 +319,7 @@ const Categories = () => {
         maxDistance={5}
         distanceUnit="km"
       />
-    </div>
+      </div>
     </div>
   );
 };

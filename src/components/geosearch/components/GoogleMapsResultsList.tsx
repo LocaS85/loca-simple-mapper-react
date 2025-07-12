@@ -138,6 +138,9 @@ const GoogleMapsResultsList: React.FC<GoogleMapsResultsListProps> = ({
                         </p>
                       </div>
                       
+                      {/* Bouton favori */}
+                      <FavoriteButton result={result} />
+                      
                       <Badge variant="outline" className="ml-2 text-xs">
                         #{index + 1}
                       </Badge>

@@ -3,7 +3,6 @@ export { useGeoSearch } from './use-geo-search';
 export { useMapboxDirections } from './use-mapbox-directions';
 
 // Re-export des hooks geosearch existants
-export { useFavorites } from './geosearch/useFavorites';
 export { useGeoSearch as useGeoSearchStore } from './geosearch/useGeoSearch';
 
 // Autres hooks

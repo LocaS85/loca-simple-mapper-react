@@ -16,6 +16,7 @@ import Auth from '@/pages/Auth';
 import ForgotPassword from '@/pages/ForgotPassword';
 import Favorites from '@/pages/Favorites';
 import FAQ from '@/pages/FAQ';
+import Settings from '@/pages/Settings';
 
 /**
  * Application routes configuration
@@ -37,6 +38,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/payment" element={<Payment />} />
       <Route path="/account" element={<Account />} />
       <Route path="/favorites" element={<Favorites />} />
+      <Route path="/settings" element={<Settings />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="*" element={<NotFound />} />

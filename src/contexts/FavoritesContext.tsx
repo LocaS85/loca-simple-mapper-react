@@ -1,22 +1,21 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface Favorite {
-  id: string;
-  name: string;
-  address: string;
-  coordinates: [number, number];
-  category: string;
-  savedAt: number;
-}
+import React, { createContext, useContext } from 'react';
+import { useFavoritesSupabase, FavoritePlace } from '@/hooks/useFavoritesSupabase';
+import { SearchResult } from '@/types/geosearch';
 
 interface FavoritesContextType {
-  favorites: Favorite[];
-  addFavorite: (item: Omit<Favorite, 'savedAt'>) => void;
-  removeFavorite: (id: string) => void;
-  toggleFavorite: (item: Omit<Favorite, 'savedAt'>) => void;
+  favorites: FavoritePlace[];
+  loading: boolean;
+  addFavorite: (result: SearchResult) => Promise<void>;
+  removeFavorite: (id: string) => Promise<void>;
+  toggleFavorite: (result: SearchResult) => Promise<void>;
   isFavorite: (id: string) => boolean;
-  clearFavorites: () => void;
+  clearFavorites: () => Promise<void>;
+  refetch: () => Promise<void>;
+  favoritesCount: number;
+  // Alias methods for backward compatibility
+  addToFavorites: (result: SearchResult) => Promise<void>;
+  removeFromFavorites: (id: string) => Promise<void>;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -30,70 +29,17 @@ export const useFavorites = () => {
 };
 
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const favoritesHook = useFavoritesSupabase();
 
-  // Charger les favoris depuis localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('geosearch_favorites');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setFavorites(Array.isArray(parsed) ? parsed : []);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des favoris:', error);
-    }
-  }, []);
-
-  // Sauvegarder les favoris dans localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('geosearch_favorites', JSON.stringify(favorites));
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des favoris:', error);
-    }
-  }, [favorites]);
-
-  const addFavorite = (item: Omit<Favorite, 'savedAt'>) => {
-    if (isFavorite(item.id)) return;
-    
-    const newFavorite: Favorite = {
-      ...item,
-      savedAt: Date.now()
-    };
-    
-    setFavorites(prev => [...prev, newFavorite]);
-  };
-
-  const removeFavorite = (id: string) => {
-    setFavorites(prev => prev.filter(fav => fav.id !== id));
-  };
-
-  const toggleFavorite = (item: Omit<Favorite, 'savedAt'>) => {
-    if (isFavorite(item.id)) {
-      removeFavorite(item.id);
-    } else {
-      addFavorite(item);
-    }
-  };
-
-  const isFavorite = (id: string) => {
-    return favorites.some(fav => fav.id === id);
-  };
-
-  const clearFavorites = () => {
-    setFavorites([]);
+  // Create extended interface with aliases for backward compatibility
+  const extendedHook = {
+    ...favoritesHook,
+    addFavorite: favoritesHook.addToFavorites,
+    removeFavorite: favoritesHook.removeFromFavorites,
   };
 
   return (
-    <FavoritesContext.Provider value={{
-      favorites,
-      addFavorite,
-      removeFavorite,
-      toggleFavorite,
-      isFavorite,
-      clearFavorites
-    }}>
+    <FavoritesContext.Provider value={extendedHook}>
       {children}
     </FavoritesContext.Provider>
   );
