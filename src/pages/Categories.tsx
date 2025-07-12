@@ -1,33 +1,35 @@
-
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, Settings as SettingsIcon } from 'lucide-react';
-import { isMapboxTokenValidSync } from '@/utils/mapboxConfig';
-import { MapboxError } from '@/components/MapboxError';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { useNavigate } from 'react-router-dom';
 import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
-import ModernAddressCard from '@/components/categories/ModernAddressCard';
-import ModernCategoryCard from '@/components/categories/ModernCategoryCard';
-import CustomAddressCard from '@/components/categories/CustomAddressCard';
-import CategoryScrollManager from '@/components/categories/CategoryScrollManager';
-import CategoryDetailModal from '@/components/categories/CategoryDetailModal';
-import RouteBackButton from '@/components/ui/RouteBackButton';
-import Logo from '@/components/ui/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useHorizontalScroll } from '@/hooks/useHorizontalScroll';
+
+// UI Components
+import { Button } from '@/components/ui/button';
+import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
+import RouteBackButton from '@/components/ui/RouteBackButton';
+import Logo from '@/components/ui/Logo';
+
+// Category Components
+import AddressSectionManager from '@/components/categories/AddressSectionManager';
+import SearchCategoriesSection from '@/components/categories/SearchCategoriesSection';
+import CategoryDetailModal from '@/components/categories/CategoryDetailModal';
+
+// MapBox Integration
+import { MapboxTokenWarning } from '@/components/MapboxTokenWarning';
+
+// Types
+import { UserAddress } from '@/hooks/useSupabaseCategories';
 
 const Categories = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Modal state
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const scrollRef = useHorizontalScroll({ sensitivity: 0.5, momentum: true });
-  
-  // Use Supabase categories hook
+
+  // Data fetching
   const {
     categories,
     userAddresses,
@@ -40,8 +42,12 @@ const Categories = () => {
     updateTransportColor
   } = useSupabaseCategories();
 
-  // Handle address operations with toast notifications
-  const handleAddAddress = async (address: any) => {
+  // Separate categories by type
+  const specialCategories = categories.filter(cat => cat.category_type === 'special');
+  const standardCategories = categories.filter(cat => cat.category_type === 'standard');
+
+  // Address management handlers
+  const handleAddAddress = async (address: Omit<UserAddress, 'id' | 'user_id'>) => {
     try {
       await addUserAddress(address);
       toast({
@@ -49,6 +55,7 @@ const Categories = () => {
         description: "L'adresse a été ajoutée avec succès.",
       });
     } catch (error) {
+      console.error('Erreur lors de l\'ajout de l\'adresse:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter l'adresse.",
@@ -57,7 +64,7 @@ const Categories = () => {
     }
   };
 
-  const handleUpdateAddress = async (id: string, updates: any) => {
+  const handleUpdateAddress = async (id: string, updates: Partial<UserAddress>) => {
     try {
       await updateUserAddress(id, updates);
       toast({
@@ -65,6 +72,7 @@ const Categories = () => {
         description: "L'adresse a été modifiée avec succès.",
       });
     } catch (error) {
+      console.error('Erreur lors de la modification de l\'adresse:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier l'adresse.",
@@ -81,6 +89,7 @@ const Categories = () => {
         description: "L'adresse a été supprimée avec succès.",
       });
     } catch (error) {
+      console.error('Erreur lors de la suppression de l\'adresse:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer l'adresse.",
@@ -97,6 +106,7 @@ const Categories = () => {
         description: "La couleur du mode de transport a été mise à jour.",
       });
     } catch (error) {
+      console.error('Erreur lors de la mise à jour de la couleur:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour la couleur.",
@@ -104,236 +114,134 @@ const Categories = () => {
       });
     }
   };
-  
-  // Check if Mapbox token is valid
-  if (!isMapboxTokenValidSync()) {
-    return <MapboxError />;
+
+  const handleCategoryDetailClick = (category: any) => {
+    setSelectedCategory(category);
+    setIsModalOpen(true);
+  };
+
+  // Check Mapbox token
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || localStorage.getItem('mapbox_token');
+  if (!mapboxToken) {
+    return <MapboxTokenWarning />;
   }
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6">
-        <LoadingSpinner />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <EnhancedLoadingSpinner />
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="text-center py-8 text-red-600">
-          <p>Erreur: {error}</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-md"
+        >
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Erreur de chargement</h2>
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              Réessayer
+            </Button>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
-  // Séparer les catégories spéciales et standards
-  const specialCategories = categories.filter(cat => cat.category_type === 'special');
-  const standardCategories = categories.filter(cat => cat.category_type === 'standard');
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-6 space-y-6 md:space-y-8 max-w-7xl">
-        {/* Header avec bouton retour */}
-        <motion.div 
-          className="mb-6 md:mb-8"
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Header */}
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <RouteBackButton 
               route="/"
               showLabel={true}
               variant="ghost"
             />
-            <div className="flex items-center gap-4">
-              <Button asChild variant="outline" size="sm">
-                <Link to="/settings" className="flex items-center gap-2">
-                  <SettingsIcon className="w-4 h-4" />
-                  Réglages
-                </Link>
-              </Button>
-              <Logo size="md" variant="primary" showText={true} />
-            </div>
+            <Logo size="md" variant="primary" showText={true} />
+            <Button
+              onClick={() => navigate('/settings')}
+              variant="outline"
+              className="shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              Réglages
+            </Button>
           </div>
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Gestion des Catégories
-            </h1>
-            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-              Gérez vos adresses personnelles et explorez les catégories de lieux avec une interface moderne et intuitive
-            </p>
+
+          {/* Page Title */}
+          <div className="text-center mb-8">
+            <motion.h1 
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              Mes Catégories
+            </motion.h1>
+            <motion.p 
+              className="text-lg text-gray-600 max-w-2xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              Gérez vos adresses personnelles et explorez les catégories de recherche
+            </motion.p>
           </div>
         </motion.div>
 
-      {/* Section des catégories spéciales (gestion d'adresses) */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
-        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-          <motion.div 
-            className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg"
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <span className="text-white text-sm">📍</span>
-          </motion.div>
-          Mes Adresses
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-          {specialCategories.map((category) => (
-            <ModernAddressCard
-              key={category.id}
-              category={category as any}
-              addresses={userAddresses}
-              onAddAddress={handleAddAddress}
-              onUpdateAddress={handleUpdateAddress}
-              onDeleteAddress={handleDeleteAddress}
-              maxAddresses={10}
-            />
-          ))}
-          
-          {/* Section Autre - Catégories personnalisables */}
-          <CustomAddressCard
-            addresses={userAddresses}
+        {/* Main Content */}
+        <div className="space-y-12">
+          {/* Address Management Sections */}
+          <AddressSectionManager
+            specialCategories={specialCategories}
+            userAddresses={userAddresses}
             onAddAddress={handleAddAddress}
             onUpdateAddress={handleUpdateAddress}
             onDeleteAddress={handleDeleteAddress}
-            maxAddresses={15}
+          />
+
+          {/* Search Categories Section */}
+          <SearchCategoriesSection
+            standardCategories={standardCategories}
+            onCategoryDetailClick={handleCategoryDetailClick}
           />
         </div>
-      </motion.section>
-
-      {/* Section "Autre" pour catégories personnalisées */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
-        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-          <motion.div 
-            className="w-8 h-8 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center shadow-lg"
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <span className="text-white text-sm">➕</span>
-          </motion.div>
-          Autre
-        </h2>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-          <Card className="overflow-hidden border-dashed border-2 hover:border-solid transition-all">
-            <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50">
-              <CardTitle className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-white" />
-                </div>
-                Catégories personnalisées
-              </CardTitle>
-              <CardDescription>
-                Créez vos propres catégories personnalisées (foot, associations, etc.)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6">
-              <Button variant="outline" className="w-full" disabled>
-                Bientôt disponible - Créer une catégorie
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.section>
-
-      {/* Section des catégories standards */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-          <motion.div 
-            className="w-8 h-8 rounded-lg bg-gradient-to-r from-green-500 to-blue-600 flex items-center justify-center shadow-lg"
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <span className="text-white text-sm">🔍</span>
-          </motion.div>
-          Catégories de Recherche
-        </h2>
-        <div className="relative">
-          {/* Smart scroll management */}
-          <CategoryScrollManager 
-            containerId="categories-scroll-container"
-            itemCount={standardCategories.length}
-            itemWidth={320}
-          />
-          
-          {/* Horizontal scrolling container */}
-          <div 
-            ref={scrollRef}
-            id="categories-scroll-container"
-            className="flex overflow-x-auto gap-4 md:gap-6 pb-4 px-2 md:px-12 scroll-smooth scrollbar-hide scroll-touch scroll-snap-x"
-          >
-            <div className="flex gap-4 md:gap-6 min-w-max">
-              {standardCategories.map((category, index) => (
-                <motion.div
-                  key={category.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
-                  className="flex-shrink-0 w-80 md:w-96 scroll-snap-center"
-                >
-                  <ModernCategoryCard
-                    category={category}
-                    subcategories={category.subcategories || []}
-                    transportMode="walking"
-                    maxDistance={5}
-                    distanceUnit="km"
-                    aroundMeCount={3}
-                    onDetailClick={() => {
-                      setSelectedCategory(category);
-                      setIsModalOpen(true);
-                    }}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Mobile scroll indicators */}
-          <div className="flex justify-center mt-4 md:hidden">
-            <div className="flex gap-2">
-              {standardCategories.map((_, index) => (
-                <div
-                  key={index}
-                  className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
-                  id={`indicator-${index}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </motion.section>
       
-      {/* Category Detail Modal */}
-      <CategoryDetailModal
-        category={selectedCategory}
-        subcategories={selectedCategory?.subcategories || []}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedCategory(null);
-        }}
-        transportMode="walking"
-        maxDistance={5}
-        distanceUnit="km"
-      />
+        {/* Category Detail Modal */}
+        <CategoryDetailModal
+          category={selectedCategory}
+          subcategories={selectedCategory?.subcategories || []}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedCategory(null);
+          }}
+          transportMode="walking"
+          maxDistance={5}
+          distanceUnit="km"
+        />
       </div>
     </div>
   );
