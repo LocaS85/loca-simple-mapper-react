@@ -208,7 +208,22 @@ const Categories = () => {
         </div>
       </motion.section>
 
-        {/* Section "Autre" pour catégories personnalisées */}
+      {/* Section "Autre" pour catégories personnalisées */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+          <motion.div 
+            className="w-8 h-8 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <span className="text-white text-sm">➕</span>
+          </motion.div>
+          Autre
+        </h2>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -220,7 +235,7 @@ const Categories = () => {
                 <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
                   <Plus className="w-5 h-5 text-white" />
                 </div>
-                Autre
+                Catégories personnalisées
               </CardTitle>
               <CardDescription>
                 Créez vos propres catégories personnalisées (foot, associations, etc.)

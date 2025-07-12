@@ -87,7 +87,7 @@ const Logo: React.FC<LogoProps> = ({
           config.text,
           colors.text
         )}>
-          Loca<span className="bg-gradient-to-r bg-clip-text text-transparent from-blue-600 to-purple-600">Simple</span>
+          <span className="bg-gradient-to-r bg-clip-text text-transparent from-blue-600 to-purple-600">LS</span>
         </span>
       )}
     </div>
