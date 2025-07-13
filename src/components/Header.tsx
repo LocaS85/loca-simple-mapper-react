@@ -36,7 +36,7 @@ const Header = () => {
     <header className="py-2 flex justify-between items-center relative border-b border-gray-100">
       <div>
         <Link to="/" className="hover:opacity-80 transition-opacity">
-          <Logo size="md" variant="primary" showText={true} />
+          <Logo size="lg" variant="primary" showText={true} />
         </Link>
       </div>
 
@@ -69,18 +69,18 @@ const Header = () => {
                 <div className="border-t border-gray-100 w-full my-2"></div>
                 
                 <Link 
-                  to="/register" 
+                  to="/auth" 
                   className="text-gray-700 hover:text-blue-600 transition-colors py-2"
                   onClick={toggleMenu}
                 >
-                  {t('header.register')}
+                  Se connecter
                 </Link>
                 <Link 
-                  to="/login" 
+                  to="/account" 
                   className="text-gray-700 hover:text-blue-600 transition-colors py-2"
                   onClick={toggleMenu}
                 >
-                  {t('header.login')}
+                  Mon compte
                 </Link>
               </nav>
             </SheetContent>
@@ -112,16 +112,28 @@ const Header = () => {
           <div className="flex items-center gap-2">
             <LanguageSelector />
             
-            <Link 
-              to="/login" 
-              className={cn(
-                "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm flex items-center",
-                isActive('/login') && "text-blue-600 font-medium"
-              )}
-            >
-              <User size={16} className="mr-1" />
-              <span>{t('header.login')}</span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link 
+                to="/auth" 
+                className={cn(
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
+                  isActive('/auth') && "text-blue-600 font-medium"
+                )}
+              >
+                Se connecter
+              </Link>
+              <span className="text-gray-300">|</span>
+              <Link 
+                to="/account" 
+                className={cn(
+                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm flex items-center",
+                  isActive('/account') && "text-blue-600 font-medium"
+                )}
+              >
+                <User size={16} className="mr-1" />
+                <span>Mon compte</span>
+              </Link>
+            </div>
           </div>
         </div>
       )}
