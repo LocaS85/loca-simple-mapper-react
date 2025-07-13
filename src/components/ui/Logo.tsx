@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import logoProposal1 from '@/assets/logo-proposal-1.png';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -47,47 +48,23 @@ const Logo: React.FC<LogoProps> = ({
       config.container,
       className
     )}>
-      {/* Icône de localisation moderne */}
+      {/* Logo moderne LS */}
       <div className={cn('relative', config.icon)}>
-        <svg 
-          viewBox="0 0 32 32" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full"
-        >
-          {/* Cercle principal */}
-          <circle 
-            cx="16" 
-            cy="16" 
-            r="12" 
-            stroke="currentColor" 
-            strokeWidth="2.5" 
-            fill="none"
-            className="animate-pulse"
-          />
-          
-          {/* Pin de localisation central */}
-          <path 
-            d="M16 8C13.79 8 12 9.79 12 12C12 15 16 20 16 20S20 15 20 12C20 9.79 18.21 8 16 8ZM16 13.5C15.17 13.5 14.5 12.83 14.5 12S15.17 10.5 16 10.5S17.5 11.17 17.5 12S16.83 13.5 16 13.5Z" 
-            fill="currentColor"
-          />
-          
-          {/* Points de navigation */}
-          <circle cx="8" cy="16" r="1.5" fill="currentColor" className="opacity-60" />
-          <circle cx="24" cy="16" r="1.5" fill="currentColor" className="opacity-60" />
-          <circle cx="16" cy="8" r="1" fill="currentColor" className="opacity-40" />
-          <circle cx="16" cy="24" r="1" fill="currentColor" className="opacity-40" />
-        </svg>
+        <img 
+          src={logoProposal1}
+          alt="LS Logo"
+          className="w-full h-full object-contain"
+        />
       </div>
 
-      {/* Texte du logo */}
+      {/* Texte optionnel */}
       {showText && (
         <span className={cn(
           'font-bold tracking-tight',
           config.text,
           colors.text
         )}>
-          <span className="bg-gradient-to-r bg-clip-text text-transparent from-blue-600 to-purple-600">LS</span>
+          LS
         </span>
       )}
     </div>
