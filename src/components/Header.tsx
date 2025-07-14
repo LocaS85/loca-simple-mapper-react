@@ -33,110 +33,154 @@ const Header = () => {
   ];
 
   return (
-    <header className="py-2 flex justify-between items-center relative border-b border-gray-100">
-      <div>
-        <Link to="/" className="hover:opacity-80 transition-opacity">
-          <Logo size="lg" variant="primary" showText={true} />
-        </Link>
-      </div>
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border py-3">
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+            {/* Logo LS plus grand et coloré */}
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-locasimple-teal rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-xl font-bold text-white">LS</span>
+            </div>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
+                LocaSimple
+              </h1>
+              <p className="text-xs text-muted-foreground">Géolocalisation intelligente</p>
+            </div>
+          </Link>
+        </div>
 
-      {/* Mobile burger menu */}
-      {isMobile && (
-        <div className="flex items-center">
-          <LanguageSelector />
-          <Sheet>
-            <SheetTrigger asChild>
-              <button 
-                className="p-1 z-20 text-gray-600 ml-2"
-                aria-label={t('common.menu', 'Menu')}
-              >
-                <Menu size={20} />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[250px] sm:w-[300px]">
-              <nav className="flex flex-col gap-4 mt-8">
+        {/* Mobile burger menu */}
+        {isMobile && (
+          <div className="flex items-center space-x-2">
+            <LanguageSelector />
+            <Sheet>
+              <SheetTrigger asChild>
+                <button 
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  aria-label={t('common.menu', 'Menu')}
+                >
+                  <Menu size={24} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+                <div className="flex flex-col h-full">
+                  {/* Logo dans le menu */}
+                  <div className="flex items-center space-x-3 mb-8 pt-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-locasimple-teal rounded-lg flex items-center justify-center">
+                      <span className="text-lg font-bold text-white">LS</span>
+                    </div>
+                    <div>
+                      <h2 className="font-bold bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
+                        LocaSimple
+                      </h2>
+                    </div>
+                  </div>
+
+                  <nav className="flex flex-col space-y-1">
+                    {navigationItems.map((item) => (
+                      <Link 
+                        key={item.path}
+                        to={item.path}
+                        className={cn(
+                          "flex items-center px-4 py-3 rounded-lg transition-colors",
+                          isActive(item.path) 
+                            ? "bg-primary/10 text-primary font-medium" 
+                            : "hover:bg-muted"
+                        )}
+                        onClick={toggleMenu}
+                      >
+                        {t(item.key)}
+                      </Link>
+                    ))}
+                    
+                    <div className="border-t border-border my-4"></div>
+                    
+                    <Link 
+                      to="/auth" 
+                      className="flex items-center px-4 py-3 rounded-lg hover:bg-muted transition-colors font-medium"
+                      onClick={toggleMenu}
+                    >
+                      Se connecter
+                    </Link>
+                    <Link 
+                      to="/auth" 
+                      className="flex items-center px-4 py-3 rounded-lg bg-primary text-primary-foreground font-medium transition-colors"
+                      onClick={toggleMenu}
+                    >
+                      S'inscrire
+                    </Link>
+                    <Link 
+                      to="/account" 
+                      className="flex items-center px-4 py-3 rounded-lg hover:bg-muted transition-colors"
+                      onClick={toggleMenu}
+                    >
+                      <User size={18} className="mr-3" />
+                      Mon compte
+                    </Link>
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        )}
+
+        {/* Desktop navigation */}
+        {!isMobile && (
+          <div className="flex items-center space-x-6">
+            <NavigationMenu>
+              <NavigationMenuList className="space-x-1">
                 {navigationItems.map((item) => (
-                  <Link 
-                    key={item.path}
-                    to={item.path}
-                    className="text-gray-700 hover:text-blue-600 transition-colors py-2"
-                    onClick={toggleMenu}
-                  >
-                    {t(item.key)}
-                  </Link>
+                  <NavigationMenuItem key={item.path}>
+                    <Link 
+                      to={item.path} 
+                      className={cn(
+                        "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                        isActive(item.path) 
+                          ? "bg-primary/10 text-primary" 
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {t(item.key)}
+                    </Link>
+                  </NavigationMenuItem>
                 ))}
-                
-                <div className="border-t border-gray-100 w-full my-2"></div>
-                
+              </NavigationMenuList>
+            </NavigationMenu>
+            
+            <div className="flex items-center space-x-3">
+              <LanguageSelector />
+              
+              <div className="flex items-center space-x-2">
                 <Link 
                   to="/auth" 
-                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
-                  onClick={toggleMenu}
+                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Se connecter
                 </Link>
                 <Link 
-                  to="/account" 
-                  className="text-gray-700 hover:text-blue-600 transition-colors py-2"
-                  onClick={toggleMenu}
+                  to="/auth" 
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
                 >
-                  Mon compte
+                  S'inscrire
                 </Link>
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
-      )}
-
-      {/* Desktop navigation */}
-      {!isMobile && (
-        <div className="flex items-center gap-3">
-          <NavigationMenu>
-            <NavigationMenuList>
-              {navigationItems.map((item) => (
-                <NavigationMenuItem key={item.path}>
-                  <Link 
-                    to={item.path} 
-                    className={cn(
-                      "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
-                      isActive(item.path) && "text-blue-600 font-medium"
-                    )}
-                  >
-                    {t(item.key)}
-                  </Link>
-                </NavigationMenuItem>
-              ))}
-            </NavigationMenuList>
-          </NavigationMenu>
-          
-          <div className="flex items-center gap-2">
-            <LanguageSelector />
-            
-            <div className="flex items-center gap-2">
-              <Link 
-                to="/auth" 
-                className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm",
-                  isActive('/auth') && "text-blue-600 font-medium"
-                )}
-              >
-                Se connecter
-              </Link>
-              <span className="text-gray-300">|</span>
-              <Link 
-                to="/account" 
-                className={cn(
-                  "text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 text-sm flex items-center",
-                  isActive('/account') && "text-blue-600 font-medium"
-                )}
-              >
-                <User size={16} className="mr-1" />
-                <span>Mon compte</span>
-              </Link>
+                <Link 
+                  to="/account" 
+                  className={cn(
+                    "px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1",
+                    isActive('/account') 
+                      ? "bg-primary/10 text-primary" 
+                      : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <User size={16} />
+                  <span>Mon compte</span>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 };

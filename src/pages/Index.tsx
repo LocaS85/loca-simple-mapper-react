@@ -7,11 +7,13 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useTranslations } from "@/hooks/useTranslations";
 import { ErrorBoundary } from 'react-error-boundary';
-import { ArrowRight, MapPin, Search, Heart, FileDown, Users, Star, CheckCircle } from 'lucide-react';
+import { ArrowRight, MapPin, Search, Heart, FileDown, Users, Star, CheckCircle, Play, Shield, Clock, Award } from 'lucide-react';
 import Logo from "@/components/ui/Logo";
 
 // Import images
-import heroImage from '@/assets/hero-geolocation.jpg';
+import heroImage from '@/assets/hero-modern.jpg';
+import demoPhoneImage from '@/assets/demo-phone.jpg';
+import demoLaptopImage from '@/assets/demo-laptop.jpg';
 import serviceSearchImage from '@/assets/service-search.jpg';
 import serviceMapsImage from '@/assets/service-maps.jpg';
 import serviceFavoritesImage from '@/assets/service-favorites.jpg';
@@ -123,64 +125,134 @@ export default function Index() {
       <div className="flex flex-col min-h-screen">
         <main className="flex-1">
           {/* Hero Section */}
-          <section className="relative w-full py-20 md:py-32 overflow-hidden">
+          <section className="relative w-full py-20 md:py-32 overflow-hidden bg-gradient-to-br from-primary via-locasimple-blue to-locasimple-teal">
             <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
               style={{ backgroundImage: `url(${heroImage})` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70"></div>
-            </div>
+            />
             
             <Container className="relative z-10">
-              <div className="flex flex-col items-center text-center text-white space-y-8">
-                {/* Logo principal plus grand */}
-                <div className="flex justify-center mb-4">
-                  <Logo size="lg" variant="white" showText={true} className="scale-150" />
-                </div>
-                
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-4 py-2">
-                  🚀 Nouvelle version disponible
-                </Badge>
-                
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-                  LS - Votre solution de 
-                  <span className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                    {" "}géolocalisation
-                  </span>
-                </h1>
-                
-                <p className="text-xl md:text-2xl max-w-4xl leading-relaxed opacity-90">
-                  Découvrez, explorez et naviguez avec la plateforme de géolocalisation 
-                  la plus intuitive et complète du marché.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-6">
-                    <Link to="/geosearch" onClick={handleExplore}>
-                      Commencer gratuitement
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10 text-lg px-8 py-6">
-                    <Link to="/premium">Voir les tarifs</Link>
-                  </Button>
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                {/* Contenu principal */}
+                <div className="text-white space-y-8">
+                  {/* Logo LS plus grand et intégré */}
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
+                      <span className="text-3xl font-bold text-white">LS</span>
+                    </div>
+                    <div>
+                      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+                        LocaSimple
+                      </h1>
+                      <p className="text-lg opacity-90">Votre solution de géolocalisation</p>
+                    </div>
+                  </div>
+                  
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-4 py-2 backdrop-blur-sm">
+                    🚀 Nouveau : API Pro disponible
+                  </Badge>
+                  
+                  <h2 className="text-2xl md:text-3xl font-medium leading-relaxed opacity-95">
+                    Découvrez, explorez et naviguez avec la plateforme de géolocalisation 
+                    la plus intuitive et complète du marché.
+                  </h2>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-6 shadow-lg">
+                      <Link to="/geosearch" onClick={handleExplore}>
+                        Commencer gratuitement
+                        <ArrowRight className="ml-2 w-5 h-5" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10 text-lg px-8 py-6 backdrop-blur-sm">
+                      <Link to="/about">
+                        <Play className="mr-2 w-5 h-5" />
+                        Voir la démo
+                      </Link>
+                    </Button>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-6 pt-8">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold">50K+</div>
+                      <div className="text-sm opacity-80">Utilisateurs actifs</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold">1M+</div>
+                      <div className="text-sm opacity-80">Recherches/mois</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold">99.9%</div>
+                      <div className="text-sm opacity-80">Uptime</div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-8 pt-12">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold">50K+</div>
-                    <div className="text-sm opacity-80">Utilisateurs actifs</div>
+                {/* Images de démonstration */}
+                <div className="relative">
+                  <div className="relative z-10">
+                    <img 
+                      src={demoPhoneImage} 
+                      alt="Application mobile LS"
+                      className="w-full max-w-md mx-auto rounded-2xl shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-300"
+                    />
                   </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold">1M+</div>
-                    <div className="text-sm opacity-80">Recherches mensuelles</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold">99.9%</div>
-                    <div className="text-sm opacity-80">Disponibilité</div>
+                  <div className="absolute top-10 -left-10 z-0">
+                    <img 
+                      src={demoLaptopImage} 
+                      alt="Dashboard LS"
+                      className="w-full max-w-sm rounded-xl shadow-xl opacity-80 transform -rotate-6 hover:-rotate-3 transition-transform duration-300"
+                    />
                   </div>
                 </div>
+              </div>
+            </Container>
+          </section>
+
+          {/* Avantages Section */}
+          <section className="w-full py-20 bg-muted/30">
+            <Container>
+              <div className="text-center mb-16">
+                <Badge variant="outline" className="mb-4">Pourquoi choisir LS ?</Badge>
+                <h2 className="text-4xl font-bold mb-4">Les avantages qui font la différence</h2>
+                <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                  Une plateforme pensée pour tous vos besoins de géolocalisation, du particulier à l'entreprise.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <Card className="text-center p-6 hover:shadow-lg transition-all duration-300 border-0">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Sécurisé</h3>
+                  <p className="text-muted-foreground">Vos données sont protégées par un chiffrement de niveau bancaire</p>
+                </Card>
+
+                <Card className="text-center p-6 hover:shadow-lg transition-all duration-300 border-0">
+                  <div className="w-16 h-16 bg-locasimple-teal/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-8 h-8 text-locasimple-teal" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Temps réel</h3>
+                  <p className="text-muted-foreground">Informations mises à jour en continu pour une précision maximale</p>
+                </Card>
+
+                <Card className="text-center p-6 hover:shadow-lg transition-all duration-300 border-0">
+                  <div className="w-16 h-16 bg-locasimple-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Users className="w-8 h-8 text-locasimple-blue" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Collaboratif</h3>
+                  <p className="text-muted-foreground">Partagez vos cartes et itinéraires avec votre équipe facilement</p>
+                </Card>
+
+                <Card className="text-center p-6 hover:shadow-lg transition-all duration-300 border-0">
+                  <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Award className="w-8 h-8 text-yellow-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Primé</h3>
+                  <p className="text-muted-foreground">Solution reconnue par les professionnels de la géolocalisation</p>
+                </Card>
               </div>
             </Container>
           </section>
@@ -189,9 +261,10 @@ export default function Index() {
           <section className="w-full py-20 bg-background">
             <Container>
               <div className="text-center mb-16">
-                <h2 className="text-4xl font-bold mb-4">Fonctionnalités principales</h2>
+                <Badge variant="outline" className="mb-4">Fonctionnalités</Badge>
+                <h2 className="text-4xl font-bold mb-4">Tout ce dont vous avez besoin</h2>
                 <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                  Découvrez tous les outils dont vous avez besoin pour une expérience de géolocalisation optimale.
+                  Des outils professionnels pour une expérience de géolocalisation optimale et intuitive.
                 </p>
               </div>
 
@@ -214,6 +287,9 @@ export default function Index() {
                         </div>
                         <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
                         <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+                        <Button variant="ghost" className="mt-4 p-0 h-auto">
+                          En savoir plus <ArrowRight className="ml-2 w-4 h-4" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -223,46 +299,59 @@ export default function Index() {
           </section>
 
           {/* Pricing Section */}
-          <section className="w-full py-20 bg-muted/50">
+          <section className="w-full py-20 bg-gradient-to-br from-muted/20 to-muted/40">
             <Container>
               <div className="text-center mb-16">
-                <h2 className="text-4xl font-bold mb-4">Tarifs simples et transparents</h2>
+                <Badge variant="outline" className="mb-4">Tarification</Badge>
+                <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
+                  Tarifs simples et transparents
+                </h2>
                 <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                  Choisissez le plan qui correspond à vos besoins. Changez à tout moment.
+                  Choisissez le plan qui correspond à vos besoins. Changez ou annulez à tout moment.
                 </p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                 {pricingPlans.map((plan, index) => (
-                  <Card key={index} className={`relative ${plan.popular ? 'ring-2 ring-primary scale-105' : ''}`}>
+                  <Card key={index} className={`relative border-0 shadow-xl hover:shadow-2xl transition-all duration-300 ${
+                    plan.popular 
+                      ? 'ring-2 ring-primary scale-105 bg-gradient-to-br from-primary/5 to-locasimple-teal/5' 
+                      : 'hover:scale-105'
+                  }`}>
                     {plan.popular && (
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold">
-                        Plus populaire
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-locasimple-teal text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
+                        ⭐ Plus populaire
                       </div>
                     )}
                     <CardContent className="p-8 text-center">
                       <h3 className="text-2xl font-bold mb-4">{plan.name}</h3>
                       <div className="mb-6">
-                        <span className="text-4xl font-bold">{plan.price}</span>
-                        <span className="text-muted-foreground">/{plan.period}</span>
+                        <span className="text-5xl font-bold bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
+                          {plan.price}
+                        </span>
+                        <span className="text-muted-foreground text-lg">/{plan.period}</span>
                       </div>
-                      <ul className="space-y-3 mb-8">
+                      <ul className="space-y-4 mb-8">
                         {plan.features.map((feature, featureIndex) => (
-                          <li key={featureIndex} className="flex items-center">
-                            <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                            <span>{feature}</span>
+                          <li key={featureIndex} className="flex items-center text-left">
+                            <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                            <span className="text-sm">{feature}</span>
                           </li>
                         ))}
                       </ul>
                       <Button 
                         asChild 
-                        className="w-full" 
+                        className="w-full text-lg py-6" 
                         variant={plan.popular ? "default" : "outline"}
+                        size="lg"
                       >
-                        <Link to="/premium">
-                          {plan.name === "Gratuit" ? "Commencer" : "Choisir ce plan"}
+                        <Link to="/auth">
+                          {plan.name === "Gratuit" ? "Commencer gratuitement" : "Choisir ce plan"}
                         </Link>
                       </Button>
+                      {plan.name === "Gratuit" && (
+                        <p className="text-xs text-muted-foreground mt-3">Aucune carte bancaire requise</p>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
