@@ -9,6 +9,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { ErrorBoundary } from 'react-error-boundary';
 import { ArrowRight, MapPin, Search, Heart, FileDown, Users, Star, CheckCircle, Play, Shield, Clock, Award } from 'lucide-react';
 import Logo from "@/components/ui/Logo";
+import Footer from '@/components/Footer';
 
 // Import images
 import heroImage from '@/assets/hero-modern.jpg';
@@ -164,12 +165,12 @@ export default function Index() {
                         <ArrowRight className="ml-2 w-5 h-5" />
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10 text-lg px-8 py-6 backdrop-blur-sm">
-                      <Link to="/about">
-                        <Play className="mr-2 w-5 h-5" />
-                        Voir la démo
-                      </Link>
-                    </Button>
+                     <Button asChild variant="outline" size="lg" className="border-white/50 text-white hover:bg-white hover:text-primary text-lg px-8 py-6 backdrop-blur-sm">
+                       <Link to="/about">
+                         <Play className="mr-2 w-5 h-5" />
+                         Voir la démo
+                       </Link>
+                     </Button>
                   </div>
 
                   {/* Stats */}
@@ -402,14 +403,15 @@ export default function Index() {
                   <Button asChild size="lg" variant="secondary" className="text-lg px-8 py-6">
                     <Link to="/geosearch">Essayer gratuitement</Link>
                   </Button>
-                  <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8 py-6">
-                    <Link to="/contact">Nous contacter</Link>
-                  </Button>
+                   <Button asChild size="lg" variant="outline" className="border-white/50 text-white hover:bg-white hover:text-primary text-lg px-8 py-6">
+                     <Link to="/contact">Nous contacter</Link>
+                   </Button>
                 </div>
               </div>
             </Container>
           </section>
         </main>
+        <Footer />
       </div>
     </ErrorBoundary>
   );
