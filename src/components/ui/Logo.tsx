@@ -60,11 +60,11 @@ const Logo: React.FC<LogoProps> = ({
       {/* Texte optionnel */}
       {showText && (
         <span className={cn(
-          'font-bold tracking-tight',
+          'font-bold tracking-tight bg-white/80 px-2 py-1 rounded backdrop-blur-sm',
           config.text,
           colors.text
         )}>
-          LS
+          LocaSimple
         </span>
       )}
     </div>

@@ -165,7 +165,7 @@ export default function Index() {
                         <ArrowRight className="ml-2 w-5 h-5" />
                       </Link>
                     </Button>
-                     <Button asChild variant="outline" size="lg" className="border-white/50 text-white hover:bg-white hover:text-primary text-lg px-8 py-6 backdrop-blur-sm">
+                     <Button asChild variant="secondary" size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-6 backdrop-blur-sm">
                        <Link to="/about">
                          <Play className="mr-2 w-5 h-5" />
                          Voir la démo
@@ -403,7 +403,7 @@ export default function Index() {
                   <Button asChild size="lg" variant="secondary" className="text-lg px-8 py-6">
                     <Link to="/geosearch">Essayer gratuitement</Link>
                   </Button>
-                   <Button asChild size="lg" variant="outline" className="border-white/50 text-white hover:bg-white hover:text-primary text-lg px-8 py-6">
+                   <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-6">
                      <Link to="/contact">Nous contacter</Link>
                    </Button>
                 </div>
