@@ -13,12 +13,10 @@ const Footer = () => {
   return (
     <footer className="bg-gray-100 border-t border-gray-200">
       <div className="container mx-auto px-4 py-8">
-        <div className={`${isMobile ? 'space-y-8' : 'grid grid-cols-4 gap-8'}`}>
-          {/* Logo and Description */}
+        <div className={`${isMobile ? 'space-y-8' : 'grid grid-cols-3 gap-8'}`}>
+          {/* Description sans logo */}
           <div className="col-span-1">
-            <Link to="/" className="inline-block mb-4">
-              <Logo size="md" variant="primary" showText={true} />
-            </Link>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">LocaSimple</h3>
             <p className="text-sm text-gray-600">
               {translationService.get('footer.description', {
                 fallback: 'La solution de géolocalisation intelligente pour tous vos besoins'
@@ -71,14 +69,9 @@ const Footer = () => {
                   Se connecter
                 </Link>
               </li>
-              <li>
+               <li>
                 <Link to="/account" className="text-gray-600 hover:text-blue-600">
                   Mon compte
-                </Link>
-              </li>
-              <li>
-                <Link to="/account" className="text-gray-600 hover:text-blue-600">
-                  {t('footer.myAccount')}
                 </Link>
               </li>
               <li>

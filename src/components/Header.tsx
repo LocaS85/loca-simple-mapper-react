@@ -28,26 +28,18 @@ const Header = () => {
     { path: '/', key: 'header.home' },
     { path: '/geosearch', key: 'header.geosearch' },
     { path: '/categories', key: 'header.categories' },
+    { path: '/about', key: 'header.about' },
     { path: '/premium', key: 'header.premium' },
-    { path: '/about', key: 'header.about' }
+    { path: '/contact', key: 'Contact' }
   ];
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border py-3">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-            {/* Logo LS plus grand et coloré */}
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-locasimple-teal rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-xl font-bold text-white">LS</span>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
-                LocaSimple
-              </h1>
-              <p className="text-xs text-muted-foreground">Géolocalisation intelligente</p>
-            </div>
-          </Link>
+        <div className="flex items-center">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
+            LocaSimple
+          </h1>
         </div>
 
         {/* Mobile burger menu */}
@@ -65,16 +57,11 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px] sm:w-[320px]">
                 <div className="flex flex-col h-full">
-                  {/* Logo dans le menu */}
-                  <div className="flex items-center space-x-3 mb-8 pt-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-locasimple-teal rounded-lg flex items-center justify-center">
-                      <span className="text-lg font-bold text-white">LS</span>
-                    </div>
-                    <div>
-                      <h2 className="font-bold bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
-                        LocaSimple
-                      </h2>
-                    </div>
+                  {/* Titre dans le menu */}
+                  <div className="flex items-center mb-8 pt-4">
+                    <h2 className="text-lg font-bold bg-gradient-to-r from-primary to-locasimple-teal bg-clip-text text-transparent">
+                      LocaSimple
+                    </h2>
                   </div>
 
                   <nav className="flex flex-col space-y-1">
