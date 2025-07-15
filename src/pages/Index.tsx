@@ -10,6 +10,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { ArrowRight, MapPin, Search, Heart, FileDown, Users, Star, CheckCircle, Play, Shield, Clock, Award } from 'lucide-react';
 import Logo from "@/components/ui/Logo";
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 
 // Import images
 import heroImage from '@/assets/hero-modern.jpg';
@@ -85,17 +86,17 @@ export default function Index() {
       popular: false
     },
     {
-      name: "Pro",
+      name: "Essentiel",
       price: "4,99€",
       period: "par mois",
       features: ["Recherches illimitées", "Cartes premium", "Export PDF", "Support prioritaire"],
       popular: true
     },
     {
-      name: "Business",
-      price: "19,99€",
-      period: "par mois",
-      features: ["Multi-utilisateurs", "API accès", "Analytics", "Support dédié 24/7"],
+      name: "Pro",
+      price: "39,99€",
+      period: "par an",
+      features: ["Tout de l'Essentiel", "API accès", "Analytics", "Support dédié 24/7"],
       popular: false
     }
   ];
@@ -124,6 +125,7 @@ export default function Index() {
   return (
     <ErrorBoundary FallbackComponent={HomeErrorFallback}>
       <div className="flex flex-col min-h-screen">
+        <Header />
         <main className="flex-1">
           {/* Hero Section */}
           <section className="relative w-full py-20 md:py-32 overflow-hidden bg-gradient-to-br from-primary via-locasimple-blue to-locasimple-teal">

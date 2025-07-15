@@ -14,7 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import RouteBackButton from '@/components/ui/RouteBackButton';
-import { CheckIcon, CreditCard, Shield, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { CheckIcon, CreditCard, Shield, Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 type PlanType = 'monthly' | 'annual';
 type CardBrand = 'visa' | 'mastercard' | 'amex' | '';
@@ -23,7 +24,9 @@ type BillingType = 'auto' | 'manual';
 
 const Payment = () => {
   const isMobile = useIsMobile();
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('monthly');
+  const [searchParams] = useSearchParams();
+  const urlPlan = searchParams.get('plan') as PlanType;
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(urlPlan || 'monthly');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [billingType, setBillingType] = useState<BillingType>('auto');
   const [cardNumber, setCardNumber] = useState('');
@@ -158,9 +161,15 @@ const Payment = () => {
           <div className={`${isMobile ? '' : 'col-span-2'}`}>
             <Card className="h-fit shadow-xl border-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CheckIcon className="h-5 w-5 text-green-600" />
-                  <span>Choisissez votre formule</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <CheckIcon className="h-5 w-5 text-green-600" />
+                    <span>Choisissez votre formule</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Retour
+                  </Button>
                 </CardTitle>
                 <CardDescription>
                   Accédez à toutes les fonctionnalités premium
