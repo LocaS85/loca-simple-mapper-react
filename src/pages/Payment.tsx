@@ -16,8 +16,9 @@ import { Separator } from '@/components/ui/separator';
 import RouteBackButton from '@/components/ui/RouteBackButton';
 import { CheckIcon, CreditCard, Shield, Lock, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { getPlanPrice, getDisplayPrice, pricingPlans } from '@/data/pricingPlans';
 
-type PlanType = 'monthly' | 'annual';
+type PlanType = 'essential-monthly' | 'essential-annual' | 'pro-monthly' | 'pro-annual';
 type CardBrand = 'visa' | 'mastercard' | 'amex' | '';
 type PaymentMethod = 'card' | 'paypal';
 type BillingType = 'auto' | 'manual';
@@ -26,7 +27,7 @@ const Payment = () => {
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const urlPlan = searchParams.get('plan') as PlanType;
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>(urlPlan || 'monthly');
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(urlPlan || 'essential-monthly');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [billingType, setBillingType] = useState<BillingType>('auto');
   const [cardNumber, setCardNumber] = useState('');
@@ -37,10 +38,30 @@ const Payment = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
 
-  // Prix
-  const monthlyPrice = 9.99;
-  const annualPrice = 95.88;
-  const savings = ((monthlyPrice * 12) - annualPrice).toFixed(2);
+  // Prix dynamiques selon le plan sélectionné
+  const getCurrentPrice = () => {
+    const [planName, billing] = selectedPlan.split('-');
+    return getPlanPrice(planName, billing as 'monthly' | 'annual');
+  };
+
+  const getCurrentDisplayPrice = () => {
+    const [planName, billing] = selectedPlan.split('-');
+    return getDisplayPrice(planName, billing as 'monthly' | 'annual');
+  };
+
+  const getCurrentPlanName = () => {
+    const [planName] = selectedPlan.split('-');
+    return planName === 'essential' ? 'Essentiel' : 'Pro';
+  };
+
+  const isAnnual = () => selectedPlan.includes('annual');
+  
+  const getSavings = () => {
+    const [planName] = selectedPlan.split('-');
+    const monthlyPrice = getPlanPrice(planName, 'monthly');
+    const annualPrice = getPlanPrice(planName, 'annual');
+    return ((monthlyPrice * 12) - annualPrice).toFixed(2);
+  };
 
   // Format card number with spaces
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +141,7 @@ const Payment = () => {
         plan: selectedPlan,
         paymentMethod,
         billingType,
-        amount: selectedPlan === 'monthly' ? monthlyPrice : annualPrice
+        amount: getCurrentPrice()
       });
       
       setMessage({ type: 'success', text: 'Paiement traité avec succès! Redirection...' });
@@ -177,62 +198,126 @@ const Payment = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Plan selection options */}
-                <div 
-                  className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-200 ${
-                    selectedPlan === 'monthly' 
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 scale-[1.02]' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                  }`}
-                  onClick={() => setSelectedPlan('monthly')}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold text-lg">Mensuel</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Facturé mensuellement</p>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900 dark:text-white">Plan Essentiel:</h4>
+                  <div 
+                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-200 ${
+                      selectedPlan === 'essential-monthly' 
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 scale-[1.02]' 
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    }`}
+                    onClick={() => setSelectedPlan('essential-monthly')}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold text-lg">Essentiel Mensuel</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Facturé chaque mois</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-2xl">4,99€</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">TTC/mois</div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-2xl">{monthlyPrice}€</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">TTC/mois</div>
-                    </div>
+                    {selectedPlan === 'essential-monthly' && (
+                      <div className="mt-3 text-blue-600 dark:text-blue-400 flex items-center">
+                        <CheckIcon size={16} className="mr-2" />
+                        <span className="text-sm font-medium">Plan sélectionné</span>
+                      </div>
+                    )}
                   </div>
-                  {selectedPlan === 'monthly' && (
-                    <div className="mt-3 text-blue-600 dark:text-blue-400 flex items-center">
-                      <CheckIcon size={16} className="mr-2" />
-                      <span className="text-sm font-medium">Plan sélectionné</span>
+                  
+                  <div 
+                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-200 relative ${
+                      selectedPlan === 'essential-annual' 
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 scale-[1.02]' 
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    }`}
+                    onClick={() => setSelectedPlan('essential-annual')}
+                  >
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      Économisez {getSavings()}€
                     </div>
-                  )}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold text-lg">Essentiel Annuel</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Facturé annuellement</p>
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
+                          17% d'économie
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-2xl">49,99€</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">≈ 4,17€/mois</div>
+                      </div>
+                    </div>
+                    {selectedPlan === 'essential-annual' && (
+                      <div className="mt-3 text-blue-600 dark:text-blue-400 flex items-center">
+                        <CheckIcon size={16} className="mr-2" />
+                        <span className="text-sm font-medium">Plan sélectionné</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div 
-                  className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-200 relative ${
-                    selectedPlan === 'annual' 
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 scale-[1.02]' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                  }`}
-                  onClick={() => setSelectedPlan('annual')}
-                >
-                  <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    Économisez {savings}€
+
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-900 dark:text-white">Plan Pro:</h4>
+                  <div 
+                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-200 ${
+                      selectedPlan === 'pro-monthly' 
+                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 scale-[1.02]' 
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    }`}
+                    onClick={() => setSelectedPlan('pro-monthly')}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold text-lg">Pro Mensuel</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Facturé chaque mois</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-2xl">9,99€</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">TTC/mois</div>
+                      </div>
+                    </div>
+                    {selectedPlan === 'pro-monthly' && (
+                      <div className="mt-3 text-purple-600 dark:text-purple-400 flex items-center">
+                        <CheckIcon size={16} className="mr-2" />
+                        <span className="text-sm font-medium">Plan sélectionné</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold text-lg">Annuel</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Facturé annuellement</p>
-                      <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
-                        -20% par rapport au mensuel
-                      </p>
+                  
+                  <div 
+                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-200 relative ${
+                      selectedPlan === 'pro-annual' 
+                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 scale-[1.02]' 
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    }`}
+                    onClick={() => setSelectedPlan('pro-annual')}
+                  >
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      Économisez {getSavings()}€
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-2xl">{annualPrice}€</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">≈ 7,99€/mois</div>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold text-lg">Pro Annuel</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Facturé annuellement</p>
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
+                          17% d'économie
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-2xl">99,99€</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">≈ 8,33€/mois</div>
+                      </div>
                     </div>
+                    {selectedPlan === 'pro-annual' && (
+                      <div className="mt-3 text-purple-600 dark:text-purple-400 flex items-center">
+                        <CheckIcon size={16} className="mr-2" />
+                        <span className="text-sm font-medium">Plan sélectionné</span>
+                      </div>
+                    )}
                   </div>
-                  {selectedPlan === 'annual' && (
-                    <div className="mt-3 text-blue-600 dark:text-blue-400 flex items-center">
-                      <CheckIcon size={16} className="mr-2" />
-                      <span className="text-sm font-medium">Plan sélectionné</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Billing Type Selection */}
@@ -281,7 +366,7 @@ const Payment = () => {
                         />
                         <div className="flex-1">
                           <div className="font-medium text-gray-900 dark:text-white">Prélèvement manuel</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">Paiement {selectedPlan === 'monthly' ? 'mois par mois' : 'annuel'}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Paiement {isAnnual() ? 'annuel' : 'mensuel'}</div>
                         </div>
                       </div>
                     </div>
@@ -294,14 +379,11 @@ const Payment = () => {
                 <div className="space-y-3">
                   <h4 className="font-semibold text-gray-900 dark:text-white">Fonctionnalités incluses :</h4>
                   <div className="space-y-2">
-                    {[
-                      'Recherches géographiques illimitées',
-                      'Pas de publicités',
-                      'Sauvegarde illimitée de favoris',
-                      'Export de cartes personnalisées',
-                      'Support prioritaire 24/7',
-                      'Analyse avancée des trajets'
-                    ].map((feature, index) => (
+                    {(() => {
+                      const [planName] = selectedPlan.split('-');
+                      const plan = pricingPlans.find(p => p.planType === planName);
+                      return plan?.features || [];
+                    })().map((feature, index) => (
                       <div key={index} className="flex items-start space-x-2">
                         <CheckIcon size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
@@ -458,18 +540,18 @@ const Payment = () => {
                   
                   <Separator />
                   
-                  {/* Order Summary */}
+                   {/* Order Summary */}
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-3">
                     <h4 className="font-semibold text-gray-900 dark:text-white">Récapitulatif de commande</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span>Plan {selectedPlan === 'monthly' ? 'Mensuel' : 'Annuel'}</span>
-                        <span>{selectedPlan === 'monthly' ? monthlyPrice : annualPrice}€</span>
+                        <span>Plan {getCurrentPlanName()} {isAnnual() ? 'Annuel' : 'Mensuel'}</span>
+                        <span>{getCurrentDisplayPrice()}</span>
                       </div>
-                      {selectedPlan === 'annual' && (
+                      {isAnnual() && (
                         <div className="flex justify-between text-green-600 dark:text-green-400">
                           <span>Économies annuelles</span>
-                          <span>-{savings}€</span>
+                          <span>-{getSavings()}€</span>
                         </div>
                       )}
                       <div className="flex justify-between">
@@ -483,11 +565,11 @@ const Payment = () => {
                       <Separator />
                       <div className="flex justify-between font-bold text-lg">
                         <span>Total TTC</span>
-                        <span>{selectedPlan === 'monthly' ? monthlyPrice : annualPrice}€</span>
+                        <span>{getCurrentDisplayPrice()}</span>
                       </div>
                       {billingType === 'auto' && (
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Renouvellement automatique {selectedPlan === 'monthly' ? 'mensuel' : 'annuel'}
+                          Renouvellement automatique {isAnnual() ? 'annuel' : 'mensuel'}
                         </p>
                       )}
                     </div>
@@ -520,7 +602,7 @@ const Payment = () => {
                           <span>Traitement en cours...</span>
                         </div>
                       ) : (
-                        `Payer ${selectedPlan === 'monthly' ? monthlyPrice : annualPrice}€ maintenant`
+                        `Payer ${getCurrentDisplayPrice()} maintenant`
                       )}
                     </Button>
                   ) : (

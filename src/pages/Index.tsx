@@ -83,21 +83,24 @@ export default function Index() {
       price: "0€",
       period: "par mois",
       features: ["10 recherches par jour", "Cartes de base", "Support communautaire"],
-      popular: false
+      popular: false,
+      planId: "free"
     },
     {
       name: "Essentiel",
       price: "4,99€",
       period: "par mois",
       features: ["Recherches illimitées", "Cartes premium", "Export PDF", "Support prioritaire"],
-      popular: true
+      popular: true,
+      planId: "essential"
     },
     {
       name: "Pro",
-      price: "39,99€",
-      period: "par an",
+      price: "9,99€",
+      period: "par mois",
       features: ["Tout de l'Essentiel", "API accès", "Analytics", "Support dédié 24/7"],
-      popular: false
+      popular: false,
+      planId: "pro"
     }
   ];
 
@@ -343,14 +346,18 @@ export default function Index() {
                         ))}
                       </ul>
                       <Button 
-                        asChild 
                         className="w-full text-lg py-6" 
                         variant={plan.popular ? "default" : "outline"}
                         size="lg"
+                        onClick={() => {
+                          if (plan.planId === 'free') {
+                            window.location.href = '/geosearch';
+                          } else {
+                            window.location.href = `/premium?plan=${plan.planId}`;
+                          }
+                        }}
                       >
-                        <Link to="/auth">
-                          {plan.name === "Gratuit" ? "Commencer gratuitement" : "Choisir ce plan"}
-                        </Link>
+                        {plan.name === "Gratuit" ? "Commencer gratuitement" : "Choisir ce plan"}
                       </Button>
                       {plan.name === "Gratuit" && (
                         <p className="text-xs text-muted-foreground mt-3">Aucune carte bancaire requise</p>

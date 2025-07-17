@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Star, Zap, Crown } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { pricingPlans } from '@/data/pricingPlans';
 
 const Premium = () => {
   const isMobile = useIsMobile();
@@ -16,59 +17,50 @@ const Premium = () => {
     {
       name: "Essentiel",
       price: "4,99€",
-      originalPrice: "7,99€",
+      originalPrice: "5,99€",
       period: "par mois",
-      planType: "monthly",
-      features: [
-        "Recherche illimitée",
-        "Accès aux cartes détaillées",
-        "Recherche par filtres basiques",
-        "Sans publicité",
-        "Support par email"
-      ],
+      planType: "essential-monthly",
+      features: pricingPlans[1].features,
+      popular: true,
+      icon: <Zap className="w-5 h-5" />,
+      color: "border-blue-400 shadow-lg ring-2 ring-blue-200",
+      saving: ""
+    },
+    {
+      name: "Essentiel",
+      price: "49,99€",
+      originalPrice: "59,88€",
+      period: "par an",
+      planType: "essential-annual",
+      features: pricingPlans[1].features,
       popular: false,
       icon: <Zap className="w-5 h-5" />,
-      color: "border-blue-200"
+      color: "border-blue-200",
+      saving: "17% d'économie"
     },
     {
       name: "Pro",
-      price: "39,99€",
-      originalPrice: "59,99€",
-      period: "par an",
-      planType: "annual",
-      features: [
-        "Tout de l'offre Essentiel",
-        "Recherche avancée par filtres",
-        "Exportation PDF des résultats",
-        "Historique des recherches illimité",
-        "Accès prioritaire aux nouvelles fonctionnalités",
-        "Support prioritaire",
-        "API d'accès (100 requêtes/jour)"
-      ],
-      popular: true,
+      price: "9,99€",
+      originalPrice: "12,99€",
+      period: "par mois",
+      planType: "pro-monthly",
+      features: pricingPlans[2].features,
+      popular: false,
       icon: <Star className="w-5 h-5" />,
-      color: "border-purple-400 shadow-lg ring-2 ring-purple-200",
-      saving: "33% d'économie"
+      color: "border-purple-200",
+      saving: ""
     },
     {
-      name: "Business",
+      name: "Pro",
       price: "99,99€",
-      originalPrice: "149,99€",
+      originalPrice: "119,88€",
       period: "par an",
-      planType: "business",
-      features: [
-        "Tout de l'offre Pro",
-        "Jusqu'à 10 utilisateurs",
-        "API d'accès étendue (1000 requêtes/jour)",
-        "Intégration personnalisée",
-        "Tableau de bord analytique",
-        "Support dédié 24/7",
-        "Formation équipe incluse",
-        "Données exportables (CSV, JSON)"
-      ],
+      planType: "pro-annual",
+      features: pricingPlans[2].features,
       popular: false,
-      icon: <Crown className="w-5 h-5" />,
-      color: "border-amber-300"
+      icon: <Star className="w-5 h-5" />,
+      color: "border-purple-200",
+      saving: "17% d'économie"
     }
   ];
 
@@ -96,7 +88,7 @@ const Premium = () => {
           </div>
           
           {/* Pricing Cards */}
-          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+          <div className="grid lg:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
             {plans.map((plan) => (
               <Card key={plan.name} className={`relative ${plan.color} transition-all hover:scale-105 ${plan.popular ? 'lg:scale-110' : ''}`}>
                 {plan.popular && (
