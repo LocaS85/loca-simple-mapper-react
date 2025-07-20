@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Users, Coffee, MapIcon, Clock, CheckCircle, Star } from 'lucide-react';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 
 const About = () => {
   const isMobile = useIsMobile();
@@ -57,6 +58,7 @@ const About = () => {
   
   return (
     <div className="container mx-auto px-4 py-8">
+      <RouteBackButton route="/" className="mb-4" />
       <h1 className="text-2xl md:text-3xl font-bold mb-6">À propos de LocaSimple</h1>
       
       {/* Hero section */}

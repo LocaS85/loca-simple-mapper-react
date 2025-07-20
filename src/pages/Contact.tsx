@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Mail, Phone, MapPin } from 'lucide-react';
+import RouteBackButton from '@/components/ui/RouteBackButton';
 
 const Contact = () => {
   const isMobile = useIsMobile();
@@ -48,6 +49,7 @@ const Contact = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <RouteBackButton route="/" className="mb-4" />
       <h1 className="text-2xl md:text-3xl font-bold mb-6">Contactez-nous</h1>
       
       <div className={`${isMobile ? 'flex flex-col space-y-6' : 'grid grid-cols-3 gap-8'}`}>
