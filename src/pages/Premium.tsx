@@ -1,10 +1,9 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Star, Zap, Crown } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { pricingPlans } from '@/data/pricingPlans';
@@ -12,56 +11,23 @@ import { pricingPlans } from '@/data/pricingPlans';
 const Premium = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   
-  const plans = [
-    {
-      name: "Essentiel",
-      price: "4,99€",
-      period: "par mois",
-      planType: "essential-monthly",
-      features: pricingPlans[1].features,
-      popular: true,
-      icon: <Zap className="w-5 h-5" />,
-      color: "border-blue-400 shadow-lg ring-2 ring-blue-200",
-      saving: ""
-    },
-    {
-      name: "Essentiel",
-      price: "49,99€",
-      period: "par an",
-      planType: "essential-annual",
-      features: pricingPlans[1].features,
-      popular: false,
-      icon: <Zap className="w-5 h-5" />,
-      color: "border-blue-200",
-      saving: "17% d'économie"
-    },
-    {
-      name: "Pro",
-      price: "9,99€",
-      period: "par mois",
-      planType: "pro-monthly",
-      features: pricingPlans[2].features,
-      popular: false,
-      icon: <Star className="w-5 h-5" />,
-      color: "border-purple-200",
-      saving: ""
-    },
-    {
-      name: "Pro",
-      price: "99,99€",
-      period: "par an",
-      planType: "pro-annual",
-      features: pricingPlans[2].features,
-      popular: false,
-      icon: <Star className="w-5 h-5" />,
-      color: "border-purple-200",
-      saving: "17% d'économie"
+  const handleSubscribe = (planId: string, billing: 'monthly' | 'annual') => {
+    if (planId === 'free') {
+      navigate('/geosearch');
+    } else {
+      const planType = `${planId}-${billing}`;
+      navigate(`/payment?plan=${planType}`);
     }
-  ];
+  };
 
-  const handleSubscribe = (planType: string) => {
-    navigate(`/payment?plan=${planType}`);
+  const getDisplayPrice = (plan: any, billing: 'monthly' | 'annual') => {
+    return billing === 'monthly' ? plan.monthlyDisplayPrice : plan.annualDisplayPrice;
+  };
+
+  const getPeriodText = (billing: 'monthly' | 'annual') => {
+    return billing === 'monthly' ? 'par mois' : 'par an';
   };
 
   return (
@@ -82,33 +48,59 @@ const Premium = () => {
               Découvrez toute la puissance de LocaSimple avec nos plans premium et accédez à des fonctionnalités exclusives pour une expérience optimale.
             </p>
           </div>
+
+          {/* Billing Toggle */}
+          <div className="flex justify-center mb-12">
+            <div className="bg-white rounded-lg p-1 shadow-sm border">
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-6 py-3 rounded-md font-medium transition-all ${
+                  billingCycle === 'monthly'
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Mensuel
+              </button>
+              <button
+                onClick={() => setBillingCycle('annual')}
+                className={`px-6 py-3 rounded-md font-medium transition-all ${
+                  billingCycle === 'annual'
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Annuel
+                <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                  Économisez 17%
+                </span>
+              </button>
+            </div>
+          </div>
           
           {/* Pricing Cards */}
-          <div className="grid lg:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
-            {plans.map((plan) => (
-              <Card key={plan.name} className={`relative ${plan.color} transition-all hover:scale-105 ${plan.popular ? 'lg:scale-110' : ''}`}>
+          <div className="grid lg:grid-cols-3 gap-8 mb-16 max-w-6xl mx-auto">
+            {pricingPlans.map((plan) => (
+              <Card key={plan.id} className={`relative ${plan.color} transition-all hover:scale-105 ${plan.popular ? 'lg:scale-110' : ''}`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                     ⭐ Plus populaire
                   </div>
                 )}
                 <CardHeader className="text-center pb-2">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className={`p-3 rounded-full ${plan.popular ? 'bg-purple-100' : 'bg-blue-100'}`}>
-                      {plan.icon}
-                    </div>
-                  </div>
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <div className="mt-4">
                     <div className="flex items-center justify-center gap-2">
-                      <span className="text-4xl md:text-5xl font-bold text-gray-900">{plan.price}</span>
+                      <span className="text-4xl md:text-5xl font-bold text-gray-900">
+                        {getDisplayPrice(plan, billingCycle)}
+                      </span>
                       <div className="text-left">
-                        <div className="text-sm text-gray-600">{plan.period}</div>
+                        <div className="text-sm text-gray-600">{getPeriodText(billingCycle)}</div>
                       </div>
                     </div>
-                    {plan.saving && (
+                    {billingCycle === 'annual' && plan.savings && (
                       <CardDescription className="text-green-600 font-semibold mt-2 text-lg">
-                        {plan.saving}
+                        {plan.savings}
                       </CardDescription>
                     )}
                   </div>
@@ -127,9 +119,10 @@ const Premium = () => {
                   <Button 
                     className={`w-full py-3 text-lg font-semibold ${plan.popular ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600' : ''}`}
                     variant={plan.popular ? "default" : "outline"}
-                    onClick={() => handleSubscribe(plan.planType)}
+                    onClick={() => handleSubscribe(plan.id, billingCycle)}
                   >
-                    {plan.popular ? 'Commencer maintenant' : 'Choisir ce plan'}
+                    {plan.id === 'free' ? 'Commencer gratuitement' : 
+                     plan.popular ? 'Commencer maintenant' : 'Choisir ce plan'}
                   </Button>
                 </CardFooter>
               </Card>
