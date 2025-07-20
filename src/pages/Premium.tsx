@@ -17,7 +17,6 @@ const Premium = () => {
     {
       name: "Essentiel",
       price: "4,99€",
-      originalPrice: "5,99€",
       period: "par mois",
       planType: "essential-monthly",
       features: pricingPlans[1].features,
@@ -29,7 +28,6 @@ const Premium = () => {
     {
       name: "Essentiel",
       price: "49,99€",
-      originalPrice: "59,88€",
       period: "par an",
       planType: "essential-annual",
       features: pricingPlans[1].features,
@@ -41,7 +39,6 @@ const Premium = () => {
     {
       name: "Pro",
       price: "9,99€",
-      originalPrice: "12,99€",
       period: "par mois",
       planType: "pro-monthly",
       features: pricingPlans[2].features,
@@ -53,7 +50,6 @@ const Premium = () => {
     {
       name: "Pro",
       price: "99,99€",
-      originalPrice: "119,88€",
       period: "par an",
       planType: "pro-annual",
       features: pricingPlans[2].features,
@@ -107,7 +103,6 @@ const Premium = () => {
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-4xl md:text-5xl font-bold text-gray-900">{plan.price}</span>
                       <div className="text-left">
-                        <div className="text-sm text-gray-500 line-through">{plan.originalPrice}</div>
                         <div className="text-sm text-gray-600">{plan.period}</div>
                       </div>
                     </div>
