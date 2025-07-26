@@ -143,6 +143,7 @@ const GoogleMapsMap: React.FC<GoogleMapsMapProps> = ({
             userLocation={userLocation}
             results={results}
             transport={filters.transport}
+            showMultiDirections={filters.showMultiDirections}
           />
           
           <ResultMarkersManager

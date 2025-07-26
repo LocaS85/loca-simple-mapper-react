@@ -4,21 +4,24 @@ import { SearchResult } from '@/types/geosearch';
 import { getDirections } from '@/utils/mapboxSdk';
 import { TRANSPORT_COLORS } from './GoogleMapsMap';
 
+
 interface MultiRouteManagerProps {
   map: mapboxgl.Map;
   userLocation: [number, number] | null;
   results: SearchResult[];
   transport: string;
+  showMultiDirections?: boolean;
 }
 
 const MultiRouteManager: React.FC<MultiRouteManagerProps> = ({
   map,
   userLocation,
   results,
-  transport
+  transport,
+  showMultiDirections = false
 }) => {
   useEffect(() => {
-    if (!map || !userLocation || results.length === 0) return;
+    if (!map || !userLocation || results.length === 0 || !showMultiDirections) return;
 
     const loadRoutes = async () => {
       // Nettoyer les anciennes routes
@@ -65,7 +68,7 @@ const MultiRouteManager: React.FC<MultiRouteManagerProps> = ({
     return () => {
       clearExistingRoutes(map);
     };
-  }, [map, userLocation, results, transport]);
+  }, [map, userLocation, results, transport, showMultiDirections]);
 
   return null;
 };

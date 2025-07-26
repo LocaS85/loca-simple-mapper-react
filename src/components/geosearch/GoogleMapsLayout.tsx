@@ -10,6 +10,7 @@ import HorizontalCategoryScroll from './components/HorizontalCategoryScroll';
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
 import ExportPDFButton from './components/ExportPDFButton';
+import MultiMapToggle from './MultiMapToggle';
 
 interface GoogleMapsLayoutProps {
   filters: GeoSearchFilters;
@@ -140,6 +141,8 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
             {/* Boutons flottants mobiles - À droite */}
             {isMobile && (
               <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-50">
+                <MultiMapToggle />
+                
                 <ExportPDFButton
                   results={results}
                   userLocation={userLocation}
@@ -172,6 +175,13 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
                     <List className="h-4 w-4" />
                   </Button>
                 )}
+              </div>
+            )}
+
+            {/* Bouton toggle desktop - En haut à droite de la carte */}
+            {!isMobile && (
+              <div className="absolute top-4 right-4 z-50">
+                <MultiMapToggle />
               </div>
             )}
           </div>
