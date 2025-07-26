@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import RouteBackButton from '@/components/ui/RouteBackButton';
-import Logo from '@/components/ui/Logo';
+import Footer from '@/components/Footer';
 
 // Category Components
 import AddressSectionManager from '@/components/categories/AddressSectionManager';
@@ -180,7 +180,7 @@ const Categories = () => {
               showLabel={true}
               variant="ghost"
             />
-            <Logo size="md" variant="primary" showText={true} />
+            <div></div>
             <Button
               onClick={() => navigate('/settings')}
               variant="outline"
@@ -243,6 +243,9 @@ const Categories = () => {
           distanceUnit="km"
         />
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
