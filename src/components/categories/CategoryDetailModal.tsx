@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Navigation } from 'lucide-react';
+import { Search, MapPin, Navigation, Route } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Category, Subcategory } from '@/hooks/useSupabaseCategories';
@@ -31,26 +31,28 @@ const CategoryDetailModal: React.FC<CategoryDetailModalProps> = ({
 
   if (!category) return null;
 
-  const handleSearchCategory = () => {
+  const handleSearchCategory = (multiDirections = false) => {
     const searchParams = new URLSearchParams({
       category: category.id,
       transport: transportMode,
       distance: maxDistance.toString(),
       unit: distanceUnit,
-      query: category.name
+      query: category.name,
+      ...(multiDirections && { showMultiDirections: 'true' })
     });
     navigate(`/geosearch?${searchParams.toString()}`);
     onClose();
   };
 
-  const handleSearchSubcategory = (subcategory: Subcategory) => {
+  const handleSearchSubcategory = (subcategory: Subcategory, multiDirections = false) => {
     const searchParams = new URLSearchParams({
       category: category.id,
       subcategory: subcategory.id,
       transport: transportMode,
       distance: maxDistance.toString(),
       unit: distanceUnit,
-      query: subcategory.search_terms?.[0] || subcategory.name
+      query: subcategory.search_terms?.[0] || subcategory.name,
+      ...(multiDirections && { showMultiDirections: 'true' })
     });
     navigate(`/geosearch?${searchParams.toString()}`);
     onClose();
@@ -87,12 +89,20 @@ const CategoryDetailModal: React.FC<CategoryDetailModalProps> = ({
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-3">
             <Button
-              onClick={handleSearchCategory}
+              onClick={() => handleSearchCategory()}
               className="flex items-center gap-2"
               style={{ backgroundColor: category.color }}
             >
               <Search className="h-4 w-4" />
               Rechercher dans {category.name}
+            </Button>
+            <Button 
+              onClick={() => handleSearchCategory(true)}
+              variant="outline" 
+              className="flex items-center gap-2"
+            >
+              <Route className="h-4 w-4" />
+              Tracés multiples
             </Button>
             <Button variant="outline" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />

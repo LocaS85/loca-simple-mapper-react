@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Navigation, ChevronRight } from 'lucide-react';
+import { Navigation, ChevronRight, Route } from 'lucide-react';
 import { UnifiedCategory } from '@/data/unifiedCategories';
 import { TransportMode, DistanceUnit } from '@/types/map';
 import { useNavigate } from 'react-router-dom';
@@ -37,7 +37,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     }
   };
 
-  const handleSubcategoryClick = (subcategoryId: string) => {
+  const handleSubcategoryClick = (subcategoryId: string, multiDirections = false) => {
     if (!userLocation) return;
     
     const subcategory = category.subcategories.find(sub => sub.id === subcategoryId);
@@ -50,13 +50,14 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
       distance: maxDistance.toString(),
       unit: distanceUnit,
       autoSearch: 'true',
-      count: '8'
+      count: '8',
+      ...(multiDirections && { showMultiDirections: 'true' })
     });
 
     navigate(`/geosearch?${searchParams.toString()}`);
   };
 
-  const handleSearchCategory = () => {
+  const handleSearchCategory = (multiDirections = false) => {
     if (!userLocation) return;
     
     const searchParams = new URLSearchParams({
@@ -68,7 +69,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
       distance: maxDistance.toString(),
       unit: distanceUnit,
       autoSearch: 'true',
-      count: '10'
+      count: '10',
+      ...(multiDirections && { showMultiDirections: 'true' })
     });
 
     navigate(`/geosearch?${searchParams.toString()}`);
@@ -148,21 +150,37 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
               </Badge>
             </div>
             
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSearchCategory();
-              }}
-              disabled={!userLocation || isLoading}
-              className="flex items-center gap-2 h-8 px-3"
-              size="sm"
-            >
-              <Navigation className="h-3 w-3" />
-              <span className="text-xs">
-                {isLoading ? 'Recherche...' : 'Rechercher'}
-              </span>
-              <ChevronRight className="h-3 w-3" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSearchCategory();
+                }}
+                disabled={!userLocation || isLoading}
+                className="flex items-center gap-2 h-8 px-3"
+                size="sm"
+              >
+                <Navigation className="h-3 w-3" />
+                <span className="text-xs">
+                  {isLoading ? 'Recherche...' : 'Rechercher'}
+                </span>
+                <ChevronRight className="h-3 w-3" />
+              </Button>
+              
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSearchCategory(true);
+                }}
+                disabled={!userLocation || isLoading}
+                variant="outline"
+                className="h-8 px-2"
+                size="sm"
+                title="Recherche avec tracés multiples"
+              >
+                <Route className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
