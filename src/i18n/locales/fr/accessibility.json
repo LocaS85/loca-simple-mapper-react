@@ -1,0 +1,84 @@
+{
+  "accessibility": {
+    "title": "Guide d'accessibilité",
+    "description": "Fonctionnalités pour améliorer l'expérience utilisateur",
+    "shortcuts": {
+      "title": "Raccourcis clavier",
+      "tab": "Naviguer entre les éléments",
+      "activate": "Activer l'élément sélectionné",
+      "close": "Fermer fenêtre/modal",
+      "navigate": "Naviguer dans les listes",
+      "search": "Rechercher",
+      "map": "Centrer sur la carte"
+    },
+    "features": {
+      "title": "Fonctionnalités d'accessibilité",
+      "keyboard": {
+        "title": "Navigation clavier",
+        "description": "Naviguez entièrement au clavier avec Tab, Enter et les flèches"
+      },
+      "visual": {
+        "title": "Support visuel",
+        "description": "Contraste élevé, texte large et lecteur d'écran compatible"
+      },
+      "audio": {
+        "title": "Retour audio",
+        "description": "Annonces vocales et notifications sonores"
+      },
+      "motor": {
+        "title": "Assistance motrice",
+        "description": "Boutons larges et zones de clic étendues"
+      }
+    },
+    "responsive": {
+      "title": "Support multi-appareils",
+      "mobile": "Mobile",
+      "desktop": "Bureau"
+    }
+  },
+  "language": {
+    "selector": {
+      "current": "Langue actuelle: {{language}}",
+      "change": "Changer la langue",
+      "changed": "Langue changée en {{language}}"
+    }
+  },
+  "search": {
+    "placeholder": "Rechercher des lieux...",
+    "results": "{{count}} résultats trouvés",
+    "noResults": "Aucun résultat trouvé",
+    "loading": "Recherche en cours...",
+    "error": "Erreur lors de la recherche"
+  },
+  "map": {
+    "loading": "Chargement de la carte...",
+    "error": "Erreur de chargement de la carte",
+    "userLocation": "Votre position",
+    "centerOnUser": "Centrer sur ma position",
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer"
+  },
+  "navigation": {
+    "back": "Retour",
+    "close": "Fermer",
+    "menu": "Menu",
+    "settings": "Paramètres"
+  },
+  "filters": {
+    "title": "Filtres",
+    "transport": "Transport",
+    "distance": "Distance",
+    "category": "Catégorie",
+    "clear": "Effacer les filtres",
+    "apply": "Appliquer"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "open": "Ouvrir"
+  }
+}

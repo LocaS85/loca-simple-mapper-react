@@ -10,6 +10,9 @@ import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
 import { mapboxConfigService } from '@/services/mapboxConfigService';
 import { SecureMapboxProvider } from './security/SecureMapboxProvider';
+import { AccessibilityProvider } from './accessibility/AccessibilityProvider';
+import { LanguageProvider } from './i18n/LanguageProvider';
+import SkipLinks from './accessibility/KeyboardNavigation';
 
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
@@ -190,20 +193,32 @@ const GeoSearchApp: React.FC = () => {
 
   // Interface principale
   return (
-    <SecureMapboxProvider>
-      <GoogleMapsLayout
-        filters={filters}
-        results={results}
-        userLocation={userLocation}
-        isLoading={isLoading}
-        onSearch={handleSearch}
-        onLocationSelect={handleLocationSelect}
-        onMyLocationClick={handleMyLocationClick}
-        onFiltersChange={updateFilters}
-        onResetFilters={resetFilters}
-        onBack={() => navigate('/categories')}
-      />
-    </SecureMapboxProvider>
+    <LanguageProvider>
+      <AccessibilityProvider>
+        <SecureMapboxProvider>
+          <SkipLinks 
+            targets={[
+              { id: 'main-search', label: 'recherche principale' },
+              { id: 'filters-panel', label: 'panneau de filtres' },
+              { id: 'results-list', label: 'liste des résultats' },
+              { id: 'map-container', label: 'carte interactive' }
+            ]}
+          />
+          <GoogleMapsLayout
+            filters={filters}
+            results={results}
+            userLocation={userLocation}
+            isLoading={isLoading}
+            onSearch={handleSearch}
+            onLocationSelect={handleLocationSelect}
+            onMyLocationClick={handleMyLocationClick}
+            onFiltersChange={updateFilters}
+            onResetFilters={resetFilters}
+            onBack={() => navigate('/categories')}
+          />
+        </SecureMapboxProvider>
+      </AccessibilityProvider>
+    </LanguageProvider>
   );
 };
 

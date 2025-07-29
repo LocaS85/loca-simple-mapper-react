@@ -1,0 +1,84 @@
+{
+  "accessibility": {
+    "title": "Accessibility Guide",
+    "description": "Features to enhance user experience",
+    "shortcuts": {
+      "title": "Keyboard shortcuts",
+      "tab": "Navigate between elements",
+      "activate": "Activate selected element",
+      "close": "Close window/modal",
+      "navigate": "Navigate in lists",
+      "search": "Search",
+      "map": "Center on map"
+    },
+    "features": {
+      "title": "Accessibility features",
+      "keyboard": {
+        "title": "Keyboard navigation",
+        "description": "Navigate entirely with keyboard using Tab, Enter and arrows"
+      },
+      "visual": {
+        "title": "Visual support",
+        "description": "High contrast, large text and screen reader compatible"
+      },
+      "audio": {
+        "title": "Audio feedback",
+        "description": "Voice announcements and sound notifications"
+      },
+      "motor": {
+        "title": "Motor assistance",
+        "description": "Large buttons and extended click areas"
+      }
+    },
+    "responsive": {
+      "title": "Multi-device support",
+      "mobile": "Mobile",
+      "desktop": "Desktop"
+    }
+  },
+  "language": {
+    "selector": {
+      "current": "Current language: {{language}}",
+      "change": "Change language",
+      "changed": "Language changed to {{language}}"
+    }
+  },
+  "search": {
+    "placeholder": "Search places...",
+    "results": "{{count}} results found",
+    "noResults": "No results found",
+    "loading": "Searching...",
+    "error": "Search error"
+  },
+  "map": {
+    "loading": "Loading map...",
+    "error": "Map loading error",
+    "userLocation": "Your location",
+    "centerOnUser": "Center on my location",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out"
+  },
+  "navigation": {
+    "back": "Back",
+    "close": "Close",
+    "menu": "Menu",
+    "settings": "Settings"
+  },
+  "filters": {
+    "title": "Filters",
+    "transport": "Transport",
+    "distance": "Distance",
+    "category": "Category",
+    "clear": "Clear filters",
+    "apply": "Apply"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "open": "Open"
+  }
+}
