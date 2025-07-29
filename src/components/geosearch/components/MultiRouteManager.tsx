@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { SearchResult } from '@/types/geosearch';
 import { getDirections } from '@/utils/mapboxSdk';
 import { TRANSPORT_COLORS } from './GoogleMapsMap';
+import { routeCache } from '@/services/RouteCache';
+import { routeOptimizer } from '@/services/RouteOptimizer';
 
 
 interface MultiRouteManagerProps {
@@ -11,6 +13,7 @@ interface MultiRouteManagerProps {
   results: SearchResult[];
   transport: string;
   showMultiDirections?: boolean;
+  onProgressUpdate?: (current: number, total: number) => void;
 }
 
 const MultiRouteManager: React.FC<MultiRouteManagerProps> = ({
@@ -18,33 +21,79 @@ const MultiRouteManager: React.FC<MultiRouteManagerProps> = ({
   userLocation,
   results,
   transport,
-  showMultiDirections = false
+  showMultiDirections = false,
+  onProgressUpdate
 }) => {
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
   useEffect(() => {
-    if (!map || !userLocation || results.length === 0 || !showMultiDirections) return;
+    if (!map || !userLocation || results.length === 0 || !showMultiDirections) {
+      setIsCalculating(false);
+      return;
+    }
 
     const loadRoutes = async () => {
+      // Annuler les requêtes précédentes
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Créer un nouveau contrôleur d'annulation
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      setIsCalculating(true);
+      
       // Nettoyer les anciennes routes
       clearExistingRoutes(map);
 
-      // Limiter à 5 résultats pour éviter la surcharge
-      const limitedResults = results.slice(0, 5);
+      // Optimiser le nombre de routes selon les performances
+      const optimalCount = routeOptimizer.getOptimalRouteCount(results.length);
+      const limitedResults = results.slice(0, optimalCount);
+      const shouldDelay = routeOptimizer.shouldLimitConcurrentRequests();
+      const requestDelay = routeOptimizer.getRequestDelay();
+
+      onProgressUpdate?.(0, limitedResults.length);
 
       for (let i = 0; i < limitedResults.length; i++) {
+        if (signal.aborted) break;
+        
         const result = limitedResults[i];
+        onProgressUpdate?.(i + 1, limitedResults.length);
         
         try {
-          // Mapper le transport vers le profil Mapbox
-          const mapboxProfile = getMapboxProfile(transport);
+          // Vérifier le cache d'abord
+          const cachedRoute = routeCache.get(userLocation, result.coordinates, transport);
           
-          const routeData = await getDirections(
-            userLocation,
-            result.coordinates,
-            mapboxProfile
-          );
+          let route;
+          if (cachedRoute) {
+            route = cachedRoute;
+          } else {
+            // Délai entre les requêtes si nécessaire
+            if (shouldDelay && i > 0) {
+              await new Promise(resolve => setTimeout(resolve, requestDelay));
+            }
+            
+            if (signal.aborted) break;
+            
+            // Mapper le transport vers le profil Mapbox
+            const mapboxProfile = getMapboxProfile(transport);
+            
+            const routeData = await getDirections(
+              userLocation,
+              result.coordinates,
+              mapboxProfile
+            );
 
-          if (routeData.routes && routeData.routes.length > 0) {
-            const route = routeData.routes[0];
+            if (routeData.routes && routeData.routes.length > 0) {
+              route = routeData.routes[0];
+              
+              // Mettre en cache
+              routeCache.set(userLocation, result.coordinates, transport, route);
+            }
+          }
+
+          if (route && !signal.aborted) {
             const routeGeoJSON: GeoJSON.Feature<GeoJSON.LineString> = {
               type: 'Feature',
               geometry: route.geometry,
@@ -58,17 +107,26 @@ const MultiRouteManager: React.FC<MultiRouteManagerProps> = ({
             addRouteToMap(map, routeGeoJSON, transport, i);
           }
         } catch (error) {
+          if (signal.aborted) break;
           console.error(`Erreur calcul route pour ${result.name}:`, error);
         }
       }
+      
+      setIsCalculating(false);
+      onProgressUpdate?.(0, 0);
     };
 
     loadRoutes();
 
     return () => {
+      // Annuler les requêtes en cours
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       clearExistingRoutes(map);
+      setIsCalculating(false);
     };
-  }, [map, userLocation, results, transport, showMultiDirections]);
+  }, [map, userLocation, results, transport, showMultiDirections, onProgressUpdate]);
 
   return null;
 };

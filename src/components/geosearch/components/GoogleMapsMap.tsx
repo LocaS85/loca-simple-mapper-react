@@ -6,6 +6,8 @@ import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { getMapboxToken } from '@/utils/mapboxConfig';
 import MultiRouteManager from './MultiRouteManager';
 import ResultMarkersManager from './ResultMarkersManager';
+import TransportLegend from '../TransportLegend';
+import RouteCalculationProgress from './RouteCalculationProgress';
 
 interface GoogleMapsMapProps {
   results: SearchResult[];
@@ -31,7 +33,10 @@ const GoogleMapsMap: React.FC<GoogleMapsMapProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [routeProgress, setRouteProgress] = useState({ current: 0, total: 0 });
   const { isMapboxReady } = useGeoSearchStore();
+  
+  const isCalculatingRoutes = routeProgress.total > 0;
 
   // Initialisation de la carte
   useEffect(() => {
@@ -144,6 +149,7 @@ const GoogleMapsMap: React.FC<GoogleMapsMapProps> = ({
             results={results}
             transport={filters.transport}
             showMultiDirections={filters.showMultiDirections}
+            onProgressUpdate={(current, total) => setRouteProgress({ current, total })}
           />
           
           <ResultMarkersManager
@@ -151,6 +157,21 @@ const GoogleMapsMap: React.FC<GoogleMapsMapProps> = ({
             results={results}
             userLocation={userLocation}
             onResultClick={onResultClick}
+          />
+          
+          {/* Légende des transports */}
+          {filters.showMultiDirections && results.length > 0 && (
+            <TransportLegend
+              activeRoutes={[filters.transport as any]}
+              className="absolute bottom-4 left-4 z-40"
+            />
+          )}
+          
+          {/* Progress de calcul des routes */}
+          <RouteCalculationProgress
+            isCalculating={isCalculatingRoutes}
+            currentRoute={routeProgress.current}
+            totalRoutes={routeProgress.total}
           />
         </>
       )}

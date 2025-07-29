@@ -7,6 +7,7 @@ interface TransportLegendProps {
   className?: string;
 }
 
+// Synchroniser avec TRANSPORT_COLORS de GoogleMapsMap
 const transportColors = {
   car: '#3B82F6',
   walking: '#10B981',
