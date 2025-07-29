@@ -10,7 +10,13 @@ import {
   ChevronDown,
   X,
   Search,
-  ArrowLeft
+  ArrowLeft,
+  Clock,
+  Ruler,
+  Car,
+  Bike,
+  Footprints,
+  Bus
 } from 'lucide-react';
 
 // Fallback component
@@ -37,6 +43,10 @@ const GeoSearchApp = () => {
   const [resultsCount, setResultsCount] = useState(5);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [distance, setDistance] = useState(5);
+  const [distanceUnit, setDistanceUnit] = useState<'km' | 'mile'>('km');
+  const [duration, setDuration] = useState(15);
+  const [transportMode, setTransportMode] = useState<'walking' | 'driving' | 'cycling' | 'transit'>('walking');
 
   // Données de démonstration
   const categories = {
@@ -141,12 +151,116 @@ const GeoSearchApp = () => {
 
                 {/* Contenu scrollable */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                  {/* Transport Mode */}
+                  <div>
+                    <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
+                      <Car size={16} className="text-primary" />
+                      Mode de transport
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'walking', icon: Footprints, label: 'À pied' },
+                        { id: 'driving', icon: Car, label: 'Voiture' },
+                        { id: 'cycling', icon: Bike, label: 'Vélo' },
+                        { id: 'transit', icon: Bus, label: 'Transport' }
+                      ].map(({ id, icon: Icon, label }) => (
+                        <button
+                          key={id}
+                          onClick={() => setTransportMode(id as any)}
+                          className={`p-2 rounded-lg border text-sm flex items-center gap-2 transition-colors ${
+                            transportMode === id
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-background hover:bg-muted border-border'
+                          }`}
+                        >
+                          <Icon size={16} />
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Distance */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="font-medium text-sm flex items-center gap-2">
+                        <Ruler size={16} className="text-primary" />
+                        Distance maximale
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm font-medium">
+                          {distance} {distanceUnit}
+                        </span>
+                        <div className="flex border rounded-md overflow-hidden">
+                          <button
+                            onClick={() => setDistanceUnit('km')}
+                            className={`px-2 py-1 text-xs ${
+                              distanceUnit === 'km' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-background hover:bg-muted'
+                            }`}
+                          >
+                            km
+                          </button>
+                          <button
+                            onClick={() => setDistanceUnit('mile')}
+                            className={`px-2 py-1 text-xs ${
+                              distanceUnit === 'mile' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-background hover:bg-muted'
+                            }`}
+                          >
+                            mi
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max={distanceUnit === 'km' ? 50 : 31}
+                      value={distance}
+                      onChange={(e) => setDistance(parseInt(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>1 {distanceUnit}</span>
+                      <span>{distanceUnit === 'km' ? 50 : 31} {distanceUnit}</span>
+                    </div>
+                  </div>
+
+                  {/* Durée */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="font-medium text-sm flex items-center gap-2">
+                        <Clock size={16} className="text-primary" />
+                        Durée maximale
+                      </label>
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm font-medium">
+                        {duration} min
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="120"
+                      step="5"
+                      value={duration}
+                      onChange={(e) => setDuration(parseInt(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>5 min</span>
+                      <span>2h</span>
+                    </div>
+                  </div>
+
                   {/* Nombre autour de moi */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <label className="font-medium text-sm flex items-center gap-2">
                         <MapPin size={16} className="text-primary" />
-                        Nombre autour de moi
+                        Nombre de résultats
                       </label>
                       <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-sm font-medium">
                         {resultsCount}
