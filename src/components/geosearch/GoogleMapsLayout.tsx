@@ -6,6 +6,7 @@ import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import GoogleMapsHeader from './components/GoogleMapsHeader';
 import GoogleMapsMap from './components/GoogleMapsMap';
 import GoogleMapsSidebar from './components/GoogleMapsSidebar';
+import ModernSidebar from './modern/ModernSidebar';
 import HorizontalCategoryScroll from './components/HorizontalCategoryScroll';
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
@@ -199,37 +200,19 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         </div>
       </div>
 
-      {/* Sidebar - Positionnée à droite - Hidden sur mobile par défaut */}
-      {!isMobile && (
-        <GoogleMapsSidebar
-          isOpen={showSidebar}
-          onToggle={toggleSidebar}
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          onResetFilters={onResetFilters}
-          userLocation={userLocation}
-          onMyLocationClick={onMyLocationClick}
-          isLoading={isLoading}
-          results={results}
-          onCategoryClick={handleSidebarCategoryClick}
-        />
-      )}
-
-      {/* Sidebar mobile - Overlay */}
-      {isMobile && (
-        <GoogleMapsSidebar
-          isOpen={showSidebar}
-          onToggle={toggleSidebar}
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          onResetFilters={onResetFilters}
-          userLocation={userLocation}
-          onMyLocationClick={onMyLocationClick}
-          isLoading={isLoading}
-          results={results}
-          onCategoryClick={handleSidebarCategoryClick}
-        />
-      )}
+      {/* Modern Sidebar - Remplace l'ancienne sidebar */}
+      <ModernSidebar
+        isOpen={showSidebar}
+        onToggle={toggleSidebar}
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        onResetFilters={onResetFilters}
+        userLocation={userLocation}
+        onMyLocationClick={onMyLocationClick}
+        isLoading={isLoading}
+        results={results}
+        onCategoryClick={handleSidebarCategoryClick}
+      />
 
       {/* Popup détails de lieu */}
       <LocationDetailsPopup
