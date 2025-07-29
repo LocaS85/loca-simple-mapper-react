@@ -18,7 +18,7 @@ import {
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FilterButton, AroundMeFilter, LoadingSkeleton } from '../atoms';
-import GoogleMapsTransportSelector from '../components/GoogleMapsTransportSelector';
+import { OptimizedTransportSelector } from '../performance';
 import GoogleMapsCategorySelector from '../components/GoogleMapsCategorySelector';
 import GoogleMapsDistanceSelector from '../components/GoogleMapsDistanceSelector';
 import DurationSelector from '../components/DurationSelector';
@@ -201,9 +201,10 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
                 {isLoading ? (
                   <LoadingSkeleton type="filter" />
                 ) : (
-                  <GoogleMapsTransportSelector
+                  <OptimizedTransportSelector
                     value={filters.transport}
                     onChange={(transport) => onFiltersChange({ transport: transport as any })}
+                    size="sm"
                   />
                 )}
               </div>
