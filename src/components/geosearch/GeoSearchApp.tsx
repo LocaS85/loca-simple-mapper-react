@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
 import { mapboxConfigService } from '@/services/mapboxConfigService';
+import { SecureMapboxProvider } from './security/SecureMapboxProvider';
 
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
@@ -189,18 +190,20 @@ const GeoSearchApp: React.FC = () => {
 
   // Interface principale
   return (
-    <GoogleMapsLayout
-      filters={filters}
-      results={results}
-      userLocation={userLocation}
-      isLoading={isLoading}
-      onSearch={handleSearch}
-      onLocationSelect={handleLocationSelect}
-      onMyLocationClick={handleMyLocationClick}
-      onFiltersChange={updateFilters}
-      onResetFilters={resetFilters}
-      onBack={() => navigate('/categories')}
-    />
+    <SecureMapboxProvider>
+      <GoogleMapsLayout
+        filters={filters}
+        results={results}
+        userLocation={userLocation}
+        isLoading={isLoading}
+        onSearch={handleSearch}
+        onLocationSelect={handleLocationSelect}
+        onMyLocationClick={handleMyLocationClick}
+        onFiltersChange={updateFilters}
+        onResetFilters={resetFilters}
+        onBack={() => navigate('/categories')}
+      />
+    </SecureMapboxProvider>
   );
 };
 
