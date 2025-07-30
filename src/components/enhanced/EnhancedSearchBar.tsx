@@ -1,9 +1,14 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { memo, useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useDebounce } from '@/hooks/useDebounce';
-import { SearchBarProps } from '@/types/unified';
+import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search, MapPin, Loader2, X } from 'lucide-react';
 
-// Interfaces locales pour compatibilité 
+// Interfaces pour le composant unifié
 interface LocationSelectData {
   name: string;
   coordinates: [number, number];
@@ -18,18 +23,34 @@ interface SearchResultData {
   distance?: number;
   category?: string;
 }
-import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
-import { useGeoSearchStore } from '@/store/geoSearchStore';
-import { Input } from '@/components/ui/input';
-import { Search, MapPin, Loader2 } from 'lucide-react';
 
-const EnhancedSearchBar: React.FC<SearchBarProps> = ({
+interface EnhancedSearchBarProps {
+  value?: string;
+  onSearch: (query: string) => void;
+  onLocationSelect?: (data: LocationSelectData) => void;
+  placeholder?: string;
+  className?: string;
+  isLoading?: boolean;
+  disabled?: boolean;
+  showSuggestions?: boolean;
+  suggestions?: SearchResultData[];
+  onSuggestionClick?: (suggestion: SearchResultData) => void;
+  // Props pour compatibilité avec ancienne interface
+  onChange?: (value: string) => void;
+}
+
+const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = memo(({
   value = "",
   onSearch,
   onLocationSelect,
   placeholder = "Rechercher des lieux...",
   className = "",
-  isLoading = false
+  isLoading = false,
+  disabled = false,
+  showSuggestions: propShowSuggestions = true,
+  suggestions: propSuggestions = [],
+  onSuggestionClick,
+  onChange
 }) => {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<SearchResultData[]>([]);
@@ -105,59 +126,165 @@ const EnhancedSearchBar: React.FC<SearchBarProps> = ({
     onLocationSelect(locationData);
   }, [onLocationSelect]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setShowSuggestions(false);
-    onSearch(query);
+    if (query.trim()) {
+      onSearch(query.trim());
+    }
+  }, [query, onSearch]);
+
+  const handleClear = useCallback(() => {
+    setQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    onChange?.('');
+  }, [onChange]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setQuery(newValue);
+    onChange?.(newValue);
+  }, [onChange]);
+
+  // Utiliser les suggestions fournies ou celles générées localement
+  const displaySuggestions = propSuggestions.length > 0 ? propSuggestions : suggestions;
+  const showSuggestionsState = propShowSuggestions && (showSuggestions || propSuggestions.length > 0);
+
+  const containerVariants = {
+    idle: { scale: 1 },
+    focused: { scale: 1.02 },
+    loading: { scale: 1.01 }
+  };
+
+  const suggestionVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.2 }
+    }
   };
 
   return (
-    <div className={`relative ${className}`}>
-      <form onSubmit={handleSubmit} className="relative">
-        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-        <Input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-          placeholder={placeholder}
-          className="pl-8 pr-8 h-8 bg-white/95 backdrop-blur-sm border-gray-200 focus:border-blue-500 text-sm"
-          disabled={isLoading}
-        />
-        {(isSearching || isLoading) && (
-          <Loader2 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 animate-spin text-blue-500" />
-        )}
-      </form>
+    <div className={`relative w-full ${className}`}>
+      <motion.form 
+        onSubmit={handleSubmit}
+        variants={containerVariants}
+        animate={isLoading ? 'loading' : 'idle'}
+        whileFocus="focused"
+        className="relative"
+      >
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          
+          <Input
+            type="text"
+            value={query}
+            onChange={handleInputChange}
+            onFocus={() => displaySuggestions.length > 0 && setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            placeholder={placeholder}
+            disabled={disabled || isLoading}
+            className={`
+              pl-10 pr-20 h-12 text-base
+              border-border/50 hover:border-primary/50 
+              focus:border-primary focus:ring-2 focus:ring-primary/20
+              transition-all duration-200
+              ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+          />
 
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={`${suggestion.id}-${index}`}
-              className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center gap-3 transition-colors"
-              onClick={() => handleResultSelect(suggestion)}
+          {/* Boutons d'action */}
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+            {(isSearching || isLoading) && (
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            )}
+            
+            {query && !isLoading && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClear}
+                className="h-8 w-8 p-0 hover:bg-muted"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+
+            <Button
+              type="submit"
+              size="sm"
+              disabled={disabled || !query.trim() || isLoading}
+              className="h-8 px-3"
             >
-              <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">
-                  {suggestion.name}
-                </div>
-                <div className="text-xs text-gray-500 truncate">
-                  {suggestion.address}
-                </div>
-                {suggestion.distance && (
-                  <div className="text-xs text-blue-600">
-                    {Math.round(suggestion.distance * 10) / 10} km
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
+      </motion.form>
+
+      {/* Suggestions dropdown avec animations */}
+      {showSuggestionsState && displaySuggestions.length > 0 && (
+        <motion.div
+          variants={suggestionVariants}
+          initial="hidden"
+          animate="visible"
+          className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-64 overflow-y-auto"
+        >
+          <div className="p-2 space-y-1">
+            {displaySuggestions.map((suggestion, index) => (
+              <motion.button
+                key={suggestion.id}
+                type="button"
+                onClick={() => {
+                  handleResultSelect(suggestion);
+                  onSuggestionClick?.(suggestion);
+                }}
+                className={`
+                  w-full text-left p-3 rounded-md hover:bg-muted 
+                  transition-colors duration-150 focus:outline-none 
+                  focus:ring-2 focus:ring-primary/50
+                `}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ 
+                  opacity: 1, 
+                  x: 0,
+                  transition: { delay: index * 0.05 }
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-primary mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">
+                      {suggestion.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {suggestion.address}
+                    </p>
+                    {suggestion.distance && (
+                      <p className="text-xs text-primary">
+                        {Math.round(suggestion.distance * 10) / 10} km
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
       )}
     </div>
   );
-};
+});
+
+EnhancedSearchBar.displayName = 'EnhancedSearchBar';
 
 export default EnhancedSearchBar;

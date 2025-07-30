@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LoadingSkeleton } from '../atoms';
 
-// Lazy loading des composants lourds
-const VirtualizedResultsList = lazy(() => import('./VirtualizedResultsList'));
-const OptimizedSearchBar = lazy(() => import('./OptimizedSearchBar'));
+// Lazy loading des composants lourds - Utilisation des composants unifiés
+const EnhancedResultsList = lazy(() => import('../../enhanced/EnhancedResultsList'));
+const EnhancedSearchBar = lazy(() => import('../../enhanced/EnhancedSearchBar'));
 
 interface LazyComponentWrapperProps {
   children: React.ReactNode;
@@ -49,20 +49,20 @@ const LazyComponentWrapper: React.FC<LazyComponentWrapperProps> = memo(({
 
 LazyComponentWrapper.displayName = 'LazyComponentWrapper';
 
-// Composants optimisés avec lazy loading
-export const LazyVirtualizedResultsList: React.FC<any> = memo((props) => (
+// Composants unifiés avec lazy loading
+export const LazyEnhancedResultsList: React.FC<any> = memo((props) => (
   <LazyComponentWrapper fallback={<LoadingSkeleton type="list" count={5} />}>
-    <VirtualizedResultsList {...props} />
+    <EnhancedResultsList virtualizeResults={props.virtualizeResults || props.results?.length > 20} {...props} />
   </LazyComponentWrapper>
 ));
 
-export const LazyOptimizedSearchBar: React.FC<any> = memo((props) => (
+export const LazyEnhancedSearchBar: React.FC<any> = memo((props) => (
   <LazyComponentWrapper fallback={<LoadingSkeleton type="filter" />}>
-    <OptimizedSearchBar {...props} />
+    <EnhancedSearchBar {...props} />
   </LazyComponentWrapper>
 ));
 
-LazyVirtualizedResultsList.displayName = 'LazyVirtualizedResultsList';
-LazyOptimizedSearchBar.displayName = 'LazyOptimizedSearchBar';
+LazyEnhancedResultsList.displayName = 'LazyEnhancedResultsList';
+LazyEnhancedSearchBar.displayName = 'LazyEnhancedSearchBar';
 
 export default LazyComponentWrapper;
