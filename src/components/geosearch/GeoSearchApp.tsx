@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import GoogleMapsLayout from './GoogleMapsLayout';
-import ModernFilterSidebar from './ui/ModernFilterSidebar';
+
 import MapboxTokenSetup from './ui/MapboxTokenSetup';
 import GeoSearchHeader from './components/GeoSearchHeader';
 import RouteBackButton from '@/components/ui/RouteBackButton';
@@ -20,7 +20,7 @@ const GeoSearchApp: React.FC = () => {
   const [initError, setInitError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
+  
   
   const {
     userLocation,
@@ -233,24 +233,9 @@ const GeoSearchApp: React.FC = () => {
               onMyLocationClick={handleMyLocationClick}
               isLocating={isLocating}
               locationError={locationError}
-              onShowFilters={() => setShowFilters(true)}
+              
             />
             
-            {/* Sidebar moderne pour filtres */}
-            <ModernFilterSidebar
-              isOpen={showFilters}
-              onClose={() => setShowFilters(false)}
-              filters={filters}
-              onFiltersChange={updateFilters}
-              onResetFilters={resetFilters}
-              searchQuery={filters.query || ''}
-              onSearchChange={(query) => {
-                updateFilters({ query });
-                handleSearch(query);
-              }}
-              userLocation={userLocation}
-              resultsCount={results.length}
-            />
 
             {/* Contenu principal */}
             <div className="flex-1 overflow-hidden">
@@ -265,7 +250,6 @@ const GeoSearchApp: React.FC = () => {
                 onFiltersChange={updateFilters}
                 onResetFilters={resetFilters}
                 onBack={() => navigate('/categories')}
-                onShowFilters={() => setShowFilters(true)}
               />
             </div>
           </div>

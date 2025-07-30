@@ -35,6 +35,9 @@ interface ModernSidebarProps {
   isLoading: boolean;
   results?: SearchResult[];
   onCategoryClick?: (categoryId: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  resultsCount?: number;
 }
 
 const ModernSidebar: React.FC<ModernSidebarProps> = ({
@@ -47,7 +50,10 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
   onMyLocationClick,
   isLoading,
   results = [],
-  onCategoryClick
+  onCategoryClick,
+  searchQuery = '',
+  onSearchChange,
+  resultsCount = 0
 }) => {
   const isMobile = useIsMobile();
 

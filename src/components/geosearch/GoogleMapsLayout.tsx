@@ -5,7 +5,6 @@ import { ArrowLeft, SlidersHorizontal, List, MapPin } from 'lucide-react';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import GoogleMapsHeader from './components/GoogleMapsHeader';
 import GoogleMapsMap from './components/GoogleMapsMap';
-import GoogleMapsSidebar from './components/GoogleMapsSidebar';
 import ModernSidebar from './modern/ModernSidebar';
 import HorizontalCategoryScroll from './components/HorizontalCategoryScroll';
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
@@ -191,7 +190,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         </div>
       </div>
 
-      {/* Modern Sidebar - Remplace l'ancienne sidebar */}
+      {/* Sidebar unifiée - Seule interface de filtres */}
       <ModernSidebar
         isOpen={showSidebar}
         onToggle={toggleSidebar}
@@ -203,6 +202,9 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         isLoading={isLoading}
         results={results}
         onCategoryClick={handleSidebarCategoryClick}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
+        resultsCount={results.length}
       />
 
       {/* Popup détails de lieu */}
