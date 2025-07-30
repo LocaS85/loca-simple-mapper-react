@@ -18,6 +18,12 @@ const ResultMarkersManager: React.FC<ResultMarkersManagerProps> = ({
   useEffect(() => {
     if (!map) return;
 
+    console.log('🗺️ ResultMarkersManager: Updating markers', {
+      resultsCount: results.length,
+      hasUserLocation: !!userLocation,
+      mapReady: map.isStyleLoaded()
+    });
+
     // Nettoyer les anciens marqueurs
     clearExistingMarkers(map);
 
@@ -64,6 +70,21 @@ const clearExistingMarkers = (map: mapboxgl.Map) => {
 const addUserLocationMarker = (map: mapboxgl.Map, location: [number, number]) => {
   const sourceId = 'user-location';
   const layerId = 'user-location';
+
+  // Vérifier et supprimer la source existante si elle existe
+  if (map.getSource(sourceId)) {
+    console.log('🚨 Removing existing user-location source');
+    // Supprimer les couches associées d'abord
+    [`${layerId}-pulse`, `${layerId}-outer`, layerId].forEach(id => {
+      if (map.getLayer(id)) {
+        map.removeLayer(id);
+      }
+    });
+    // Puis supprimer la source
+    map.removeSource(sourceId);
+  }
+
+  console.log('📍 Adding user location marker at:', location);
 
   // Ajouter la source
   map.addSource(sourceId, {
@@ -132,6 +153,18 @@ const addResultMarker = (
 ) => {
   const sourceId = `marker-${result.id}`;
   const layerId = `marker-${result.id}`;
+
+  // Vérifier et supprimer la source existante si elle existe
+  if (map.getSource(sourceId)) {
+    // Supprimer les couches associées d'abord
+    [`${layerId}-label`, layerId].forEach(id => {
+      if (map.getLayer(id)) {
+        map.removeLayer(id);
+      }
+    });
+    // Puis supprimer la source
+    map.removeSource(sourceId);
+  }
 
   // Ajouter la source
   map.addSource(sourceId, {
