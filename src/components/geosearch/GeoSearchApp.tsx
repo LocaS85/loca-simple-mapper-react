@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import GoogleMapsLayout from './GoogleMapsLayout';
 import MapboxTokenSetup from './ui/MapboxTokenSetup';
+import GeoSearchHeader from './components/GeoSearchHeader';
 import RouteBackButton from '@/components/ui/RouteBackButton';
 import Logo from '@/components/ui/Logo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,6 +19,8 @@ const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
   const [showTokenSetup, setShowTokenSetup] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   
   const {
     userLocation,
@@ -107,26 +110,49 @@ const GeoSearchApp: React.FC = () => {
   };
 
   const handleMyLocationClick = (): void => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coords: [number, number] = [
-            position.coords.longitude,
-            position.coords.latitude
-          ];
-          setUserLocation(coords);
-          console.log('📍 Position mise à jour:', coords);
-        },
-        (error) => {
-          console.error('Erreur géolocalisation:', error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        }
-      );
+    if (!navigator.geolocation) {
+      setLocationError("Géolocalisation non supportée");
+      return;
     }
+
+    setIsLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords: [number, number] = [
+          position.coords.longitude,
+          position.coords.latitude
+        ];
+        setUserLocation(coords);
+        setIsLocating(false);
+        console.log('📍 Position mise à jour:', coords);
+      },
+      (error) => {
+        setIsLocating(false);
+        let errorMessage = "Erreur de géolocalisation";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Permission de géolocalisation refusée";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Position indisponible";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Délai d'attente dépassé";
+            break;
+        }
+        
+        setLocationError(errorMessage);
+        console.error('Erreur géolocalisation:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 300000 // 5 minutes
+      }
+    );
   };
 
   // Gestion des erreurs d'initialisation
@@ -191,31 +217,49 @@ const GeoSearchApp: React.FC = () => {
     );
   }
 
-  // Interface principale
+  // Interface principale avec header intelligent
   return (
     <LanguageProvider>
       <AccessibilityProvider>
         <SecureMapboxProvider>
-          <SkipLinks 
-            targets={[
-              { id: 'main-search', label: 'recherche principale' },
-              { id: 'filters-panel', label: 'panneau de filtres' },
-              { id: 'results-list', label: 'liste des résultats' },
-              { id: 'map-container', label: 'carte interactive' }
-            ]}
-          />
-          <GoogleMapsLayout
-            filters={filters}
-            results={results}
-            userLocation={userLocation}
-            isLoading={isLoading}
-            onSearch={handleSearch}
-            onLocationSelect={handleLocationSelect}
-            onMyLocationClick={handleMyLocationClick}
-            onFiltersChange={updateFilters}
-            onResetFilters={resetFilters}
-            onBack={() => navigate('/categories')}
-          />
+          <div className="h-screen flex flex-col">
+            {/* Header intelligent avec navigation contextuelle */}
+            <GeoSearchHeader
+              searchQuery={filters.query || ''}
+              onSearch={handleSearch}
+              onLocationSelect={handleLocationSelect}
+              userLocation={userLocation}
+              resultsCount={results.length}
+              isLoading={isLoading}
+              onMyLocationClick={handleMyLocationClick}
+              isLocating={isLocating}
+              locationError={locationError}
+            />
+            
+            {/* Contenu principal */}
+            <div className="flex-1 overflow-hidden">
+              <SkipLinks 
+                targets={[
+                  { id: 'main-search', label: 'recherche principale' },
+                  { id: 'filters-panel', label: 'panneau de filtres' },
+                  { id: 'results-list', label: 'liste des résultats' },
+                  { id: 'map-container', label: 'carte interactive' }
+                ]}
+              />
+              <GoogleMapsLayout
+                filters={filters}
+                results={results}
+                userLocation={userLocation}
+                isLoading={isLoading}
+                onSearch={handleSearch}
+                onLocationSelect={handleLocationSelect}
+                onMyLocationClick={handleMyLocationClick}
+                onFiltersChange={updateFilters}
+                onResetFilters={resetFilters}
+                onBack={() => navigate('/categories')}
+              />
+            </div>
+          </div>
         </SecureMapboxProvider>
       </AccessibilityProvider>
     </LanguageProvider>
