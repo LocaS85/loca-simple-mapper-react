@@ -6,7 +6,7 @@ import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import GoogleMapsHeader from './components/GoogleMapsHeader';
 import GoogleMapsMap from './components/GoogleMapsMap';
 import ModernSidebar from './modern/ModernSidebar';
-import HorizontalCategoryScroll from './components/HorizontalCategoryScroll';
+
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
 import ExportPDFButton from './components/ExportPDFButton';
@@ -43,30 +43,6 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   const [showSidebar, setShowSidebar] = useState(!isMobile);
   const [showResultsList, setShowResultsList] = useState(false);
   const [searchQuery, setSearchQuery] = useState(filters.query || '');
-  const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(filters.selectedMainCategory || null);
-
-  // État pour les catégories sélectionnées
-  const selectedCategories = Array.isArray(filters.category) 
-    ? filters.category 
-    : filters.category 
-      ? [filters.category] 
-      : [];
-
-  const handleCategorySelect = (categoryId: string) => {
-    const current = Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : [];
-    if (current.includes(categoryId)) {
-      const updated = current.filter(id => id !== categoryId);
-      onFiltersChange({ category: updated.length > 0 ? updated : undefined });
-    } else {
-      onFiltersChange({ category: [...current, categoryId] });
-    }
-  };
-
-  const handleCategoryRemove = (categoryId: string) => {
-    const current = Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : [];
-    const updated = current.filter(id => id !== categoryId);
-    onFiltersChange({ category: updated.length > 0 ? updated : undefined });
-  };
 
   const handleResultSelect = (result: SearchResult) => {
     setSelectedLocation(result);
@@ -91,13 +67,8 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   };
 
   const handleSidebarCategoryClick = (categoryId: string) => {
-    setSelectedMainCategory(categoryId);
-    onFiltersChange({ selectedMainCategory: categoryId });
-  };
-
-  const handleMainCategoryChange = (categoryId: string | null) => {
-    setSelectedMainCategory(categoryId);
-    onFiltersChange({ selectedMainCategory: categoryId });
+    // La logique des catégories est maintenant dans ModernSidebar
+    console.log('Category selected:', categoryId);
   };
 
   return (
