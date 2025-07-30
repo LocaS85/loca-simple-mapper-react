@@ -196,17 +196,20 @@ export default function MapboxMap({
       )}
 
       {userLocation && (
-        <UserLocationButton
-          onClick={() => {
-            if (mapRef.current && userLocation) {
+        <EnhancedLocationButton
+          onLocationDetected={(coords) => {
+            if (mapRef.current) {
               console.log('🎯 Centrage sur la position utilisateur');
               mapRef.current.getMap().flyTo({ 
-                center: [userLocation[0], userLocation[1]], 
+                center: coords, 
                 zoom: 14,
                 duration: 1000 
               });
             }
           }}
+          variant="outline"
+          size="sm"
+          className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm"
         />
       )}
     </div>
