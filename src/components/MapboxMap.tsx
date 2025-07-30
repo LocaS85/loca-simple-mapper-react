@@ -9,7 +9,7 @@ import MapboxSetup from '@/components/MapboxSetup';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SearchResult } from '@/types/geosearch';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
-import UserLocationButton from './mapbox-map/UserLocationButton';
+import { EnhancedLocationButton } from './map';
 import ResultMarkers from './mapbox-map/ResultMarkers';
 import { useMapboxError } from './mapbox-map/useMapboxError';
 
