@@ -1,9 +1,7 @@
 // Composant principal
 export { default as GeoSearchApp } from './GeoSearchApp';
 
-// Composants d'interface nouveaux
-export { default as SearchHeader } from './SearchHeader';
-export { default as FiltersPopup } from './FiltersPopup';
+// Composants d'interface unifiés
 export { default as MapView } from './MapView';
 
 // Boutons d'action
@@ -25,9 +23,7 @@ export { default as GeocoderContainer } from './GeocoderContainer';
 export { default as ExternalNavigation } from './ExternalNavigation';
 export { default as ExternalNavigationAndExportPDF } from './ExternalNavigationAndExportPDF';
 
-// Contrôles et filtres
-export { default as FloatingControls } from './FloatingControls';
-export { default as FiltersFloatingButton } from './FiltersFloatingButton';
+// Contrôles et filtres - Centralisés dans ModernSidebar
 
 // Layout et popup
 export { default as SearchPopup } from './SearchPopup';

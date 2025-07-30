@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, SlidersHorizontal, List, MapPin } from 'lucide-react';
+import { SlidersHorizontal, List, MapPin } from 'lucide-react';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
-import GoogleMapsHeader from './components/GoogleMapsHeader';
 import GoogleMapsMap from './components/GoogleMapsMap';
 import ModernSidebar from './modern/ModernSidebar';
-
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
 import ExportPDFButton from './components/ExportPDFButton';
@@ -23,7 +21,8 @@ interface GoogleMapsLayoutProps {
   onFiltersChange: (filters: Partial<GeoSearchFilters>) => void;
   onResetFilters: () => void;
   onBack: () => void;
-  onShowFilters?: () => void;
+  showSidebar: boolean;
+  onToggleSidebar: () => void;
 }
 
 const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
@@ -36,14 +35,17 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   onMyLocationClick,
   onFiltersChange,
   onResetFilters,
-  onBack
+  onBack,
+  showSidebar: propShowSidebar,
+  onToggleSidebar: propToggleSidebar
 }) => {
   const isMobile = useIsMobile();
   const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(null);
-  const [showSidebar, setShowSidebar] = useState(!isMobile);
   const [showResultsList, setShowResultsList] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(filters.query || '');
-
+  
+  // Synchroniser avec le state parent
+  const showSidebar = propShowSidebar;
+  const toggleSidebar = propToggleSidebar;
   const handleResultSelect = (result: SearchResult) => {
     setSelectedLocation(result);
     onLocationSelect({
@@ -53,14 +55,6 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
     });
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    onSearch(query);
-  };
-
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
 
   const toggleResultsList = () => {
     setShowResultsList(!showResultsList);
@@ -72,24 +66,9 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-white overflow-hidden">
-      {/* Zone principale */}
+    <div className="h-full flex flex-col md:flex-row bg-white overflow-hidden">
+      {/* Zone principale - Carte uniquement */}
       <div className="flex-1 flex flex-col order-1">
-        {/* Header Google Maps */}
-        <GoogleMapsHeader
-          searchQuery={searchQuery}
-          onSearch={handleSearch}
-          onLocationSelect={onLocationSelect}
-          userLocation={userLocation}
-          resultsCount={results.length}
-          isLoading={isLoading}
-          onBack={onBack}
-          onToggleSidebar={toggleSidebar}
-          showSidebar={showSidebar}
-          onMyLocationClick={onMyLocationClick}
-        />
-
-
         {/* Zone carte et résultats */}
         <div className="flex-1 flex overflow-hidden">
           {/* Carte maximisée */}
@@ -120,12 +99,13 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
                 />
                 
                 <Button
-                  onClick={onMyLocationClick}
+                  onClick={toggleSidebar}
                   size="sm"
                   className="w-10 h-10 rounded-full shadow-lg bg-white text-gray-700 hover:bg-gray-50"
                   variant="outline"
+                  title="Ouvrir les filtres"
                 >
-                  <MapPin className="h-4 w-4" />
+                  <SlidersHorizontal className="h-4 w-4" />
                 </Button>
                 
                 {results.length > 0 && (
@@ -174,8 +154,8 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         isLoading={isLoading}
         results={results}
         onCategoryClick={handleSidebarCategoryClick}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearch}
+        searchQuery={filters.query || ''}
+        onSearchChange={onSearch}
         resultsCount={results.length}
       />
 

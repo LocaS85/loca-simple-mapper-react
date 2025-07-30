@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
+import { useIsMobile } from '@/hooks/use-mobile';
 import GoogleMapsLayout from './GoogleMapsLayout';
 
 import MapboxTokenSetup from './ui/MapboxTokenSetup';
@@ -16,10 +17,12 @@ import { LanguageProvider } from './i18n/LanguageProvider';
 
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [showTokenSetup, setShowTokenSetup] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [showSidebar, setShowSidebar] = useState(!isMobile); // Ouverte par défaut sur desktop uniquement
   
   
   const {
@@ -222,7 +225,7 @@ const GeoSearchApp: React.FC = () => {
       <AccessibilityProvider>
         <SecureMapboxProvider>
           <div className="h-screen flex flex-col">
-            {/* Header intelligent avec navigation contextuelle */}
+            {/* Header unifié avec contrôles centralisés */}
             <GeoSearchHeader
               searchQuery={filters.query || ''}
               onSearch={handleSearch}
@@ -233,7 +236,8 @@ const GeoSearchApp: React.FC = () => {
               onMyLocationClick={handleMyLocationClick}
               isLocating={isLocating}
               locationError={locationError}
-              
+              onToggleSidebar={() => setShowSidebar(!showSidebar)}
+              sidebarOpen={showSidebar}
             />
             
 
@@ -250,6 +254,8 @@ const GeoSearchApp: React.FC = () => {
                 onFiltersChange={updateFilters}
                 onResetFilters={resetFilters}
                 onBack={() => navigate('/categories')}
+                showSidebar={showSidebar}
+                onToggleSidebar={() => setShowSidebar(!showSidebar)}
               />
             </div>
           </div>

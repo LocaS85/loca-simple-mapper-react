@@ -10,7 +10,8 @@ import {
   Settings, 
   LogOut,
   ChevronDown,
-  Filter
+  Filter,
+  Menu
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -36,7 +37,8 @@ interface GeoSearchHeaderProps {
   onMyLocationClick: () => void;
   isLocating?: boolean;
   locationError?: string | null;
-  onShowFilters?: () => void;
+  onToggleSidebar?: () => void;
+  sidebarOpen?: boolean;
 }
 
 const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
@@ -49,7 +51,8 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
   onMyLocationClick,
   isLocating = false,
   locationError = null,
-  onShowFilters
+  onToggleSidebar,
+  sidebarOpen = false
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -158,15 +161,15 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
 
           {/* Actions rapides */}
           <div className="flex items-center gap-1">
-            {onShowFilters && (
+            {onToggleSidebar && (
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onShowFilters}
-                title="Ouvrir les filtres"
-                className="text-muted-foreground hover:text-foreground"
+                onClick={onToggleSidebar}
+                title={sidebarOpen ? "Fermer les filtres" : "Ouvrir les filtres"}
+                className={`text-muted-foreground hover:text-foreground ${sidebarOpen ? 'bg-muted' : ''}`}
               >
-                <Filter className="h-4 w-4" />
+                <Menu className="h-4 w-4" />
               </Button>
             )}
             
