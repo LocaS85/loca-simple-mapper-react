@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Menu, MapPin, Search } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import EnhancedSearchBar from '../../enhanced/EnhancedSearchBar';
-import Logo from '@/components/ui/Logo';
+
 
 interface GoogleMapsHeaderProps {
   searchQuery: string;
@@ -45,15 +45,6 @@ const GoogleMapsHeader: React.FC<GoogleMapsHeaderProps> = ({
             <ArrowLeft className="h-4 w-4" />
           </Button>
 
-          {/* Logo compact pour mobile */}
-          {isMobile && (
-            <Logo size="sm" variant="primary" showText={false} />
-          )}
-          
-          {/* Logo complet pour desktop */}
-          {!isMobile && (
-            <Logo size="sm" variant="primary" showText={true} />
-          )}
 
           {/* Barre de recherche - Responsive */}
           <div className="flex-1 max-w-xs md:max-w-lg">
