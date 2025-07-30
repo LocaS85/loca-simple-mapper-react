@@ -9,7 +9,9 @@ import {
   ChevronRight,
   Search,
   MapPin,
-  RotateCcw
+  RotateCcw,
+  Clock,
+  MapPinIcon
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
@@ -48,6 +50,7 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedSubcategories, setSelectedSubcategories] = useState<Set<string>>(new Set());
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  const [activeFilterMode, setActiveFilterMode] = useState<'distance' | 'duration' | null>(null);
 
   // Synchroniser la recherche locale avec les props
   useEffect(() => {
@@ -85,16 +88,26 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
   };
 
   const handleDistanceChange = (value: number[]) => {
+    setActiveFilterMode('distance');
     onFiltersChange({
       ...filters,
-      distance: value[0]
+      distance: value[0],
+      duration: undefined // Désactiver durée quand distance est utilisée
+    });
+    toast.info("Filtre par distance activé", {
+      description: "Le filtre par durée a été désactivé"
     });
   };
 
   const handleDurationChange = (value: number[]) => {
+    setActiveFilterMode('duration');
     onFiltersChange({
       ...filters,
-      duration: value[0]
+      duration: value[0],
+      distance: undefined // Désactiver distance quand durée est utilisée
+    });
+    toast.info("Filtre par durée activé", {
+      description: "Le filtre par distance a été désactivé"
     });
   };
 
@@ -108,6 +121,7 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
   const clearAllFilters = () => {
     setSelectedSubcategories(new Set());
     setLocalSearchQuery('');
+    setActiveFilterMode(null);
     onResetFilters();
     toast.success("Filtres réinitialisés");
   };
@@ -168,27 +182,53 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
 
             <Separator />
 
-            {/* Transport & Distance - Section unifiée */}
+            {/* Transport */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-base">Mode de transport</h3>
+              <ModernTransportManager
+                selectedMode={filters.transport || 'walking'}
+                onModeChange={handleTransportChange}
+                className="grid grid-cols-2 gap-3"
+              />
+            </div>
+
+            <Separator />
+
+            {/* Filtres exclusifs Distance OU Durée */}
             <div className="space-y-6">
-              <h3 className="font-semibold text-base">Transport & Distance</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-base">Distance OU Durée</h3>
+                <Badge variant="outline" className="text-xs">
+                  Exclusif
+                </Badge>
+              </div>
               
-              {/* Transport moderne */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground">Mode de transport</label>
-                <ModernTransportManager
-                  selectedMode={filters.transport || 'walking'}
-                  onModeChange={handleTransportChange}
-                  className="grid grid-cols-2 gap-3"
-                />
+              <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-md">
+                💡 Choisissez soit la distance, soit la durée de trajet. Les deux ne peuvent pas être actifs en même temps.
               </div>
 
-              {/* Distance simplifiée */}
-              <div className="space-y-4">
+              {/* Distance avec état visuel */}
+              <div className={cn(
+                "space-y-4 p-4 rounded-lg border transition-all",
+                activeFilterMode === 'distance' || (!activeFilterMode && filters.distance)
+                  ? "border-primary/50 bg-primary/5" 
+                  : "border-border/50 bg-muted/20 opacity-70"
+              )}>
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-muted-foreground">Distance</label>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
-                    {filters.distance || 5} {filters.unit || 'km'}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <MapPinIcon className={cn(
+                      "h-4 w-4",
+                      activeFilterMode === 'distance' || (!activeFilterMode && filters.distance)
+                        ? "text-primary" 
+                        : "text-muted-foreground"
+                    )} />
+                    <label className="text-sm font-medium">Distance maximale</label>
+                  </div>
+                  {(activeFilterMode === 'distance' || (!activeFilterMode && filters.distance)) && (
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                      {filters.distance || 5} km
+                    </Badge>
+                  )}
                 </div>
                 <Slider
                   value={[filters.distance || 5]}
@@ -197,6 +237,7 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
                   min={1}
                   step={1}
                   className="w-full"
+                  disabled={activeFilterMode === 'duration'}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>1 km</span>
@@ -205,13 +246,28 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
                 </div>
               </div>
 
-              {/* Durée simplifiée */}
-              <div className="space-y-4">
+              {/* Durée avec état visuel */}
+              <div className={cn(
+                "space-y-4 p-4 rounded-lg border transition-all",
+                activeFilterMode === 'duration' || (!activeFilterMode && filters.duration)
+                  ? "border-primary/50 bg-primary/5" 
+                  : "border-border/50 bg-muted/20 opacity-70"
+              )}>
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-muted-foreground">Temps de trajet max.</label>
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
-                    {filters.duration || 15} min
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Clock className={cn(
+                      "h-4 w-4",
+                      activeFilterMode === 'duration' || (!activeFilterMode && filters.duration)
+                        ? "text-primary" 
+                        : "text-muted-foreground"
+                    )} />
+                    <label className="text-sm font-medium">Durée maximale</label>
+                  </div>
+                  {(activeFilterMode === 'duration' || (!activeFilterMode && filters.duration)) && (
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                      {filters.duration || 15} min
+                    </Badge>
+                  )}
                 </div>
                 <Slider
                   value={[filters.duration || 15]}
@@ -220,6 +276,7 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
                   min={5}
                   step={5}
                   className="w-full"
+                  disabled={activeFilterMode === 'distance'}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>5 min</span>

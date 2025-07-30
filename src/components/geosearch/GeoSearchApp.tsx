@@ -6,7 +6,6 @@ import ModernFilterSidebar from './ui/ModernFilterSidebar';
 import MapboxTokenSetup from './ui/MapboxTokenSetup';
 import GeoSearchHeader from './components/GeoSearchHeader';
 import RouteBackButton from '@/components/ui/RouteBackButton';
-import Logo from '@/components/ui/Logo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
 import { AlertCircle } from 'lucide-react';
@@ -14,7 +13,6 @@ import { mapboxConfigService } from '@/services/mapboxConfigService';
 import { SecureMapboxProvider } from './security/SecureMapboxProvider';
 import { AccessibilityProvider } from './accessibility/AccessibilityProvider';
 import { LanguageProvider } from './i18n/LanguageProvider';
-import SkipLinks from './accessibility/KeyboardNavigation';
 
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
@@ -185,13 +183,12 @@ const GeoSearchApp: React.FC = () => {
   if (!isMapboxReady) {
     return (
       <div className="min-h-screen flex flex-col">
-        <div className="p-4 flex items-center justify-between">
+        <div className="p-4">
           <RouteBackButton 
             route="/categories"
             showLabel={true}
             variant="ghost"
           />
-          <Logo size="sm" variant="primary" showText={true} />
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
           {mapboxError ? (

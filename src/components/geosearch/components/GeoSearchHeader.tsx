@@ -90,10 +90,16 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
     <div className="bg-background/95 backdrop-blur-sm border-b border-border shadow-sm z-20">
       <div className="container mx-auto px-3 py-2">
         <div className="flex items-center gap-3">
-          {/* Navigation contextuelle */}
-          <div className="flex items-center gap-2">
-            <SmartBreadcrumb />
-          </div>
+          {/* Bouton retour simple */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/categories')}
+            className="text-muted-foreground hover:text-foreground"
+            title="Retour aux catégories"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
 
           {/* Bouton Ma position - Icône uniquement */}
           <Button
@@ -175,12 +181,12 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
             </Button>
           </div>
 
-          {/* Menu utilisateur */}
+          {/* Menu utilisateur - Position fixée à droite */}
           <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="relative h-8 w-8 rounded-full"
+                className="relative h-8 w-8 rounded-full ml-auto"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder-avatar.jpg" alt="@utilisateur" />
