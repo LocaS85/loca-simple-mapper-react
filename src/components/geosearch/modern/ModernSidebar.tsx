@@ -1,27 +1,32 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
-  SlidersHorizontal, 
+  X, 
   RotateCcw, 
   MapPin, 
   Clock, 
   Route,
-  ChevronRight,
   Download,
-  Timer,
-  Hash
+  ChevronDown,
+  ChevronRight,
+  Info,
+  Search
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
+import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { FilterButton, AroundMeFilter, LoadingSkeleton } from '../atoms';
-import { OptimizedTransportSelector } from '../performance';
+import LoadingSkeleton from '../atoms/LoadingSkeleton';
+import GoogleMapsTransportSelector from '../components/GoogleMapsTransportSelector';
 import GoogleMapsCategorySelector from '../components/GoogleMapsCategorySelector';
-import GoogleMapsDistanceSelector from '../components/GoogleMapsDistanceSelector';
-import DurationSelector from '../components/DurationSelector';
 import ExportPDFButton from '../components/ExportPDFButton';
 
 interface ModernSidebarProps {
@@ -55,7 +60,20 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
   onSearchChange,
   resultsCount = 0
 }) => {
+  const { categories, loading: categoriesLoading } = useSupabaseCategories();
   const isMobile = useIsMobile();
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  
+  // États pour la logique exclusive Distance vs Durée
+  const [activeFilterMode, setActiveFilterMode] = useState<'distance' | 'duration' | null>(
+    filters.useDuration ? 'duration' : 'distance'
+  );
+
+  // Synchroniser la recherche locale avec les props
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
 
   const hasActiveFilters = 
     filters.category || 
@@ -65,6 +83,49 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
     filters.aroundMeCount !== 5 ||
     filters.unit !== 'km';
 
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (filters.category) count++;
+    if (filters.transport !== 'walking') count++;
+    if (filters.distance !== 10) count++;
+    if (filters.maxDuration !== 20) count++;
+    if (filters.aroundMeCount !== 5) count++;
+    if (filters.unit !== 'km') count++;
+    return count;
+  };
+
+  const handleResetFilters = () => {
+    setActiveFilterMode('distance');
+    setLocalSearchQuery('');
+    onResetFilters();
+    if (onSearchChange) onSearchChange('');
+    toast.success("Filtres réinitialisés");
+  };
+
+  const handleDistanceChange = (value: number[]) => {
+    setActiveFilterMode('distance');
+    onFiltersChange({
+      distance: value[0],
+      useDuration: false,
+      maxDuration: undefined
+    });
+    toast.info("Filtre par distance activé", {
+      description: "Le filtre par durée a été désactivé"
+    });
+  };
+
+  const handleDurationChange = (value: number[]) => {
+    setActiveFilterMode('duration');
+    onFiltersChange({
+      maxDuration: value[0],
+      useDuration: true,
+      distance: undefined
+    });
+    toast.info("Filtre par durée activé", {
+      description: "Le filtre par distance a été désactivé"
+    });
+  };
+
   const sidebarVariants = {
     closed: {
       x: isMobile ? '100%' : 0,
@@ -73,7 +134,7 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
     },
     open: {
       x: 0,
-      width: isMobile ? '320px' : '192px', // w-80 mobile, w-48 desktop
+      width: isMobile ? '320px' : '420px',
       opacity: 1,
     }
   };
@@ -83,30 +144,29 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
     open: { opacity: 1, scale: 1 }
   };
 
+  if (!isOpen && !isMobile) return null;
+
   return (
     <>
-      {/* Overlay mobile avec animation */}
-      <AnimatePresence>
-        {isMobile && isOpen && (
-          <motion.div 
-            className="fixed inset-0 bg-black/50 z-40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onToggle}
-          />
-        )}
-      </AnimatePresence>
+      {/* Overlay mobile */}
+      {isMobile && isOpen && (
+        <motion.div 
+          className="fixed inset-0 bg-black/50 z-40"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onToggle}
+        />
+      )}
 
-      {/* Sidebar moderne avec animation fluide */}
+      {/* Sidebar unifiée */}
       <motion.div 
         className={`
           ${isMobile 
             ? 'fixed right-0 top-0 h-full z-50' 
             : 'relative border-l border-border'
           }
-          bg-background shadow-lg backdrop-blur-sm
+          bg-background shadow-lg
         `}
         variants={sidebarVariants}
         animate={isOpen ? 'open' : 'closed'}
@@ -123,163 +183,204 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
           animate={isOpen ? "open" : "closed"}
           transition={{ delay: 0.1 }}
         >
-          {/* Header moderne */}
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">Filtres</h2>
-              
+          {/* Header avec titre et bouton reset */}
+          <div className="p-6 pb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Filtres</h2>
               <div className="flex items-center gap-2">
                 {hasActiveFilters && (
-                  <Badge variant="destructive" className="px-2 py-1 text-xs animate-pulse">
-                    Actifs
+                  <Badge variant="destructive" className="text-xs">
+                    {getActiveFiltersCount()} actif{getActiveFiltersCount() > 1 ? 's' : ''}
                   </Badge>
                 )}
-                
-                <FilterButton
-                  icon={RotateCcw}
-                  onClick={onResetFilters}
-                  disabled={!hasActiveFilters || isLoading}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
-                  <span className="sr-only">Réinitialiser</span>
-                </FilterButton>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleResetFilters}
+                        disabled={!hasActiveFilters || isLoading}
+                        className="h-8 w-8 p-0"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Réinitialiser tous les filtres</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                {isMobile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onToggle}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
+
+            {/* Barre de recherche intégrée */}
+            {onSearchChange && (
+              <div className="flex gap-2 mb-4">
+                <Input
+                  placeholder="Que cherchez-vous ?"
+                  value={localSearchQuery}
+                  onChange={(e) => setLocalSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && onSearchChange(localSearchQuery)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={() => onSearchChange(localSearchQuery)} 
+                  size="default" 
+                  className="px-4"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Contenu scrollable */}
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-6">
+          <ScrollArea className="flex-1 px-6">
+            <div className="space-y-6 pb-6">
               
               {/* Position utilisateur */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-medium flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
                   Position
                 </h3>
                 
-                <FilterButton
+                <Button
+                  variant={userLocation ? "outline" : "default"}
+                  size="sm"
                   onClick={onMyLocationClick}
                   disabled={isLoading}
-                  variant={userLocation ? "outline" : "default"}
-                  className="w-full justify-between"
+                  className="w-full justify-between h-10"
                 >
                   <span>
                     {userLocation ? 'Position détectée' : 'Détecter ma position'}
                   </span>
                   <ChevronRight className="h-4 w-4" />
-                </FilterButton>
-              </div>
-
-              <Separator />
-
-              {/* Filtre "Autour de moi" - NOUVEAU */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-primary" />
-                  Nombre autour de moi
-                </h3>
-                
-                {isLoading ? (
-                  <LoadingSkeleton type="filter" />
-                ) : (
-                  <AroundMeFilter
-                    value={filters.aroundMeCount || 5}
-                    onChange={(aroundMeCount) => onFiltersChange({ aroundMeCount })}
-                    min={1}
-                    max={20}
-                    size="sm"
-                  />
-                )}
+                </Button>
               </div>
 
               <Separator />
 
               {/* Transport */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                <h3 className="text-sm font-medium flex items-center gap-2">
                   <Route className="h-4 w-4 text-primary" />
-                  Transport
+                  Mode de transport
                 </h3>
                 
                 {isLoading ? (
                   <LoadingSkeleton type="filter" />
                 ) : (
-                  <OptimizedTransportSelector
+                  <GoogleMapsTransportSelector
                     value={filters.transport}
                     onChange={(transport) => onFiltersChange({ transport: transport as any })}
-                    size="sm"
                   />
                 )}
               </div>
 
               <Separator />
 
-              {/* Distance OU Durée - Exclusif */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-3">
+              {/* Filtres exclusifs Distance OU Durée */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-medium text-foreground">Limite de recherche</h3>
+                  <h3 className="text-sm font-medium">Distance OU Durée</h3>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Choisissez soit la distance, soit la durée.<br/>Les deux ne peuvent pas être actifs simultanément.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 
-                {/* Sélecteur exclusif Distance/Durée */}
-                <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-lg">
-                  <Button
-                    variant={!filters.useDuration ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => onFiltersChange({ useDuration: false, maxDuration: undefined })}
-                    className="h-8 text-xs"
-                  >
-                    <Clock className="h-3 w-3 mr-1" />
-                    Distance
-                  </Button>
-                  <Button
-                    variant={filters.useDuration ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => onFiltersChange({ useDuration: true, distance: undefined })}
-                    className="h-8 text-xs"
-                  >
-                    <Timer className="h-3 w-3 mr-1" />
-                    Durée
-                  </Button>
+                {/* Distance avec état visuel */}
+                <div className={cn(
+                  "space-y-3 p-4 rounded-lg border transition-all",
+                  activeFilterMode === 'distance' || (!filters.useDuration && filters.distance)
+                    ? "border-primary/50 bg-primary/5" 
+                    : "border-border/50 bg-muted/20 opacity-70"
+                )}>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Distance maximale</label>
+                    {(activeFilterMode === 'distance' || (!filters.useDuration && filters.distance)) && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                        {filters.distance || 10} km
+                      </Badge>
+                    )}
+                  </div>
+                  <Slider
+                    value={[filters.distance || 10]}
+                    onValueChange={handleDistanceChange}
+                    max={50}
+                    min={1}
+                    step={1}
+                    className="w-full"
+                    disabled={activeFilterMode === 'duration' || filters.useDuration}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>1 km</span>
+                    <span>25 km</span>
+                    <span>50 km</span>
+                  </div>
                 </div>
-                
-                {/* Sélecteur conditionnel */}
-                {isLoading ? (
-                  <LoadingSkeleton type="filter" />
-                ) : !filters.useDuration ? (
-                  <div className="space-y-2">
-                    <GoogleMapsDistanceSelector
-                      value={filters.distance}
-                      onChange={(distance) => onFiltersChange({ distance })}
-                      unit={filters.unit || 'km'}
-                      onUnitChange={(unit) => onFiltersChange({ unit })}
-                    />
-                    <p className="text-xs text-muted-foreground">Recherche par distance géographique</p>
+
+                {/* Durée avec état visuel */}
+                <div className={cn(
+                  "space-y-3 p-4 rounded-lg border transition-all",
+                  activeFilterMode === 'duration' || filters.useDuration
+                    ? "border-primary/50 bg-primary/5" 
+                    : "border-border/50 bg-muted/20 opacity-70"
+                )}>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Durée maximale</label>
+                    {(activeFilterMode === 'duration' || filters.useDuration) && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                        {filters.maxDuration || 20} min
+                      </Badge>
+                    )}
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <DurationSelector
-                      value={filters.maxDuration || 20}
-                      onChange={(maxDuration) => onFiltersChange({ maxDuration })}
-                    />
-                    <p className="text-xs text-muted-foreground">Recherche par temps de trajet</p>
+                  <Slider
+                    value={[filters.maxDuration || 20]}
+                    onValueChange={handleDurationChange}
+                    max={60}
+                    min={5}
+                    step={5}
+                    className="w-full"
+                    disabled={activeFilterMode === 'distance' || !filters.useDuration}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>5 min</span>
+                    <span>30 min</span>
+                    <span>1h</span>
                   </div>
-                )}
+                </div>
               </div>
 
               <Separator />
 
               {/* Catégories */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <SlidersHorizontal className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <ChevronDown className="h-4 w-4 text-primary" />
                   Catégories
                 </h3>
                 
-                {isLoading ? (
+                {isLoading || categoriesLoading ? (
                   <LoadingSkeleton type="filter" />
                 ) : (
                   <GoogleMapsCategorySelector
@@ -300,9 +401,9 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
                   <Separator />
                   
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <h3 className="text-sm font-medium flex items-center gap-2">
                       <Download className="h-4 w-4 text-primary" />
-                      Export
+                      Export PDF
                     </h3>
                     
                     <ExportPDFButton
@@ -323,22 +424,27 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
             </div>
           </ScrollArea>
 
-          {/* Footer mobile */}
+          {/* Footer mobile avec statistiques */}
           {isMobile && (
-            <motion.div 
-              className="p-4 border-t border-border"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <FilterButton
+            <div className="p-4 border-t bg-background">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                <span>
+                  {resultsCount > 0 ? `${resultsCount} résultat${resultsCount > 1 ? 's' : ''}` : 'Aucun résultat'}
+                </span>
+                {userLocation && (
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                    Position détectée
+                  </Badge>
+                )}
+              </div>
+              <Button
                 onClick={onToggle}
                 className="w-full"
-                size="default"
+                size="sm"
               >
                 Appliquer les filtres
-              </FilterButton>
-            </motion.div>
+              </Button>
+            </div>
           )}
         </motion.div>
       </motion.div>
