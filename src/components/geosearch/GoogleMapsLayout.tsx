@@ -118,16 +118,6 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
           showSidebar={showSidebar}
         />
 
-        {/* Menu horizontal de catégories - Optimisé */}
-        <HorizontalCategoryScroll
-          selectedCategories={selectedCategories}
-          onCategorySelect={handleCategorySelect}
-          onCategoryRemove={handleCategoryRemove}
-          onClearAll={onResetFilters}
-          showSubcategories={true}
-          selectedMainCategory={selectedMainCategory}
-          onMainCategoryChange={handleMainCategoryChange}
-        />
 
         {/* Zone carte et résultats */}
         <div className="flex-1 flex overflow-hidden">

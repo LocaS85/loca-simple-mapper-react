@@ -153,6 +153,7 @@ export interface GeoSearchFilters {
   showMultiDirections?: boolean;
   selectedLocation?: LocationData;
   selectedMainCategory?: string | null;
+  useDuration?: boolean; // Mode exclusif Distance/Durée
 }
 
 // ===== ÉTAT DE LA RECHERCHE UNIFIÉ =====

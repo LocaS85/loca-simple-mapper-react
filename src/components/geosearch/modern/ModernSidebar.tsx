@@ -211,41 +211,56 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
 
               <Separator />
 
-              {/* Distance */}
+              {/* Distance OU Durée - Exclusif */}
               <div className="space-y-3">
-                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-3">
                   <Clock className="h-4 w-4 text-primary" />
-                  Distance max.
-                </h3>
+                  <h3 className="text-sm font-medium text-foreground">Limite de recherche</h3>
+                </div>
                 
+                {/* Sélecteur exclusif Distance/Durée */}
+                <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-lg">
+                  <Button
+                    variant={!filters.useDuration ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => onFiltersChange({ useDuration: false, maxDuration: undefined })}
+                    className="h-8 text-xs"
+                  >
+                    <Clock className="h-3 w-3 mr-1" />
+                    Distance
+                  </Button>
+                  <Button
+                    variant={filters.useDuration ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => onFiltersChange({ useDuration: true, distance: undefined })}
+                    className="h-8 text-xs"
+                  >
+                    <Timer className="h-3 w-3 mr-1" />
+                    Durée
+                  </Button>
+                </div>
+                
+                {/* Sélecteur conditionnel */}
                 {isLoading ? (
                   <LoadingSkeleton type="filter" />
+                ) : !filters.useDuration ? (
+                  <div className="space-y-2">
+                    <GoogleMapsDistanceSelector
+                      value={filters.distance}
+                      onChange={(distance) => onFiltersChange({ distance })}
+                      unit={filters.unit || 'km'}
+                      onUnitChange={(unit) => onFiltersChange({ unit })}
+                    />
+                    <p className="text-xs text-muted-foreground">Recherche par distance géographique</p>
+                  </div>
                 ) : (
-                  <GoogleMapsDistanceSelector
-                    value={filters.distance}
-                    onChange={(distance) => onFiltersChange({ distance })}
-                    unit={filters.unit || 'km'}
-                    onUnitChange={(unit) => onFiltersChange({ unit })}
-                  />
-                )}
-              </div>
-
-              <Separator />
-
-              {/* Durée */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <Timer className="h-4 w-4 text-primary" />
-                  Durée max.
-                </h3>
-                
-                {isLoading ? (
-                  <LoadingSkeleton type="filter" />
-                ) : (
-                  <DurationSelector
-                    value={filters.maxDuration || 20}
-                    onChange={(maxDuration) => onFiltersChange({ maxDuration })}
-                  />
+                  <div className="space-y-2">
+                    <DurationSelector
+                      value={filters.maxDuration || 20}
+                      onChange={(maxDuration) => onFiltersChange({ maxDuration })}
+                    />
+                    <p className="text-xs text-muted-foreground">Recherche par temps de trajet</p>
+                  </div>
                 )}
               </div>
 
