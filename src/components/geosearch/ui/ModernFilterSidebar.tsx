@@ -4,17 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { 
-  Filter, 
   X, 
   ChevronDown, 
   ChevronRight,
   Search,
   MapPin,
-  Clock,
-  Ruler,
-  Navigation,
-  Heart,
-  History,
   RotateCcw
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -122,87 +116,77 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] p-0">
-        <div className="h-full flex flex-col">
-          {/* Header */}
-          <SheetHeader className="p-6 pb-4 border-b">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filtres & Recherche
-              </SheetTitle>
-              
-              {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <RotateCcw className="h-4 w-4 mr-1" />
-                  Réinitialiser
+      <SheetContent side="right" className="w-[420px] sm:w-[480px] p-0 flex flex-col">
+        {/* Header épuré */}
+        <SheetHeader className="p-6 pb-4 border-b bg-background">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-lg font-semibold">
+              Filtres de recherche
+            </SheetTitle>
+            
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Réinitialiser
+              </Button>
+            )}
+          </div>
+
+          {/* Actions rapides intégrées */}
+          <QuickActionsBar
+            searchQuery={searchQuery}
+            filters={filters}
+            resultsCount={resultsCount}
+            userLocation={userLocation}
+            className="mt-4"
+          />
+        </SheetHeader>
+
+        {/* Contenu scrollable */}
+        <ScrollArea className="flex-1 px-6">
+          <div className="space-y-8 py-6">
+            {/* Barre de recherche épurée */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Que cherchez-vous ?"
+                  value={localSearchQuery}
+                  onChange={(e) => setLocalSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
+                  className="flex-1 h-11"
+                />
+                <Button onClick={handleSearchSubmit} size="default" className="px-4">
+                  <Search className="h-4 w-4" />
                 </Button>
-              )}
+              </div>
             </div>
 
-            {/* Actions rapides */}
-            <QuickActionsBar
-              searchQuery={searchQuery}
-              filters={filters}
-              resultsCount={resultsCount}
-              userLocation={userLocation}
-              className="mt-4"
-            />
-          </SheetHeader>
+            <Separator />
 
-          {/* Contenu scrollable */}
-          <ScrollArea className="flex-1 px-6">
-            <div className="space-y-6 py-4">
-              {/* Barre de recherche */}
+            {/* Transport & Distance - Section unifiée */}
+            <div className="space-y-6">
+              <h3 className="font-semibold text-base">Transport & Distance</h3>
+              
+              {/* Transport moderne */}
               <div className="space-y-3">
-                <h3 className="font-medium text-sm flex items-center gap-2">
-                  <Search className="h-4 w-4 text-primary" />
-                  Recherche
-                </h3>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Rechercher un lieu, type..."
-                    value={localSearchQuery}
-                    onChange={(e) => setLocalSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleSearchSubmit} size="sm">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Sélecteur de transport */}
-              <div className="space-y-3">
-                <h3 className="font-medium text-sm flex items-center gap-2">
-                  <Navigation className="h-4 w-4 text-primary" />
-                  Mode de transport
-                </h3>
+                <label className="text-sm font-medium text-muted-foreground">Mode de transport</label>
                 <ModernTransportManager
                   selectedMode={filters.transport || 'walking'}
                   onModeChange={handleTransportChange}
-                  className="grid grid-cols-2 gap-2"
+                  className="grid grid-cols-2 gap-3"
                 />
               </div>
 
-              <Separator />
-
-              {/* Distance */}
-              <div className="space-y-3">
+              {/* Distance simplifiée */}
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-sm flex items-center gap-2">
-                    <Ruler className="h-4 w-4 text-primary" />
-                    Distance maximale
-                  </h3>
-                  <Badge variant="secondary">
+                  <label className="text-sm font-medium text-muted-foreground">Distance</label>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
                     {filters.distance || 5} {filters.unit || 'km'}
                   </Badge>
                 </div>
@@ -216,96 +200,91 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>1 km</span>
+                  <span>25 km</span>
                   <span>50 km</span>
                 </div>
               </div>
 
-              <Separator />
-
-              {/* Durée */}
-              <div className="space-y-3">
+              {/* Durée simplifiée */}
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-sm flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    Durée maximale
-                  </h3>
-                  <Badge variant="secondary">
+                  <label className="text-sm font-medium text-muted-foreground">Temps de trajet max.</label>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
                     {filters.duration || 15} min
                   </Badge>
                 </div>
                 <Slider
                   value={[filters.duration || 15]}
                   onValueChange={handleDurationChange}
-                  max={120}
+                  max={60}
                   min={5}
                   step={5}
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>5 min</span>
-                  <span>2h</span>
+                  <span>30 min</span>
+                  <span>1h</span>
                 </div>
               </div>
+            </div>
 
-              <Separator />
+            <Separator />
 
-              {/* Catégories */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-sm flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    Catégories
-                  </h3>
-                  {selectedSubcategories.size > 0 && (
-                    <Badge variant="outline">
-                      {selectedSubcategories.size} sélectionnée{selectedSubcategories.size > 1 ? 's' : ''}
-                    </Badge>
-                  )}
+            {/* Catégories épurées */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-base">Catégories</h3>
+                {selectedSubcategories.size > 0 && (
+                  <Badge variant="outline" className="bg-primary/5">
+                    {selectedSubcategories.size}
+                  </Badge>
+                )}
+              </div>
+
+              {loading && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
+              )}
 
-                {loading && (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-sm text-muted-foreground mt-2">Chargement des catégories...</p>
-                  </div>
-                )}
+              {error && (
+                <div className="text-center py-4 text-sm text-destructive">
+                  Erreur de chargement des catégories
+                </div>
+              )}
 
-                {error && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-destructive">Erreur de chargement</p>
-                  </div>
-                )}
-
-                {categories && categories.length > 0 && (
-                  <div className="space-y-1">
-                    {categories.map((category) => (
-                      <Collapsible
-                        key={category.id}
-                        open={expandedCategories.has(category.id)}
-                        onOpenChange={() => toggleCategory(category.id)}
-                      >
-                        <CollapsibleTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-between p-3 h-auto"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">{category.name}</span>
-                              {category.subcategories && category.subcategories.length > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  {category.subcategories.length}
-                                </Badge>
-                              )}
-                            </div>
+              {categories && categories.length > 0 && (
+                <div className="space-y-2">
+                  {categories.slice(0, 6).map((category) => (
+                    <Collapsible
+                      key={category.id}
+                      open={expandedCategories.has(category.id)}
+                      onOpenChange={() => toggleCategory(category.id)}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-between p-4 h-auto border border-border/50 hover:border-border hover:bg-muted/30"
+                        >
+                          <span className="font-medium">{category.name}</span>
+                          <div className="flex items-center gap-2">
+                            {category.subcategories && category.subcategories.length > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {category.subcategories.length}
+                              </Badge>
+                            )}
                             {expandedCategories.has(category.id) ? (
                               <ChevronDown className="h-4 w-4" />
                             ) : (
                               <ChevronRight className="h-4 w-4" />
                             )}
-                          </Button>
-                        </CollapsibleTrigger>
-                        
-                        <CollapsibleContent className="space-y-1">
+                          </div>
+                        </Button>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent className="space-y-1 mt-1">
+                        <div className="ml-4 space-y-1">
                           {category.subcategories?.map((subcategory) => (
                             <Button
                               key={subcategory.id}
@@ -313,52 +292,36 @@ const ModernFilterSidebar: React.FC<ModernFilterSidebarProps> = ({
                               size="sm"
                               onClick={() => toggleSubcategory(subcategory.id)}
                               className={cn(
-                                "w-full justify-start ml-4 text-xs",
-                                selectedSubcategories.has(subcategory.id) && "bg-primary text-primary-foreground"
+                                "w-full justify-start text-sm h-9",
+                                selectedSubcategories.has(subcategory.id) 
+                                  ? "bg-primary text-primary-foreground" 
+                                  : "hover:bg-muted/50"
                               )}
                             >
                               {subcategory.name}
                             </Button>
                           ))}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Liens rapides */}
-              <Separator />
-              
-              <div className="space-y-3">
-                <h3 className="font-medium text-sm">Accès rapide</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Heart className="h-4 w-4" />
-                    Favoris
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <History className="h-4 w-4" />
-                    Historique
-                  </Button>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
                 </div>
-              </div>
-            </div>
-          </ScrollArea>
-
-          {/* Footer avec statistiques */}
-          <div className="p-4 border-t bg-muted/20">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                {resultsCount > 0 ? `${resultsCount} résultat${resultsCount > 1 ? 's' : ''}` : 'Aucun résultat'}
-              </span>
-              {userLocation && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  Position détectée
-                </span>
               )}
             </div>
+          </div>
+        </ScrollArea>
+
+        {/* Footer simplifié */}
+        <div className="p-6 border-t bg-muted/10">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              {resultsCount > 0 ? `${resultsCount} résultat${resultsCount > 1 ? 's' : ''}` : 'Aucun résultat'}
+            </span>
+            {userLocation && (
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                Position détectée
+              </Badge>
+            )}
           </div>
         </div>
       </SheetContent>

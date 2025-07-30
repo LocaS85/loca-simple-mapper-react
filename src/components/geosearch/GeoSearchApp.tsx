@@ -257,14 +257,6 @@ const GeoSearchApp: React.FC = () => {
 
             {/* Contenu principal */}
             <div className="flex-1 overflow-hidden">
-              <SkipLinks 
-                targets={[
-                  { id: 'main-search', label: 'recherche principale' },
-                  { id: 'filters-panel', label: 'panneau de filtres' },
-                  { id: 'results-list', label: 'liste des résultats' },
-                  { id: 'map-container', label: 'carte interactive' }
-                ]}
-              />
               <GoogleMapsLayout
                 filters={filters}
                 results={results}
