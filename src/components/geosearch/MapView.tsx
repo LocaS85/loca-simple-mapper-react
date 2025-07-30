@@ -62,6 +62,7 @@ const MapView: React.FC<MapViewProps> = ({
           disabled={false}
           variant="outline"
           size="sm"
+          icon="mappin"
           className="bg-white shadow-md"
         />
       </div>

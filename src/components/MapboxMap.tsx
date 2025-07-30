@@ -210,6 +210,8 @@ export default function MapboxMap({
           variant="outline"
           size="sm"
           className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm"
+          icon="mappin"
+          showText={false}
         />
       )}
     </div>
