@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { SlidersHorizontal, List, MapPin } from 'lucide-react';
 import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import GoogleMapsMap from './components/GoogleMapsMap';
-import ModernSidebar from './modern/ModernSidebar';
+import ModernSidebar from './components/ModernSidebar';
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
 import ExportPDFButton from './components/ExportPDFButton';
