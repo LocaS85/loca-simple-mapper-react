@@ -86,6 +86,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
           onBack={onBack}
           onToggleSidebar={toggleSidebar}
           showSidebar={showSidebar}
+          onMyLocationClick={onMyLocationClick}
         />
 
 

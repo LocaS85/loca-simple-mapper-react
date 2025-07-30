@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Menu, MapPin, Search } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import EnhancedSearchBar from '../../enhanced/EnhancedSearchBar';
+import UserMenuDropdown from '../ui/UserMenuDropdown';
 
 
 interface GoogleMapsHeaderProps {
@@ -16,6 +17,7 @@ interface GoogleMapsHeaderProps {
   onBack: () => void;
   onToggleSidebar: () => void;
   showSidebar: boolean;
+  onMyLocationClick?: () => void;
 }
 
 const GoogleMapsHeader: React.FC<GoogleMapsHeaderProps> = ({
@@ -27,7 +29,8 @@ const GoogleMapsHeader: React.FC<GoogleMapsHeaderProps> = ({
   isLoading,
   onBack,
   onToggleSidebar,
-  showSidebar
+  showSidebar,
+  onMyLocationClick
 }) => {
   const isMobile = useIsMobile();
 
@@ -57,7 +60,20 @@ const GoogleMapsHeader: React.FC<GoogleMapsHeaderProps> = ({
             />
           </div>
 
-          {/* Menu burger pour sidebar - DÉPLACÉ À DROITE */}
+          {/* Bouton Ma Position */}
+          {onMyLocationClick && (
+            <Button
+              variant={userLocation ? "secondary" : "outline"}
+              size="sm"
+              onClick={onMyLocationClick}
+              className="flex items-center gap-1 text-xs px-2 py-1"
+            >
+              <MapPin className="h-3 w-3" />
+              {isMobile ? '' : 'Ma position'}
+            </Button>
+          )}
+
+          {/* Menu burger pour sidebar */}
           <Button
             variant="ghost"
             size="sm"
@@ -86,6 +102,9 @@ const GoogleMapsHeader: React.FC<GoogleMapsHeaderProps> = ({
               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></div>
             )}
           </div>
+
+          {/* Menu utilisateur */}
+          <UserMenuDropdown className="ml-2" />
         </div>
       </div>
     </div>
