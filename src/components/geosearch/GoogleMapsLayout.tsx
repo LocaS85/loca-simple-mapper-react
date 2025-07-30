@@ -24,6 +24,7 @@ interface GoogleMapsLayoutProps {
   onFiltersChange: (filters: Partial<GeoSearchFilters>) => void;
   onResetFilters: () => void;
   onBack: () => void;
+  onShowFilters?: () => void;
 }
 
 const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({

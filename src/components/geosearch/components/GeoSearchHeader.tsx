@@ -9,7 +9,8 @@ import {
   History, 
   Settings, 
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Filter
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -35,6 +36,7 @@ interface GeoSearchHeaderProps {
   onMyLocationClick: () => void;
   isLocating?: boolean;
   locationError?: string | null;
+  onShowFilters?: () => void;
 }
 
 const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
@@ -46,7 +48,8 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
   isLoading,
   onMyLocationClick,
   isLocating = false,
-  locationError = null
+  locationError = null,
+  onShowFilters
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -149,6 +152,18 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
 
           {/* Actions rapides */}
           <div className="flex items-center gap-1">
+            {onShowFilters && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onShowFilters}
+                title="Ouvrir les filtres"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+            )}
+            
             <Button
               variant="ghost"
               size="icon"
