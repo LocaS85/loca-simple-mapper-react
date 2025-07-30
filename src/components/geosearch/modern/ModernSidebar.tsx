@@ -78,8 +78,8 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
   const hasActiveFilters = 
     filters.category || 
     filters.transport !== 'walking' || 
-    filters.distance !== 10 ||
-    filters.maxDuration !== 20 ||
+    (activeFilterMode === 'distance' && filters.distance !== 10) ||
+    (activeFilterMode === 'duration' && filters.maxDuration !== 20) ||
     filters.aroundMeCount !== 5 ||
     filters.unit !== 'km';
 
@@ -87,8 +87,8 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
     let count = 0;
     if (filters.category) count++;
     if (filters.transport !== 'walking') count++;
-    if (filters.distance !== 10) count++;
-    if (filters.maxDuration !== 20) count++;
+    if (activeFilterMode === 'distance' && filters.distance !== 10) count++;
+    if (activeFilterMode === 'duration' && filters.maxDuration !== 20) count++;
     if (filters.aroundMeCount !== 5) count++;
     if (filters.unit !== 'km') count++;
     return count;
@@ -330,7 +330,7 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
                     min={1}
                     step={1}
                     className="w-full"
-                    disabled={activeFilterMode === 'duration' || filters.useDuration}
+                    disabled={activeFilterMode === 'duration'}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>1 km</span>
@@ -361,12 +361,44 @@ const ModernSidebar: React.FC<ModernSidebarProps> = ({
                     min={5}
                     step={5}
                     className="w-full"
-                    disabled={activeFilterMode === 'distance' || !filters.useDuration}
+                    disabled={activeFilterMode === 'distance'}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>5 min</span>
                     <span>30 min</span>
                     <span>1h</span>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Filtre "Autour de moi" (0-10) */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Autour de moi
+                </h3>
+                
+                <div className="space-y-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Nombre de résultats</label>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                      {filters.aroundMeCount || 5}
+                    </Badge>
+                  </div>
+                  <Slider
+                    value={[filters.aroundMeCount || 5]}
+                    onValueChange={(value) => onFiltersChange({ aroundMeCount: value[0] })}
+                    max={10}
+                    min={0}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0</span>
+                    <span>5</span>
+                    <span>10</span>
                   </div>
                 </div>
               </div>

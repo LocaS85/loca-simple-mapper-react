@@ -11,7 +11,8 @@ import {
   LogOut,
   ChevronDown,
   Filter,
-  Menu
+  Menu,
+  Search
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -184,54 +185,92 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
             </Button>
           </div>
 
-          {/* Menu utilisateur - Position fixée à droite */}
-          <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="relative h-8 w-8 rounded-full ml-auto"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="@utilisateur" />
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <div className="flex items-center justify-start gap-2 p-2">
-                <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium text-sm">Utilisateur</p>
-                  <p className="w-[200px] truncate text-xs text-muted-foreground">
-                    user@example.com
-                  </p>
+            {/* Menu sandwich contextuel avec filtres */}
+            <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="relative h-8 w-8 rounded-full ml-auto"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/placeholder-avatar.jpg" alt="@utilisateur" />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      <Menu className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="end" forceMount>
+                {/* Section recherche rapide */}
+                <div className="p-3 border-b">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Search className="h-4 w-4 text-primary" />
+                    <span className="font-medium text-sm">Recherche rapide</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    <Badge 
+                      className="bg-primary text-primary-foreground cursor-pointer" 
+                      onClick={() => onSearch('restaurant')}
+                    >
+                      restaurant
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer" onClick={() => onSearch('pharmacie')}>
+                      pharmacie
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer" onClick={() => onSearch('banque')}>
+                      banque
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/account')}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Mon compte</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/favorites')}>
-                <Heart className="mr-2 h-4 w-4" />
-                <span>Mes favoris</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/saved')}>
-                <History className="mr-2 h-4 w-4" />
-                <span>Historique</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Paramètres</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Se déconnecter</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+                {/* Section transport */}
+                <div className="p-3 border-b">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-4 w-4 text-primary">🚗</div>
+                    <span className="font-medium text-sm">Transport</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    <Badge className="bg-green-500 text-white cursor-pointer">
+                      À pied
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      Voiture
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      Vélo
+                    </Badge>
+                    <Badge variant="outline" className="cursor-pointer">
+                      Transport
+                    </Badge>
+                  </div>
+                </div>
+
+                <DropdownMenuSeparator />
+                
+                {/* Actions utilisateur */}
+                <DropdownMenuItem onClick={() => navigate('/account')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Mon compte</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/favorites')}>
+                  <Heart className="mr-2 h-4 w-4" />
+                  <span>Mes favoris</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/saved')}>
+                  <History className="mr-2 h-4 w-4" />
+                  <span>Historique</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Paramètres</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Se déconnecter</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
         </div>
 
         {/* Barre d'état contextuelle mobile */}
