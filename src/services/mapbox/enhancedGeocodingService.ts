@@ -33,7 +33,7 @@ export const enhancedGeocodingService = {
   ): Promise<SearchResult[]> {
     try {
       const { limit = 5, radius = 10, language = 'fr' } = options;
-      const token = getMapboxToken();
+      const token = await getMapboxToken();
       
       if (!token) {
         throw new Error('Token Mapbox manquant');

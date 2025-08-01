@@ -46,25 +46,49 @@ const ResultMarkersManager: React.FC<ResultMarkersManagerProps> = ({
 };
 
 const clearExistingMarkers = (map: mapboxgl.Map) => {
-  // Supprimer les couches de marqueurs existantes
-  const layers = map.getStyle().layers;
-  
-  layers?.forEach(layer => {
-    if (layer.id.startsWith('marker-') || layer.id === 'user-location') {
-      if (map.getLayer(layer.id)) {
-        map.removeLayer(layer.id);
+  try {
+    // 1. D'abord supprimer TOUTES les couches qui utilisent les sources
+    const layers = map.getStyle()?.layers || [];
+    
+    // Collecter toutes les couches à supprimer
+    const layersToRemove = layers
+      .filter(layer => 
+        layer.id.startsWith('marker-') || 
+        layer.id.startsWith('user-location') ||
+        layer.id.includes('pulse')
+      )
+      .map(layer => layer.id);
+    
+    // Supprimer les couches une par une
+    layersToRemove.forEach(layerId => {
+      try {
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId);
+          console.log(`✅ Couche supprimée: ${layerId}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Erreur suppression couche ${layerId}:`, error);
       }
-    }
-  });
+    });
 
-  // Supprimer les sources de marqueurs existantes
-  Object.keys(map.getStyle().sources || {}).forEach(sourceId => {
-    if (sourceId.startsWith('marker-') || sourceId === 'user-location') {
-      if (map.getSource(sourceId)) {
-        map.removeSource(sourceId);
+    // 2. Ensuite supprimer les sources (maintenant libres)
+    const sources = Object.keys(map.getStyle()?.sources || {});
+    
+    sources.forEach(sourceId => {
+      if (sourceId.startsWith('marker-') || sourceId === 'user-location') {
+        try {
+          if (map.getSource(sourceId)) {
+            map.removeSource(sourceId);
+            console.log(`✅ Source supprimée: ${sourceId}`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Erreur suppression source ${sourceId}:`, error);
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('🚨 Erreur dans clearExistingMarkers:', error);
+  }
 };
 
 const addUserLocationMarker = (map: mapboxgl.Map, location: [number, number]) => {
@@ -74,14 +98,27 @@ const addUserLocationMarker = (map: mapboxgl.Map, location: [number, number]) =>
   // Vérifier et supprimer la source existante si elle existe
   if (map.getSource(sourceId)) {
     console.log('🚨 Removing existing user-location source');
-    // Supprimer les couches associées d'abord
-    [`${layerId}-pulse`, `${layerId}-outer`, layerId].forEach(id => {
-      if (map.getLayer(id)) {
-        map.removeLayer(id);
+    // Supprimer les couches associées d'abord - ORDRE CRITIQUE
+    const layersToRemove = [`${layerId}-pulse`, `${layerId}-outer`, layerId];
+    
+    layersToRemove.forEach(id => {
+      try {
+        if (map.getLayer(id)) {
+          map.removeLayer(id);
+          console.log(`✅ Couche user-location supprimée: ${id}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Erreur suppression couche ${id}:`, error);
       }
     });
-    // Puis supprimer la source
-    map.removeSource(sourceId);
+    
+    // Puis supprimer la source (maintenant libre)
+    try {
+      map.removeSource(sourceId);
+      console.log(`✅ Source user-location supprimée: ${sourceId}`);
+    } catch (error) {
+      console.warn(`⚠️ Erreur suppression source ${sourceId}:`, error);
+    }
   }
 
   console.log('📍 Adding user location marker at:', location);
@@ -156,14 +193,27 @@ const addResultMarker = (
 
   // Vérifier et supprimer la source existante si elle existe
   if (map.getSource(sourceId)) {
-    // Supprimer les couches associées d'abord
-    [`${layerId}-label`, layerId].forEach(id => {
-      if (map.getLayer(id)) {
-        map.removeLayer(id);
+    // Supprimer les couches associées d'abord - ORDRE CRITIQUE
+    const layersToRemove = [`${layerId}-label`, layerId];
+    
+    layersToRemove.forEach(id => {
+      try {
+        if (map.getLayer(id)) {
+          map.removeLayer(id);
+          console.log(`✅ Couche marker supprimée: ${id}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Erreur suppression couche ${id}:`, error);
       }
     });
-    // Puis supprimer la source
-    map.removeSource(sourceId);
+    
+    // Puis supprimer la source (maintenant libre)
+    try {
+      map.removeSource(sourceId);
+      console.log(`✅ Source marker supprimée: ${sourceId}`);
+    } catch (error) {
+      console.warn(`⚠️ Erreur suppression source ${sourceId}:`, error);
+    }
   }
 
   // Ajouter la source
