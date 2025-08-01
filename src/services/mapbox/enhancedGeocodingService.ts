@@ -1,28 +1,11 @@
-
-import { getMapboxToken } from '@/utils/mapboxConfig';
 import { SearchResult } from '@/types/geosearch';
+import { secureMapboxService } from '../secureMapboxService';
 
 interface GeocodingOptions {
   limit?: number;
   radius?: number;
   language?: string;
   categories?: string[];
-}
-
-interface MapboxFeature {
-  id: string;
-  text: string;
-  place_name: string;
-  center: [number, number];
-  properties?: {
-    category?: string;
-    address?: string;
-    foursquare?: string;
-  };
-  context?: Array<{
-    id: string;
-    text: string;
-  }>;
 }
 
 export const enhancedGeocodingService = {
@@ -32,92 +15,54 @@ export const enhancedGeocodingService = {
     options: GeocodingOptions = {}
   ): Promise<SearchResult[]> {
     try {
-      const { limit = 5, radius = 10, language = 'fr' } = options;
-      const token = await getMapboxToken();
+      const { limit = 10, radius = 50 } = options;
       
-      if (!token) {
-        throw new Error('Token Mapbox manquant');
-      }
-
-      const bbox = this.calculateBoundingBox(center, radius);
+      // Utilisation du service sécurisé
+      const results = await secureMapboxService.searchPlaces(query, center, {
+        limit,
+        radius
+      });
       
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
-        `access_token=${token}&` +
-        `proximity=${center[0]},${center[1]}&` +
-        `limit=${limit}&` +
-        `country=fr&` +
-        `language=${language}&` +
-        `types=poi,place,address&` +
-        `bbox=${bbox.join(',')}`;
-
-      const response = await fetch(url);
+      // Enrichissement des résultats
+      return results.map((result) => ({
+        ...result,
+        category: this.extractCategoryFromContext(result) || 'general',
+        duration: Math.round(result.distance * 15) // 15min par km à pied
+      })).sort((a, b) => a.distance - b.distance);
       
-      if (!response.ok) {
-        throw new Error(`Mapbox Geocoding API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (!data.features || !Array.isArray(data.features)) {
-        return [];
-      }
-
-      return data.features.map((feature: MapboxFeature) => ({
-        id: feature.id,
-        name: feature.text,
-        address: feature.place_name,
-        coordinates: feature.center,
-        type: 'place',
-        category: feature.properties?.category || this.extractCategoryFromContext(feature) || 'place',
-        distance: this.calculateDistance(center, feature.center)
-      }));
     } catch (error) {
       console.error('Enhanced geocoding error:', error);
       return [];
     }
   },
 
-  extractCategoryFromContext(feature: MapboxFeature): string | null {
-    // Essayer d'extraire la catégorie du contexte
-    if (feature.context) {
-      for (const ctx of feature.context) {
-        if (ctx.id.includes('poi')) {
-          return 'restaurant';
-        }
-        if (ctx.id.includes('address')) {
-          return 'place';
-        }
-      }
-    }
-    
-    // Extraire de properties si disponible
-    if (feature.properties?.foursquare) {
+  extractCategoryFromContext(result: SearchResult): string | null {
+    // Analyser le nom du lieu pour déduire la catégorie
+    const placeName = result.address?.toLowerCase() || result.name?.toLowerCase() || '';
+    return this.inferCategoryFromName(placeName);
+  },
+
+  inferCategoryFromName(placeName: string): string | null {
+    if (placeName.includes('restaurant') || placeName.includes('café')) {
       return 'restaurant';
     }
-    
-    return null;
+    if (placeName.includes('pharmacie')) {
+      return 'health';
+    }
+    if (placeName.includes('supermarché') || placeName.includes('magasin')) {
+      return 'shopping';
+    }
+    if (placeName.includes('hôtel')) {
+      return 'lodging';
+    }
+    return 'place';
   },
 
-  calculateDistance([lng1, lat1]: [number, number], [lng2, lat2]: [number, number]): number {
-    const R = 6371; // Rayon de la Terre en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return Math.round(R * c * 10) / 10;
+  calculateDistance(coord1: [number, number], coord2: [number, number]): number {
+    return secureMapboxService.calculateDistance(coord1, coord2);
   },
 
-  calculateBoundingBox([lng, lat]: [number, number], radiusKm: number): [number, number, number, number] {
-    const latDelta = radiusKm / 111.32;
-    const lngDelta = radiusKm / (111.32 * Math.cos(lat * Math.PI / 180));
-
-    return [
-      lng - lngDelta,
-      lat - latDelta,
-      lng + lngDelta,
-      lat + latDelta
-    ];
+  calculateBoundingBox(center: [number, number], radiusKm: number): [number, number, number, number] {
+    return secureMapboxService.calculateBoundingBox(center, radiusKm);
   }
 };
