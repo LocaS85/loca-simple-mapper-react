@@ -6,6 +6,7 @@ import { GeoSearchFilters, SearchResult } from '@/types/geosearch';
 import GoogleMapsMap from './components/GoogleMapsMap';
 import ModernSidebar from './components/ModernSidebar';
 import GoogleMapsResultsList from './components/GoogleMapsResultsList';
+import AdaptiveMapCluster from '@/components/map/AdaptiveMapCluster';
 import LocationDetailsPopup from './ui/LocationDetailsPopup';
 import ExportPDFButton from './components/ExportPDFButton';
 import MultiMapToggle from './MultiMapToggle';

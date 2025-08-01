@@ -1,511 +1,397 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { spatialCacheService } from '@/services/spatialCache/SpatialCacheService';
-import { batchMapboxService } from '@/services/batch/BatchMapboxService';
-import { isochroneCacheService } from '@/services/isochrone/IsochroneCacheService';
-import { enhancedGeolocationService } from '@/services/geolocation/EnhancedGeolocationService';
-import { 
-  Activity, 
-  Database, 
-  MapPin, 
-  Zap, 
-  Clock, 
-  TrendingUp,
-  Wifi,
-  RefreshCw
-} from 'lucide-react';
+import { Activity, Database, MapPin, Signal, Wifi, RotateCcw } from 'lucide-react';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
-interface PerformanceMetrics {
-  spatial: {
-    hitRatio: number;
-    avgLatency: number;
-    totalRequests: number;
-    cacheHits: number;
-    spatialCoverage: number;
-  };
-  batch: {
-    totalRequests: number;
-    batchedRequests: number;
-    averageBatchSize: number;
-    compressionRatio: number;
-    averageLatency: number;
-    errorRate: number;
-  };
-  isochrone: {
-    hitRatio: number;
-    totalRequests: number;
-    cacheHits: number;
-    precomputedHits: number;
-    interpolatedResults: number;
-    averageResponseTime: number;
-  };
-  geolocation: {
-    averageQuality: number;
-    gpsSuccessRate: number;
-    totalAttempts: number;
-  };
-  network: {
-    status: 'online' | 'offline' | 'slow';
-    effectiveType: string;
-    downlink: number;
-    rtt: number;
-  };
+interface PerformanceMonitorProps {
+  className?: string;
 }
 
-export const PerformanceMonitor: React.FC = () => {
-  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [autoRefresh, setAutoRefresh] = useState(false);
+export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ className }) => {
+  const {
+    metrics,
+    isLoading,
+    refreshMetrics,
+    exportMetrics,
+    resetMetrics,
+    getPerformanceAlerts
+  } = usePerformanceMonitor();
 
-  const collectMetrics = async () => {
-    try {
-      setIsLoading(true);
-      
-      const [spatialMetrics, batchMetrics, isochroneMetrics, geolocationStats] = await Promise.all([
-        spatialCacheService.getMetrics(),
-        batchMapboxService.getMetrics(),
-        isochroneCacheService.getMetrics(),
-        enhancedGeolocationService.getLocationQualityStats()
-      ]);
-
-      // Network information (if available)
-      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-      const networkMetrics = {
-        status: navigator.onLine ? 'online' : 'offline',
-        effectiveType: connection?.effectiveType || 'unknown',
-        downlink: connection?.downlink || 0,
-        rtt: connection?.rtt || 0
-      } as const;
-
-      setMetrics({
-        spatial: spatialMetrics,
-        batch: batchMetrics,
-        isochrone: isochroneMetrics,
-        geolocation: geolocationStats,
-        network: networkMetrics
-      });
-
-      console.log('📊 Performance metrics collected');
-      
-    } catch (error) {
-      console.error('❌ Error collecting metrics:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [alerts, setAlerts] = useState<string[]>([]);
 
   useEffect(() => {
-    collectMetrics();
-  }, []);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (autoRefresh) {
-      interval = setInterval(collectMetrics, 5000); // Refresh every 5 seconds
+    if (metrics) {
+      setAlerts(getPerformanceAlerts());
     }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [autoRefresh]);
+  }, [metrics, getPerformanceAlerts]);
 
-  const getStatusColor = (value: number, type: 'percentage' | 'latency' | 'quality'): string => {
-    switch (type) {
-      case 'percentage':
-        if (value >= 80) return 'text-green-600';
-        if (value >= 60) return 'text-yellow-600';
-        return 'text-red-600';
-      case 'latency':
-        if (value <= 100) return 'text-green-600';
-        if (value <= 500) return 'text-yellow-600';
-        return 'text-red-600';
-      case 'quality':
-        if (value >= 80) return 'text-green-600';
-        if (value >= 60) return 'text-yellow-600';
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
+  const getStatusColor = (value: number, type: 'percentage' | 'latency' | 'quality' = 'percentage') => {
+    if (type === 'percentage') {
+      if (value >= 80) return 'text-green-600';
+      if (value >= 60) return 'text-yellow-600';
+      return 'text-red-600';
     }
+    if (type === 'latency') {
+      if (value <= 100) return 'text-green-600';
+      if (value <= 300) return 'text-yellow-600';
+      return 'text-red-600';
+    }
+    if (type === 'quality') {
+      if (value >= 70) return 'text-green-600';
+      if (value >= 40) return 'text-yellow-600';
+      return 'text-red-600';
+    }
+    return 'text-gray-600';
   };
 
-  const formatLatency = (ms: number): string => {
-    if (ms < 1000) return `${Math.round(ms)}ms`;
-    return `${(ms / 1000).toFixed(1)}s`;
+  const formatLatency = (latency: number) => {
+    return latency > 1000 ? `${(latency / 1000).toFixed(1)}s` : `${Math.round(latency)}ms`;
   };
 
-  if (isLoading || !metrics) {
+  if (isLoading) {
     return (
-      <Card className="w-full">
+      <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
-            Chargement des métriques...
+            Performance Monitor
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center p-8">
-            <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  return (
-    <div className="w-full space-y-4">
-      {/* Header with controls */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Monitoring Performance GIS
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                className={autoRefresh ? 'bg-green-50 border-green-200' : ''}
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${autoRefresh ? 'animate-spin' : ''}`} />
-                {autoRefresh ? 'Auto' : 'Manuel'}
-              </Button>
-              <Button variant="outline" size="sm" onClick={collectMetrics}>
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Actualiser
-              </Button>
-            </div>
-          </div>
-          
-          {/* Network status */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Wifi className="h-4 w-4" />
-              <span>Réseau:</span>
-              <Badge variant={metrics.network.status === 'online' ? 'default' : 'destructive'}>
-                {metrics.network.status}
-              </Badge>
-              {metrics.network.effectiveType !== 'unknown' && (
-                <span>({metrics.network.effectiveType})</span>
-              )}
-            </div>
-            {metrics.network.downlink > 0 && (
-              <span>↓ {metrics.network.downlink} Mbps</span>
-            )}
-            {metrics.network.rtt > 0 && (
-              <span>RTT: {metrics.network.rtt}ms</span>
-            )}
-          </div>
+  if (!metrics) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle>Performance Monitor</CardTitle>
+          <CardDescription>Aucune métrique disponible</CardDescription>
         </CardHeader>
+        <CardContent>
+          <Button onClick={refreshMetrics}>Charger les métriques</Button>
+        </CardContent>
       </Card>
+    );
+  }
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="spatial">Cache Spatial</TabsTrigger>
-          <TabsTrigger value="batch">Batch Mapbox</TabsTrigger>
-          <TabsTrigger value="isochrone">Isochrones</TabsTrigger>
-          <TabsTrigger value="geolocation">Géolocalisation</TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Database className="h-4 w-4" />
-                  Cache Spatial
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  <span className={getStatusColor(metrics.spatial.hitRatio * 100, 'percentage')}>
-                    {Math.round(metrics.spatial.hitRatio * 100)}%
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Hit ratio ({metrics.spatial.cacheHits}/{metrics.spatial.totalRequests})
-                </p>
-                <Progress value={metrics.spatial.hitRatio * 100} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Zap className="h-4 w-4" />
-                  Batch Processing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  <span className={getStatusColor(metrics.batch.compressionRatio * 100, 'percentage')}>
-                    {Math.round(metrics.batch.compressionRatio * 100)}%
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Compression ratio
-                </p>
-                <Progress value={metrics.batch.compressionRatio * 100} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Isochrones
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  <span className={getStatusColor(metrics.isochrone.averageResponseTime, 'latency')}>
-                    {formatLatency(metrics.isochrone.averageResponseTime)}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Temps de réponse moyen
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Géolocalisation
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  <span className={getStatusColor(metrics.geolocation.averageQuality, 'quality')}>
-                    {metrics.geolocation.averageQuality}%
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Qualité moyenne ({metrics.geolocation.totalAttempts} tentatives)
-                </p>
-                <Progress value={metrics.geolocation.averageQuality} className="mt-2" />
-              </CardContent>
-            </Card>
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Activity className="h-5 w-5" />
+          Performance Monitor
+        </CardTitle>
+        <CardDescription>
+          Surveillance temps réel des performances GIS
+        </CardDescription>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={refreshMetrics}>
+            <RotateCcw className="h-4 w-4 mr-1" />
+            Actualiser
+          </Button>
+          <Button size="sm" variant="outline" onClick={exportMetrics}>
+            Exporter
+          </Button>
+          <Button size="sm" variant="outline" onClick={resetMetrics}>
+            Reset
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {/* Alertes de performance */}
+        {alerts.length > 0 && (
+          <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Alertes Performance</h4>
+            {alerts.map((alert, index) => (
+              <p key={index} className="text-sm text-yellow-700 dark:text-yellow-300">• {alert}</p>
+            ))}
           </div>
-        </TabsContent>
+        )}
 
-        {/* Spatial Cache Tab */}
-        <TabsContent value="spatial">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cache Spatial - Métriques Détaillées</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Hit Ratio</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {Math.round(metrics.spatial.hitRatio * 100)}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Latence Moyenne</p>
-                  <p className="text-2xl font-bold">{formatLatency(metrics.spatial.avgLatency)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Couverture Spatiale</p>
-                  <p className="text-2xl font-bold">{metrics.spatial.spatialCoverage}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Total Requêtes</p>
-                  <p className="text-2xl font-bold">{metrics.spatial.totalRequests}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Cache Hits</p>
-                  <p className="text-2xl font-bold text-green-600">{metrics.spatial.cacheHits}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Cache Miss</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {metrics.spatial.totalRequests - metrics.spatial.cacheHits}
-                  </p>
-                </div>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium mb-2">Performance du Cache</p>
-                <Progress value={metrics.spatial.hitRatio * 100} />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>0%</span>
-                  <span>50%</span>
-                  <span>100%</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="spatial">Spatial</TabsTrigger>
+            <TabsTrigger value="batch">Batch</TabsTrigger>
+            <TabsTrigger value="isochrone">Isochrone</TabsTrigger>
+            <TabsTrigger value="geolocation">Géolocalisation</TabsTrigger>
+          </TabsList>
 
-        {/* Batch Processing Tab */}
-        <TabsContent value="batch">
-          <Card>
-            <CardHeader>
-              <CardTitle>Batch Mapbox - Optimisation des Requêtes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Taille Batch Moyenne</p>
-                  <p className="text-2xl font-bold">{metrics.batch.averageBatchSize.toFixed(1)}</p>
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Cache Global */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Database className="h-4 w-4" />
+                  <span className="font-medium">Cache Global</span>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Ratio Compression</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {Math.round(metrics.batch.compressionRatio * 100)}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Taux d'Erreur</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {(metrics.batch.errorRate * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Requêtes Totales</p>
-                  <p className="text-2xl font-bold">{metrics.batch.totalRequests}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Batches Créés</p>
-                  <p className="text-2xl font-bold">{metrics.batch.batchedRequests}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Latence Moyenne</p>
-                  <p className="text-2xl font-bold">{formatLatency(metrics.batch.averageLatency)}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Taux réussite</span>
+                    <span className={getStatusColor(metrics.spatialCache.hitRatio * 100)}>
+                      {Math.round(metrics.spatialCache.hitRatio * 100)}%
+                    </span>
+                  </div>
+                  <Progress value={metrics.spatialCache.hitRatio * 100} className="h-2" />
                 </div>
               </div>
-              
-              <div>
-                <p className="text-sm font-medium mb-2">Efficacité du Batching</p>
-                <Progress value={metrics.batch.compressionRatio * 100} />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {Math.round((1 - metrics.batch.compressionRatio) * metrics.batch.totalRequests)} requêtes économisées
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        {/* Isochrone Tab */}
-        <TabsContent value="isochrone">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cache Isochrones - Performance Avancée</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Hit Ratio</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {Math.round(metrics.isochrone.hitRatio * 100)}%
-                  </p>
+              {/* Batch Processing */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="h-4 w-4" />
+                  <span className="font-medium">Batch API</span>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Temps Réponse</p>
-                  <p className="text-2xl font-bold">{formatLatency(metrics.isochrone.averageResponseTime)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Interpolations</p>
-                  <p className="text-2xl font-bold text-blue-600">{metrics.isochrone.interpolatedResults}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Total Requêtes</p>
-                  <p className="text-2xl font-bold">{metrics.isochrone.totalRequests}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Cache Hits</p>
-                  <p className="text-2xl font-bold text-green-600">{metrics.isochrone.cacheHits}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Précalculées</p>
-                  <p className="text-2xl font-bold text-purple-600">{metrics.isochrone.precomputedHits}</p>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div>
-                  <p className="text-sm font-medium mb-1">Performance Cache</p>
-                  <Progress value={metrics.isochrone.hitRatio * 100} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium mb-1">Optimisations Avancées</p>
-                  <div className="flex gap-2">
-                    <Badge variant="secondary">
-                      {metrics.isochrone.interpolatedResults} interpolées
-                    </Badge>
-                    <Badge variant="secondary">
-                      {metrics.isochrone.precomputedHits} précalculées
-                    </Badge>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Latence moy.</span>
+                    <span className={getStatusColor(metrics.batchMapbox.averageResponseTime, 'latency')}>
+                      {formatLatency(metrics.batchMapbox.averageResponseTime)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Queue Size</span>
+                    <span>{metrics.batchMapbox.queueSize}</span>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        {/* Geolocation Tab */}
-        <TabsContent value="geolocation">
-          <Card>
-            <CardHeader>
-              <CardTitle>Géolocalisation Avancée - Statistiques</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm font-medium">Qualité Moyenne</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {metrics.geolocation.averageQuality}%
-                  </p>
-                  <Progress value={metrics.geolocation.averageQuality} className="mt-2" />
+              {/* Isochrones */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="h-4 w-4" />
+                  <span className="font-medium">Isochrones</span>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Taux Succès GPS</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {metrics.geolocation.gpsSuccessRate}%
-                  </p>
-                  <Progress value={metrics.geolocation.gpsSuccessRate} className="mt-2" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Total Tentatives</p>
-                  <p className="text-2xl font-bold">{metrics.geolocation.totalAttempts}</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Historique disponible
-                  </p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Cache</span>
+                    <span className={getStatusColor(metrics.isochrone.interpolationAccuracy)}>
+                      {Math.round(metrics.isochrone.interpolationAccuracy)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Cache Size</span>
+                    <span>{metrics.isochrone.cacheSize}</span>
+                  </div>
                 </div>
               </div>
-              
-              <div>
-                <p className="text-sm font-medium mb-2">Fiabilité de Géolocalisation</p>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span>GPS</span>
-                    <span>{metrics.geolocation.gpsSuccessRate}%</span>
+
+              {/* Géolocalisation */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Signal className="h-4 w-4" />
+                  <span className="font-medium">Position</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Qualité</span>
+                    <span className={getStatusColor(metrics.geolocation.successRate * 100, 'quality')}>
+                      {Math.round(metrics.geolocation.successRate * 100)}%
+                    </span>
                   </div>
-                  <Progress value={metrics.geolocation.gpsSuccessRate} />
+                  <div className="flex justify-between text-sm">
+                    <span>Précision</span>
+                    <span>{Math.round(metrics.geolocation.averageAccuracy)}m</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Réseau */}
+            <div className="p-4 border rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <Wifi className="h-4 w-4" />
+                <span className="font-medium">État Réseau</span>
+                <Badge variant="default">
+                  En ligne
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Type:</span>
+                  <p className="font-medium">{metrics.network.effectiveType || 'Inconnu'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Débit:</span>
+                  <p className="font-medium">{metrics.network.downlink ? `${metrics.network.downlink} Mbps` : 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">RTT:</span>
+                  <p className="font-medium">{metrics.network.rtt ? `${metrics.network.rtt}ms` : 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Économie données:</span>
+                  <p className="font-medium">{metrics.network.saveData ? 'Activée' : 'Désactivée'}</p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="spatial" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <h3 className="font-medium">Cache Spatial</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>Taux de réussite</span>
+                    <span className={getStatusColor(metrics.spatialCache.hitRatio * 100)}>
+                      {Math.round(metrics.spatialCache.hitRatio * 100)}%
+                    </span>
+                  </div>
+                  <Progress value={metrics.spatialCache.hitRatio * 100} />
                   
-                  <div className="flex justify-between text-xs">
-                    <span>Qualité globale</span>
-                    <span>{metrics.geolocation.averageQuality}%</span>
+                  <div className="flex justify-between">
+                    <span>Latence moyenne</span>
+                    <span className={getStatusColor(metrics.spatialCache.averageLatency, 'latency')}>
+                      {formatLatency(metrics.spatialCache.averageLatency)}
+                    </span>
                   </div>
-                  <Progress value={metrics.geolocation.averageQuality} />
+                  
+                  <div className="flex justify-between">
+                    <span>Total requêtes</span>
+                    <span>{metrics.spatialCache.totalQueries}</span>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-medium">Statistiques</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Storage utilisé</span>
+                    <span className="text-green-600">{Math.round(metrics.spatialCache.storageUsed / 1024)}KB</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Hit Ratio</span>
+                    <span className="text-green-600">{Math.round(metrics.spatialCache.hitRatio * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total Queries</span>
+                    <span>{metrics.spatialCache.totalQueries} requêtes</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="batch" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <h3 className="font-medium">Traitement par lots</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>Temps de réponse moyen</span>
+                    <span className={getStatusColor(metrics.batchMapbox.averageResponseTime, 'latency')}>
+                      {formatLatency(metrics.batchMapbox.averageResponseTime)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span>Queue Size</span>
+                    <span>{metrics.batchMapbox.queueSize}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span>Taux de succès</span>
+                    <span className="text-green-600">{Math.round(metrics.batchMapbox.successRate * 100)}%</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span>Requêtes économisées</span>
+                    <span className="text-green-600">{metrics.batchMapbox.requestsSaved}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-medium">Performance</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Taux de succès</span>
+                    <span className={getStatusColor(metrics.batchMapbox.successRate * 100)}>
+                      {Math.round(metrics.batchMapbox.successRate * 100)}%
+                    </span>
+                  </div>
+                  <Progress value={metrics.batchMapbox.successRate * 100} />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="isochrone" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <h3 className="font-medium">Isochrones</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>Cache Size</span>
+                    <span className={getStatusColor(80)}>
+                      {metrics.isochrone.cacheSize} entrées
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span>Précomputées</span>
+                    <span>{metrics.isochrone.precomputedCount}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span>Précision interpolation</span>
+                    <span className={getStatusColor(metrics.isochrone.interpolationAccuracy, 'percentage')}>
+                      {Math.round(metrics.isochrone.interpolationAccuracy)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="geolocation" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <h3 className="font-medium">Géolocalisation</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>Taux de succès</span>
+                    <span className={getStatusColor(metrics.geolocation.successRate * 100, 'quality')}>
+                      {Math.round(metrics.geolocation.successRate * 100)}%
+                    </span>
+                  </div>
+                  <Progress value={metrics.geolocation.successRate * 100} />
+                  
+                  <div className="flex justify-between">
+                    <span>Précision moyenne</span>
+                    <span>{Math.round(metrics.geolocation.averageAccuracy)}m</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span>Dernière précision</span>
+                    <span>{Math.round(metrics.geolocation.lastAccuracy)}m</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span>Fallback utilisé</span>
+                    <Badge variant={metrics.geolocation.fallbackUsed ? 'secondary' : 'default'}>
+                      {metrics.geolocation.fallbackUsed ? 'Oui' : 'Non'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };

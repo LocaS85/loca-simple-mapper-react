@@ -120,7 +120,7 @@ export const EnhancedGeoSearchIntegration: React.FC<EnhancedGeoSearchIntegration
         {
           limit: filters.aroundMeCount || 10,
           radius: filters.distance || 5,
-          categories: filters.category ? [filters.category] : undefined
+          categories: filters.category ? (Array.isArray(filters.category) ? filters.category : [filters.category]) : undefined
         }
       );
 

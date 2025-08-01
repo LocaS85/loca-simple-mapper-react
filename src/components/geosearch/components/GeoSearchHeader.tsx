@@ -12,7 +12,8 @@ import {
   ChevronDown,
   Filter,
   Menu,
-  Search
+  Search,
+  Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -27,6 +28,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import EnhancedSearchBar from '../../enhanced/EnhancedSearchBar';
 import SmartBreadcrumb from '../ui/SmartBreadcrumb';
+import { GeolocationStatus } from './GeolocationStatus';
+import { NetworkQualityIndicator } from './NetworkQualityIndicator';
+import { PerformanceMonitor } from '@/components/performance/PerformanceMonitor';
 
 interface GeoSearchHeaderProps {
   searchQuery: string;
@@ -58,6 +62,7 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [showPerformanceMonitor, setShowPerformanceMonitor] = useState(false);
 
   const handleLocationClick = () => {
     if (isLocating) return;
@@ -162,6 +167,22 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
 
           {/* Actions rapides */}
           <div className="flex items-center gap-1">
+            <GeolocationStatus />
+            <NetworkQualityIndicator />
+            
+            {/* Performance Monitor (development only) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowPerformanceMonitor(!showPerformanceMonitor)}
+                title="Moniteur de performance"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Activity className="h-4 w-4" />
+              </Button>
+            )}
+            
             {onToggleSidebar && (
               <Button
                 variant="ghost"
@@ -291,6 +312,13 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
           </div>
         )}
       </div>
+      
+      {/* Performance Monitor (development) */}
+      {showPerformanceMonitor && process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-full left-0 right-0 z-50 p-4 bg-background border-b">
+          <PerformanceMonitor />
+        </div>
+      )}
     </div>
   );
 };

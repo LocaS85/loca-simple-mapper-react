@@ -14,6 +14,7 @@ import { mapboxConfigService } from '@/services/mapboxConfigService';
 import { SecureMapboxProvider } from './security/SecureMapboxProvider';
 import { AccessibilityProvider } from './accessibility/AccessibilityProvider';
 import { LanguageProvider } from './i18n/LanguageProvider';
+import { EnhancedGeoSearchIntegration } from './components/EnhancedGeoSearchIntegration';
 
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
@@ -221,47 +222,49 @@ const GeoSearchApp: React.FC = () => {
 
   // Interface principale avec header intelligent
   return (
-    <LanguageProvider>
-      <AccessibilityProvider>
-        <SecureMapboxProvider>
-          <div className="h-screen flex flex-col">
-            {/* Header unifié avec contrôles centralisés */}
-            <GeoSearchHeader
-              searchQuery={filters.query || ''}
-              onSearch={handleSearch}
-              onLocationSelect={handleLocationSelect}
-              userLocation={userLocation}
-              resultsCount={results.length}
-              isLoading={isLoading}
-              onMyLocationClick={handleMyLocationClick}
-              isLocating={isLocating}
-              locationError={locationError}
-              onToggleSidebar={() => setShowSidebar(!showSidebar)}
-              sidebarOpen={showSidebar}
-            />
-            
-
-            {/* Contenu principal */}
-            <div className="flex-1 overflow-hidden">
-              <GoogleMapsLayout
-                filters={filters}
-                results={results}
-                userLocation={userLocation}
-                isLoading={isLoading}
+    <EnhancedGeoSearchIntegration>
+      <LanguageProvider>
+        <AccessibilityProvider>
+          <SecureMapboxProvider>
+            <div className="h-screen flex flex-col">
+              {/* Header unifié avec contrôles centralisés */}
+              <GeoSearchHeader
+                searchQuery={filters.query || ''}
                 onSearch={handleSearch}
                 onLocationSelect={handleLocationSelect}
+                userLocation={userLocation}
+                resultsCount={results.length}
+                isLoading={isLoading}
                 onMyLocationClick={handleMyLocationClick}
-                onFiltersChange={updateFilters}
-                onResetFilters={resetFilters}
-                onBack={() => navigate('/categories')}
-                showSidebar={showSidebar}
+                isLocating={isLocating}
+                locationError={locationError}
                 onToggleSidebar={() => setShowSidebar(!showSidebar)}
+                sidebarOpen={showSidebar}
               />
+              
+
+              {/* Contenu principal */}
+              <div className="flex-1 overflow-hidden">
+                <GoogleMapsLayout
+                  filters={filters}
+                  results={results}
+                  userLocation={userLocation}
+                  isLoading={isLoading}
+                  onSearch={handleSearch}
+                  onLocationSelect={handleLocationSelect}
+                  onMyLocationClick={handleMyLocationClick}
+                  onFiltersChange={updateFilters}
+                  onResetFilters={resetFilters}
+                  onBack={() => navigate('/categories')}
+                  showSidebar={showSidebar}
+                  onToggleSidebar={() => setShowSidebar(!showSidebar)}
+                />
+              </div>
             </div>
-          </div>
-        </SecureMapboxProvider>
-      </AccessibilityProvider>
-    </LanguageProvider>
+          </SecureMapboxProvider>
+        </AccessibilityProvider>
+      </LanguageProvider>
+    </EnhancedGeoSearchIntegration>
   );
 };
 
