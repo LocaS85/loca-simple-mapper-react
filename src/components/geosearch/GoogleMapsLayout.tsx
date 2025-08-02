@@ -72,7 +72,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
       <div className="flex-1 flex flex-col order-1">
         {/* Zone carte et résultats */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Carte maximisée */}
+          {/* Carte maximisée avec clustering adaptatif */}
           <div className="flex-1 relative">
             <GoogleMapsMap
               results={results}

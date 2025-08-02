@@ -1,87 +1,40 @@
 import React from 'react';
-import { MapPin, WifiOff, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { MapPin, WifiOff, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 
 export const GeolocationStatus: React.FC = () => {
-  const { 
-    coordinates: currentLocation, 
-    isLoading, 
-    error, 
-    accuracy,
-    getQualityStats 
-  } = useEnhancedGeolocation();
+  const { userLocation, networkStatus } = useGeoSearchStore();
 
-  const qualityStats = getQualityStats();
-  
   const getStatusIcon = () => {
-    if (isLoading) return <MapPin className="h-3 w-3 animate-pulse" />;
-    if (error) return <AlertTriangle className="h-3 w-3" />;
-    if (!currentLocation) return <WifiOff className="h-3 w-3" />;
-    return <CheckCircle className="h-3 w-3" />;
-  };
-
-  const getStatusVariant = (): 'default' | 'secondary' | 'destructive' => {
-    if (error) return 'destructive';
-    if (!currentLocation) return 'secondary';
-    return 'default';
+    if (networkStatus === 'offline') return <WifiOff className="h-3 w-3 text-destructive" />;
+    if (networkStatus === 'slow') return <AlertTriangle className="h-3 w-3 text-yellow-500" />;
+    if (userLocation) return <CheckCircle className="h-3 w-3 text-green-500" />;
+    return <MapPin className="h-3 w-3 text-muted-foreground" />;
   };
 
   const getStatusText = () => {
-    if (isLoading) return 'Localisation...';
-    if (error) return 'Erreur GPS';
-    if (!currentLocation) return 'Pas de position';
-    if (accuracy && accuracy < 50) return 'Précis';
-    if (accuracy && accuracy < 100) return 'Bon';
-    return 'Approximatif';
+    if (networkStatus === 'offline') return "Hors ligne";
+    if (networkStatus === 'slow') return "Connexion lente";
+    if (userLocation) return "Position OK";
+    return "Aucune position";
   };
 
-  const getTooltipContent = () => {
-    const parts = [];
-    
-    if (currentLocation) {
-      parts.push(`Position: ${currentLocation[1].toFixed(4)}, ${currentLocation[0].toFixed(4)}`);
-    }
-    
-    if (accuracy) {
-      parts.push(`Précision: ±${Math.round(accuracy)}m`);
-    }
-    
-    if (qualityStats.gpsSuccessRate > 0) {
-      parts.push(`Taux succès: ${Math.round(qualityStats.gpsSuccessRate * 100)}%`);
-      parts.push(`Qualité moyenne: ${Math.round(qualityStats.averageQuality * 100)}%`);
-    }
-    
-    if (qualityStats.totalAttempts > 5) {
-      parts.push('Géolocalisation IP utilisée');
-    }
-    
-    if (error) {
-      parts.push(`Erreur: ${error}`);
-    }
-    
-    return parts.join('\n');
+  const getVariant = () => {
+    if (networkStatus === 'offline') return "destructive" as const;
+    if (networkStatus === 'slow') return "secondary" as const;
+    if (userLocation) return "default" as const;
+    return "outline" as const;
   };
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge 
-            variant={getStatusVariant()}
-            className="flex items-center gap-1 text-xs cursor-help"
-          >
-            {getStatusIcon()}
-            <span>{getStatusText()}</span>
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs">
-          <div className="whitespace-pre-line text-xs">
-            {getTooltipContent()}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Badge 
+      variant={getVariant()}
+      className="gap-1 text-xs px-2 py-1"
+      title={`État: ${getStatusText()}`}
+    >
+      {getStatusIcon()}
+      <span className="hidden sm:inline">{getStatusText()}</span>
+    </Badge>
   );
 };

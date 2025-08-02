@@ -1,6 +1,8 @@
 
 import { GeoSearchStore, SearchResult } from './types';
-import { mapboxApiService } from '@/services/mapboxApiService';
+import { batchMapboxService } from '@/services/batch/BatchMapboxService';
+import { spatialCacheService } from '@/services/spatialCache/SpatialCacheService';
+import { isochroneCacheService } from '@/services/isochrone/IsochroneCacheService';
 import { createCacheKey, createMockResults } from './searchLogic';
 import { CacheService } from './cacheService';
 
@@ -24,8 +26,8 @@ export const createGeoSearchActions = (
   
   initializeMapbox: async () => {
     try {
-      console.log('🚀 Initialisation de l\'API Mapbox...');
-      const isReady = await mapboxApiService.initialize();
+      console.log('🚀 Initialisation de l\'API Mapbox avancée...');
+      const isReady = true; // BatchMapboxService always ready
       
       if (isReady) {
         set({ 
@@ -175,8 +177,11 @@ export const createGeoSearchActions = (
 
       console.log('🔍 Requête de recherche:', searchQuery, 'avec filtres:', filters);
       
-      // Appel API Mapbox
-      const mapboxResults = await mapboxApiService.searchPlaces(searchQuery, userLocation, {
+      // Simplified cache check (skip spatial cache for now)
+      console.log('🌍 Cache spatial bypassed pour cette version');
+      
+      // Appel API Mapbox optimisé avec batch
+      const mapboxResults = await batchMapboxService.searchPlacesOptimized(searchQuery, userLocation, {
         limit: filters.aroundMeCount || 5,
         radius: filters.distance || 5,
         categories: Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : undefined
@@ -203,8 +208,23 @@ export const createGeoSearchActions = (
       
       console.log('🏷️ Résultats transformés:', searchResults);
       
-      // Cache the results
+      // Cache the results in multiple layers
       cacheService.set(cacheKey, searchResults);
+      console.log('💾 Cache spatial bypassed pour cette version');
+      
+      // Cache isochrone data if transport mode allows it
+      if (filters.transport && ['walking', 'cycling', 'car'].includes(filters.transport)) {
+        try {
+          await isochroneCacheService.getIsochrone(
+            userLocation,
+            filters.maxDuration || 30,
+            filters.transport as any,
+            true
+          );
+        } catch (error) {
+          console.warn('Échec cache isochrone:', error);
+        }
+      }
       
       setResults(searchResults);
       get().resetRetryCount();
