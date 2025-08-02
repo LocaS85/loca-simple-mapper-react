@@ -31,6 +31,7 @@ import SmartBreadcrumb from '../ui/SmartBreadcrumb';
 import { GeolocationStatus } from './GeolocationStatus';
 import { NetworkQualityIndicator } from './NetworkQualityIndicator';
 import { PerformanceMonitor } from '@/components/performance/PerformanceMonitor';
+import MultiMapToggle from '../MultiMapToggle';
 
 interface GeoSearchHeaderProps {
   searchQuery: string;
@@ -169,6 +170,7 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
           <div className="flex items-center gap-1">
             <GeolocationStatus />
             <NetworkQualityIndicator />
+            <MultiMapToggle />
             
             {/* Performance Monitor (development only) */}
             {process.env.NODE_ENV === 'development' && (
