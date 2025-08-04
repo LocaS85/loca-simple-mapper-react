@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Filter,
   Menu,
+  SlidersHorizontal,
   Search,
   Activity
 } from 'lucide-react';
@@ -166,47 +167,35 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
             )}
           </div>
 
-          {/* Actions rapides */}
-          <div className="flex items-center gap-1">
-            <GeolocationStatus />
-            <NetworkQualityIndicator />
-            <MultiMapToggle />
-            
-            {/* Performance Monitor (development only) */}
-            {process.env.NODE_ENV === 'development' && (
+            {/* Actions rapides */}
+            <div className="flex items-center gap-1">
+              <GeolocationStatus />
+              <NetworkQualityIndicator />
+              <MultiMapToggle />
+              
+              {/* Performance Monitor (development only) */}
+              {process.env.NODE_ENV === 'development' && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowPerformanceMonitor(!showPerformanceMonitor)}
+                  title="Moniteur de performance"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Activity className="h-4 w-4" />
+                </Button>
+              )}
+              
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowPerformanceMonitor(!showPerformanceMonitor)}
-                title="Moniteur de performance"
+                onClick={handleSaveSearch}
+                title="Sauvegarder cette recherche"
                 className="text-muted-foreground hover:text-foreground"
               >
-                <Activity className="h-4 w-4" />
+                <Heart className="h-4 w-4" />
               </Button>
-            )}
-            
-            {onToggleSidebar && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onToggleSidebar}
-                title={sidebarOpen ? "Fermer les filtres" : "Ouvrir les filtres"}
-                className={`text-muted-foreground hover:text-foreground ${sidebarOpen ? 'bg-muted' : ''}`}
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            )}
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSaveSearch}
-              title="Sauvegarder cette recherche"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
-          </div>
+            </div>
 
             {/* Menu sandwich contextuel avec filtres */}
             <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
@@ -244,6 +233,23 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
                       banque
                     </Badge>
                   </div>
+                </div>
+
+                {/* Section filtres */}
+                <div className="p-3 border-b">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Filter className="h-4 w-4 text-primary" />
+                    <span className="font-medium text-sm">Filtres de recherche</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onToggleSidebar}
+                    className="w-full justify-start"
+                  >
+                    <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    {sidebarOpen ? "Fermer les filtres" : "Ouvrir les filtres"}
+                  </Button>
                 </div>
 
                 {/* Section transport */}

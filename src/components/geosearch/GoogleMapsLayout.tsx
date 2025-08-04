@@ -44,9 +44,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(null);
   const [showResultsList, setShowResultsList] = useState(false);
   
-  // Synchroniser avec le state parent
-  const showSidebar = propShowSidebar;
-  const toggleSidebar = propToggleSidebar;
+  // État centralisé dans le parent GeoSearchApp
   const handleResultSelect = (result: SearchResult) => {
     setSelectedLocation(result);
     onLocationSelect({
@@ -99,16 +97,6 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
                   className="w-10 h-10 rounded-full shadow-lg"
                 />
                 
-                <Button
-                  onClick={toggleSidebar}
-                  size="sm"
-                  className="w-10 h-10 rounded-full shadow-lg bg-white text-gray-700 hover:bg-gray-50"
-                  variant="outline"
-                  title="Ouvrir les filtres"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-                
                 {results.length > 0 && (
                   <Button
                     onClick={toggleResultsList}
@@ -145,8 +133,8 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
 
       {/* Sidebar unifiée - Seule interface de filtres */}
       <ModernSidebar
-        isOpen={showSidebar}
-        onToggle={toggleSidebar}
+        isOpen={propShowSidebar}
+        onToggle={propToggleSidebar}
         filters={filters}
         onFiltersChange={onFiltersChange}
         onResetFilters={onResetFilters}
