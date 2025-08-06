@@ -22,8 +22,8 @@ interface GoogleMapsLayoutProps {
   onFiltersChange: (filters: Partial<GeoSearchFilters>) => void;
   onResetFilters: () => void;
   onBack: () => void;
-  showSidebar: boolean;
-  onToggleSidebar: () => void;
+  propShowSidebar: boolean;
+  propToggleSidebar: () => void;
 }
 
 const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
@@ -37,8 +37,8 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
   onFiltersChange,
   onResetFilters,
   onBack,
-  showSidebar: propShowSidebar,
-  onToggleSidebar: propToggleSidebar
+  propShowSidebar,
+  propToggleSidebar
 }) => {
   const isMobile = useIsMobile();
   const [selectedLocation, setSelectedLocation] = useState<SearchResult | null>(null);
@@ -79,35 +79,24 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
               onResultClick={handleResultSelect}
             />
 
-            {/* Boutons flottants mobiles - À droite */}
+            {/* Boutons flottants mobile optimisés */}
             {isMobile && (
-              <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-50">
-                <MultiMapToggle />
-                
-                <ExportPDFButton
-                  results={results}
-                  userLocation={userLocation}
-                  filters={{
-                    query: filters.query,
-                    category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
-                    distance: filters.distance,
-                    transport: filters.transport
-                  }}
-                  size="sm"
-                  className="w-10 h-10 rounded-full shadow-lg"
-                />
-                
-                {results.length > 0 && (
-                  <Button
-                    onClick={toggleResultsList}
-                    size="sm"
-                    className="w-10 h-10 rounded-full shadow-lg bg-white text-gray-700 hover:bg-gray-50"
-                    variant="outline"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              <>
+                <button
+                  onClick={() => setShowResultsList(true)}
+                  className="fixed bottom-4 left-4 z-30 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full px-4 py-2 text-sm font-medium shadow-lg hover:bg-white transition-colors flex items-center gap-2"
+                >
+                  <span className="text-gray-600">{results.length}</span>
+                  <span className="text-gray-800">résultats</span>
+                </button>
+
+                <button
+                  onClick={() => propToggleSidebar()}
+                  className="fixed bottom-4 right-4 z-30 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-3 shadow-lg hover:bg-white transition-colors"
+                >
+                  <SlidersHorizontal className="w-5 h-5 text-gray-600" />
+                </button>
+              </>
             )}
 
             {/* Bouton toggle desktop - En haut à droite de la carte */}
@@ -131,7 +120,7 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         </div>
       </div>
 
-      {/* Sidebar unifiée - Seule interface de filtres */}
+      {/* Sidebar moderne - Adaptatif selon device */}
       <ModernSidebar
         isOpen={propShowSidebar}
         onToggle={propToggleSidebar}
@@ -142,10 +131,6 @@ const GoogleMapsLayout: React.FC<GoogleMapsLayoutProps> = ({
         onMyLocationClick={onMyLocationClick}
         isLoading={isLoading}
         results={results}
-        onCategoryClick={handleSidebarCategoryClick}
-        searchQuery={filters.query || ''}
-        onSearchChange={onSearch}
-        resultsCount={results.length}
       />
 
       {/* Popup détails de lieu */}

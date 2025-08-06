@@ -110,6 +110,12 @@ export const createGeoSearchActions = (
   setShowFilters: (show: boolean) => 
     set({ showFilters: show }),
 
+  setSidebarOpen: (open: boolean) => 
+    set({ sidebarOpen: open }),
+
+  toggleSidebar: () =>
+    set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+
   setNetworkStatus: (status: 'online' | 'offline' | 'slow') =>
     set({ networkStatus: status }),
 

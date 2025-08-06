@@ -20,6 +20,7 @@ export interface GeoSearchStore {
   results: SearchResult[];
   isLoading: boolean;
   showFilters: boolean;
+  sidebarOpen: boolean;
   isMapboxReady: boolean;
   mapboxError: string | null;
   networkStatus: NetworkStatus;
@@ -38,6 +39,8 @@ export interface GeoSearchStore {
   setIsLoading: (loading: boolean) => void;
   toggleFilters: () => void;
   setShowFilters: (show: boolean) => void;
+  setSidebarOpen: (open: boolean) => void;
+  toggleSidebar: () => void;
   setNetworkStatus: (status: NetworkStatus) => void;
   incrementRetryCount: () => void;
   resetRetryCount: () => void;
@@ -56,6 +59,7 @@ export const initialState = {
   results: [] as SearchResult[],
   isLoading: false,
   showFilters: false,
+  sidebarOpen: false,
   isMapboxReady: false,
   mapboxError: null as string | null,
   networkStatus: 'online' as NetworkStatus,

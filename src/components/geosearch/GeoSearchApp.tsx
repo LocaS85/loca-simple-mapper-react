@@ -23,7 +23,7 @@ const GeoSearchApp: React.FC = () => {
   const [initError, setInitError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [showSidebar, setShowSidebar] = useState(!isMobile); // Ouverte par défaut sur desktop uniquement
+  
   
   
   const {
@@ -33,12 +33,20 @@ const GeoSearchApp: React.FC = () => {
     isLoading,
     isMapboxReady,
     mapboxError,
+    sidebarOpen,
     updateFilters,
     resetFilters,
     performSearch,
     setUserLocation,
-    initializeMapbox
+    initializeMapbox,
+    setSidebarOpen,
+    toggleSidebar
   } = useGeoSearchStore();
+
+  // Initialiser sidebar state selon device
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile, setSidebarOpen]);
 
   // Initialisation de l'application
   useEffect(() => {
@@ -238,8 +246,6 @@ const GeoSearchApp: React.FC = () => {
                 onMyLocationClick={handleMyLocationClick}
                 isLocating={isLocating}
                 locationError={locationError}
-                onToggleSidebar={() => setShowSidebar(!showSidebar)}
-                sidebarOpen={showSidebar}
               />
               
 
@@ -256,8 +262,8 @@ const GeoSearchApp: React.FC = () => {
                   onFiltersChange={updateFilters}
                   onResetFilters={resetFilters}
                   onBack={() => navigate('/categories')}
-                  showSidebar={showSidebar}
-                  onToggleSidebar={() => setShowSidebar(!showSidebar)}
+                  propShowSidebar={sidebarOpen}
+                  propToggleSidebar={toggleSidebar}
                 />
               </div>
             </div>
