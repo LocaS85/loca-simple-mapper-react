@@ -14,7 +14,7 @@ import { mapboxConfigService } from '@/services/mapboxConfigService';
 import { SecureMapboxProvider } from './security/SecureMapboxProvider';
 import { AccessibilityProvider } from './accessibility/AccessibilityProvider';
 import { LanguageProvider } from './i18n/LanguageProvider';
-import { EnhancedGeoSearchIntegration } from './components/EnhancedGeoSearchIntegration';
+
 
 const GeoSearchApp: React.FC = () => {
   const navigate = useNavigate();
@@ -230,7 +230,7 @@ const GeoSearchApp: React.FC = () => {
 
   // Interface principale avec header intelligent
   return (
-    <EnhancedGeoSearchIntegration>
+    <div>
       <LanguageProvider>
         <AccessibilityProvider>
           <SecureMapboxProvider>
@@ -270,7 +270,7 @@ const GeoSearchApp: React.FC = () => {
           </SecureMapboxProvider>
         </AccessibilityProvider>
       </LanguageProvider>
-    </EnhancedGeoSearchIntegration>
+    </div>
   );
 };
 

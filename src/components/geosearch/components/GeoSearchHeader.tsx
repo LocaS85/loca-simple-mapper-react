@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -14,7 +14,11 @@ import {
   Menu,
   SlidersHorizontal,
   Search,
-  Activity
+  Activity,
+  Car,
+  PersonStanding,
+  Bike,
+  Bus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -27,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { useGeoSearchStore } from '@/store/geoSearchStore';
 import EnhancedSearchBar from '../../enhanced/EnhancedSearchBar';
 import SmartBreadcrumb from '../ui/SmartBreadcrumb';
 import { GeolocationStatus } from './GeolocationStatus';
@@ -44,8 +49,6 @@ interface GeoSearchHeaderProps {
   onMyLocationClick: () => void;
   isLocating?: boolean;
   locationError?: string | null;
-  onToggleSidebar?: () => void;
-  sidebarOpen?: boolean;
 }
 
 const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
@@ -58,13 +61,12 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
   onMyLocationClick,
   isLocating = false,
   locationError = null,
-  onToggleSidebar,
-  sidebarOpen = false
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showPerformanceMonitor, setShowPerformanceMonitor] = useState(false);
+  const { filters, updateFilters, toggleSidebar } = useGeoSearchStore();
 
   const handleLocationClick = () => {
     if (isLocating) return;
@@ -244,11 +246,11 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={onToggleSidebar}
+                    onClick={toggleSidebar}
                     className="w-full justify-start"
                   >
                     <SlidersHorizontal className="h-4 w-4 mr-2" />
-                    {sidebarOpen ? "Fermer les filtres" : "Ouvrir les filtres"}
+                    Filtres de recherche
                   </Button>
                 </div>
 
@@ -259,16 +261,28 @@ const GeoSearchHeader: React.FC<GeoSearchHeaderProps> = ({
                     <span className="font-medium text-sm">Transport</span>
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    <Badge className="bg-green-500 text-white cursor-pointer">
+                    <Badge 
+                      className={`cursor-pointer ${filters.transport === 'walking' ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'}`}
+                      onClick={() => updateFilters({ transport: 'walking' })}
+                    >
                       À pied
                     </Badge>
-                    <Badge variant="outline" className="cursor-pointer">
+                    <Badge 
+                      className={`cursor-pointer ${filters.transport === 'driving' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'}`}
+                      onClick={() => updateFilters({ transport: 'driving' })}
+                    >
                       Voiture
                     </Badge>
-                    <Badge variant="outline" className="cursor-pointer">
+                    <Badge 
+                      className={`cursor-pointer ${filters.transport === 'cycling' ? 'bg-orange-500 text-white' : 'bg-muted text-muted-foreground'}`}
+                      onClick={() => updateFilters({ transport: 'cycling' })}
+                    >
                       Vélo
                     </Badge>
-                    <Badge variant="outline" className="cursor-pointer">
+                    <Badge 
+                      className={`cursor-pointer ${filters.transport === 'transit' ? 'bg-purple-500 text-white' : 'bg-muted text-muted-foreground'}`}
+                      onClick={() => updateFilters({ transport: 'transit' })}
+                    >
                       Transport
                     </Badge>
                   </div>
