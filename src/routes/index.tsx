@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Index from '@/pages/Index';
 import About from '@/pages/About';
 import Categories from '@/pages/Categories';
-import GeoSearch from '@/pages/GeoSearch';
+
 import NotFound from '@/pages/NotFound';
 import TermsOfService from '@/pages/TermsOfService';
 import Privacy from '@/pages/Privacy';
@@ -29,7 +29,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/" element={<Index />} />
       <Route path="/about" element={<About />} />
       <Route path="/categories" element={<Categories />} />
-      <Route path="/geosearch" element={<GeoSearch />} />
+      
       <Route path="/conditions" element={<TermsOfService />} />
       <Route path="/confidentialite" element={<Privacy />} />
       <Route path="/premium" element={<Premium />} />
@@ -52,7 +52,7 @@ export const AppRoutes: React.FC = () => {
 export const navigationRoutes = [
   { path: '/', label: 'Accueil' },
   { path: '/categories', label: 'Catégories' },
-  { path: '/geosearch', label: 'Recherche Géographique' },
+  
   { path: '/about', label: 'À Propos' },
 ];
 

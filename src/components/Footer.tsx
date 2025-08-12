@@ -36,11 +36,6 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/geosearch" className="text-gray-600 hover:text-blue-600">
-                  {t('header.geosearch')}
-                </Link>
-              </li>
-              <li>
                 <Link to="/categories" className="text-gray-600 hover:text-blue-600">
                   {t('header.categories')}
                 </Link>

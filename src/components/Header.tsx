@@ -26,7 +26,7 @@ const Header = () => {
 
   const navigationItems = [
     { path: '/', key: 'header.home' },
-    { path: '/geosearch', key: 'header.geosearch' },
+    
     { path: '/categories', key: 'header.categories' },
     { path: '/about', key: 'header.about' },
     { path: '/premium', key: 'header.premium' },
