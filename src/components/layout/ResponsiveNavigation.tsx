@@ -32,7 +32,7 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { path: '/', label: 'Accueil', icon: <MapPin className="w-4 h-4" /> },
-  
+  { path: '/recherche', label: 'Recherche', icon: <Search className="w-4 h-4" /> },
   { path: '/categories', label: 'Catégories', icon: <Grid3X3 className="w-4 h-4" /> },
   { path: '/about', label: 'À Propos', icon: <Info className="w-4 h-4" /> },
 ];

@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Index from '@/pages/Index';
 import About from '@/pages/About';
 import Categories from '@/pages/Categories';
+import Search from '@/pages/Search';
 
 import NotFound from '@/pages/NotFound';
 import TermsOfService from '@/pages/TermsOfService';
@@ -29,6 +30,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/" element={<Index />} />
       <Route path="/about" element={<About />} />
       <Route path="/categories" element={<Categories />} />
+      <Route path="/recherche" element={<Search />} />
       
       <Route path="/conditions" element={<TermsOfService />} />
       <Route path="/confidentialite" element={<Privacy />} />
@@ -52,6 +54,7 @@ export const AppRoutes: React.FC = () => {
 export const navigationRoutes = [
   { path: '/', label: 'Accueil' },
   { path: '/categories', label: 'Catégories' },
+  { path: '/recherche', label: 'Recherche' },
   
   { path: '/about', label: 'À Propos' },
 ];

@@ -29,8 +29,8 @@
   },
   "header": {
     "home": "Accueil",
-    "geosearch": "Recherche Géo",
-    "categories": "Catégories", 
+    "search": "Recherche",
+    "categories": "Catégories",
     "premium": "Premium",
     "about": "À propos",
     "login": "Connexion",

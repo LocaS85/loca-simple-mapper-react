@@ -36,6 +36,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/recherche" className="text-gray-600 hover:text-blue-600">
+                  {t('header.search')}
+                </Link>
+              </li>
+              <li>
                 <Link to="/categories" className="text-gray-600 hover:text-blue-600">
                   {t('header.categories')}
                 </Link>
