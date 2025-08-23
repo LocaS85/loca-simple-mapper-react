@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Search as SearchIcon, Navigation, Filter, Share2, Download, Plus, Car, Bike, Clock, Map } from 'lucide-react';
+import { MapPin, Search as SearchIcon, Navigation, Filter, Share2, Download, Plus, Car, Bike, Clock, Map, Home, Users, Building, GraduationCap } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import SEOHead from '@/components/SEOHead';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
 import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
 export default function Search() {
@@ -22,6 +24,7 @@ export default function Search() {
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
   
   const {
     userLocation,
@@ -34,6 +37,7 @@ export default function Search() {
   } = useGeoSearchStore();
 
   const { coordinates: currentLocation, getCurrentLocation } = useEnhancedGeolocation();
+  const { userAddresses, transportModes, loading: addressesLoading } = useSupabaseCategories();
 
   // Initialize user location
   useEffect(() => {
@@ -125,10 +129,39 @@ export default function Search() {
   };
 
   const quickActions = [
-    { icon: Navigation, label: 'Ma position', action: handleGetMyLocation },
-    { icon: Download, label: 'Exporter PDF', action: handleExportPDF },
-    { icon: Share2, label: 'Partager', action: handleShare }
+    { icon: Navigation, action: handleGetMyLocation },
+    { icon: Download, action: handleExportPDF },
+    { icon: Share2, action: handleShare },
+    { icon: Filter, action: () => setShowFilters(!showFilters) }
   ];
+
+  const getCategoryIcon = (categoryType: string) => {
+    switch (categoryType) {
+      case 'main': return Home;
+      case 'family': return Users;
+      case 'work': return Building;
+      case 'school': return GraduationCap;
+      default: return MapPin;
+    }
+  };
+
+  const getCategoryColor = (categoryType: string) => {
+    switch (categoryType) {
+      case 'main': return '#3B82F6';
+      case 'family': return '#10B981';
+      case 'work': return '#F59E0B';
+      case 'school': return '#8B5CF6';
+      default: return '#6B7280';
+    }
+  };
+
+  const toggleAddressSelection = (addressId: string) => {
+    setSelectedAddresses(prev => 
+      prev.includes(addressId) 
+        ? prev.filter(id => id !== addressId)
+        : [...prev, addressId]
+    );
+  };
 
   return (
     <>
@@ -139,9 +172,9 @@ export default function Search() {
       />
       
       <div className="flex h-screen bg-background overflow-hidden">
-        {/* Header avec barre de recherche */}
+        {/* Header compact avec icônes uniquement */}
         <div className="absolute top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="flex items-center gap-4 p-4">
+          <div className="flex items-center gap-1 p-2">
             <div className="flex-1 max-w-2xl">
               <form onSubmit={handleSearchSubmit} className="relative">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -164,81 +197,51 @@ export default function Search() {
               </form>
             </div>
             
-            {/* Actions rapides desktop */}
+            {/* Actions icônes uniquement - Desktop */}
             {!isMobile && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 {quickActions.map((action, index) => (
                   <Button
                     key={index}
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={action.action}
-                    className="hidden md:flex"
+                    className="h-8 w-8 p-0"
                   >
-                    <action.icon className="w-4 h-4 mr-2" />
-                    {action.label}
+                    <action.icon className="w-4 h-4" />
                   </Button>
                 ))}
-                
-                <Button
-                  variant={showFilters ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtres
-                </Button>
               </div>
             )}
 
-            {/* Actions rapides mobile */}
+            {/* Actions icônes uniquement - Mobile */}
             {isMobile && (
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Plus className="w-4 h-4" />
+              <div className="flex items-center gap-1">
+                {quickActions.map((action, index) => (
+                  <Button
+                    key={index}
+                    variant="ghost"
+                    size="sm"
+                    onClick={action.action}
+                    className="h-8 w-8 p-0"
+                  >
+                    <action.icon className="w-4 h-4" />
                   </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <div className="space-y-4 mt-8">
-                    <h3 className="text-lg font-semibold">Actions rapides</h3>
-                    <div className="space-y-2">
-                      {quickActions.map((action, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          className="w-full justify-start"
-                          onClick={action.action}
-                        >
-                          <action.icon className="w-4 h-4 mr-2" />
-                          {action.label}
-                        </Button>
-                      ))}
-                      <Separator />
-                      <Button
-                        variant={showFilters ? "default" : "outline"}
-                        className="w-full justify-start"
-                        onClick={() => setShowFilters(!showFilters)}
-                      >
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filtres et Options
-                      </Button>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Panneau latéral - Desktop */}
+        {/* Panneau latéral enrichi - Desktop */}
         {!isMobile && showFilters && (
-          <div className="w-80 border-r bg-card overflow-y-auto" style={{ marginTop: '73px' }}>
+          <div className="w-80 border-r bg-card overflow-y-auto" style={{ marginTop: '57px' }}>
             <div className="p-4 space-y-6">
+              
+              {/* Section 1: Filtres de transport */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">Filtres de recherche</h3>
                 
-                {/* Mode de transport */}
                 <div className="space-y-3">
                   <label className="text-sm font-medium">Mode de transport</label>
                   <Select value={filters.transport} onValueChange={(value) => handleFiltersChange('transport', value)}>
@@ -268,7 +271,6 @@ export default function Search() {
                   </Select>
                 </div>
 
-                {/* Distance */}
                 <div className="space-y-3">
                   <label className="text-sm font-medium">Distance max (km)</label>
                   <Slider
@@ -283,29 +285,61 @@ export default function Search() {
                     {filters.distance} km
                   </div>
                 </div>
+              </div>
 
-                {/* Autour de moi */}
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Nombre de résultats</label>
-                  <Slider
-                    value={[filters.aroundMeCount || 10]}
-                    onValueChange={([value]) => handleFiltersChange('aroundMeCount', value)}
-                    max={50}
-                    min={5}
-                    step={5}
-                    className="w-full"
-                  />
-                  <div className="text-sm text-muted-foreground">
-                    {filters.aroundMeCount || 10} résultats
-                  </div>
+              <Separator />
+
+              {/* Section 2: Mes Adresses */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Mes Adresses</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {userAddresses.map((address) => {
+                    const Icon = getCategoryIcon(address.category_type || 'main');
+                    const color = getCategoryColor(address.category_type || 'main');
+                    const isSelected = selectedAddresses.includes(address.id);
+                    
+                    return (
+                      <Card 
+                        key={address.id}
+                        className={`p-3 cursor-pointer transition-all duration-200 ${
+                          isSelected ? 'border-2 shadow-md' : 'hover:bg-accent'
+                        }`}
+                        style={{ borderColor: isSelected ? color : undefined }}
+                        onClick={() => toggleAddressSelection(address.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+                            style={{ backgroundColor: color }}
+                          >
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">{address.name}</h4>
+                            <p className="text-xs text-muted-foreground truncate">{address.address}</p>
+                            {address.role && (
+                              <span 
+                                className="text-xs px-2 py-1 rounded-full text-white mt-1 inline-block"
+                                style={{ backgroundColor: color }}
+                              >
+                                {address.role}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Résultats */}
+              <Separator />
+
+              {/* Section 3: Résultats de recherche */}
               {results.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Résultats ({results.length})</h3>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
                     {results.map((result, index) => (
                       <Card 
                         key={index}
@@ -331,67 +365,108 @@ export default function Search() {
           </div>
         )}
 
-        {/* Panneau latéral - Mobile */}
+        {/* Panneau latéral - Mobile avec tabs */}
         {isMobile && (
           <Sheet open={showFilters} onOpenChange={setShowFilters}>
             <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
-              <div className="p-4 space-y-6">
-                <h3 className="text-lg font-semibold">Filtres et Résultats</h3>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold mb-4">Filtres et Options</h3>
                 
-                {/* Même contenu que desktop mais adapté mobile */}
-                <div className="space-y-4">
-                  <Select value={filters.transport} onValueChange={(value) => handleFiltersChange('transport', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Mode de transport" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="car">🚗 Voiture</SelectItem>
-                      <SelectItem value="walking">🚶 À pied</SelectItem>
-                      <SelectItem value="cycling">🚴 Vélo</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <Tabs defaultValue="filtres" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="filtres">Filtres</TabsTrigger>
+                    <TabsTrigger value="adresses">Mes Adresses</TabsTrigger>
+                    <TabsTrigger value="resultats">Résultats</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="filtres" className="space-y-4 mt-4">
+                    <Select value={filters.transport} onValueChange={(value) => handleFiltersChange('transport', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Mode de transport" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="car">🚗 Voiture</SelectItem>
+                        <SelectItem value="walking">🚶 À pied</SelectItem>
+                        <SelectItem value="cycling">🚴 Vélo</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  <div>
-                    <label className="text-sm font-medium">Distance: {filters.distance} km</label>
-                    <Slider
-                      value={[filters.distance]}
-                      onValueChange={([value]) => handleFiltersChange('distance', value)}
-                      max={50}
-                      min={1}
-                      step={1}
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
+                    <div>
+                      <label className="text-sm font-medium">Distance: {filters.distance} km</label>
+                      <Slider
+                        value={[filters.distance]}
+                        onValueChange={([value]) => handleFiltersChange('distance', value)}
+                        max={50}
+                        min={1}
+                        step={1}
+                        className="mt-2"
+                      />
+                    </div>
+                  </TabsContent>
 
-                {/* Résultats mobile */}
-                {results.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Résultats ({results.length})</h4>
-                    {results.map((result, index) => (
-                      <Card 
-                        key={index}
-                        className="p-3 hover:bg-accent"
-                        onClick={() => {
-                          handleLocationSelect(result);
-                          setShowFilters(false);
-                        }}
-                      >
-                        <div>
-                          <h5 className="font-medium text-sm">{result.name}</h5>
-                          <p className="text-xs text-muted-foreground">{result.address}</p>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                  <TabsContent value="adresses" className="space-y-2 mt-4">
+                    {userAddresses.map((address) => {
+                      const Icon = getCategoryIcon(address.category_type || 'main');
+                      const color = getCategoryColor(address.category_type || 'main');
+                      const isSelected = selectedAddresses.includes(address.id);
+                      
+                      return (
+                        <Card 
+                          key={address.id}
+                          className={`p-3 cursor-pointer transition-all ${
+                            isSelected ? 'border-2 shadow-md' : 'hover:bg-accent'
+                          }`}
+                          style={{ borderColor: isSelected ? color : undefined }}
+                          onClick={() => toggleAddressSelection(address.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+                              style={{ backgroundColor: color }}
+                            >
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm">{address.name}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{address.address}</p>
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </TabsContent>
+
+                  <TabsContent value="resultats" className="space-y-2 mt-4">
+                    {results.length > 0 ? (
+                      results.map((result, index) => (
+                        <Card 
+                          key={index}
+                          className="p-3 hover:bg-accent"
+                          onClick={() => {
+                            handleLocationSelect(result);
+                            setShowFilters(false);
+                          }}
+                        >
+                          <div>
+                            <h5 className="font-medium text-sm">{result.name}</h5>
+                            <p className="text-xs text-muted-foreground">{result.address}</p>
+                          </div>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">Aucun résultat pour l'instant</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             </SheetContent>
           </Sheet>
         )}
 
         {/* Carte principale */}
-        <div className="flex-1 relative" style={{ marginTop: '73px' }}>
+        <div className="flex-1 relative" style={{ marginTop: '57px' }}>
           <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
             <div className="text-center space-y-4">
               <Map className="w-16 h-16 mx-auto text-muted-foreground" />
@@ -415,24 +490,53 @@ export default function Search() {
             </div>
           </div>
 
-          {/* Légende transport en bas à droite */}
-          {results.length > 0 && (
+          {/* Légende interactive avec multi-tracés */}
+          {selectedAddresses.length > 0 && (
             <Card className="absolute bottom-4 right-4 p-3 bg-background/95 backdrop-blur">
-              <div className="flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span>Voiture</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span>Marche</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                  <span>Vélo</span>
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold">Itinéraires actifs</h4>
+                <div className="space-y-1">
+                  {selectedAddresses.map((addressId) => {
+                    const address = userAddresses.find(addr => addr.id === addressId);
+                    if (!address) return null;
+                    
+                    const color = getCategoryColor(address.category_type || 'main');
+                    
+                    return (
+                      <div key={addressId} className="flex items-center gap-2 text-xs">
+                        <div 
+                          className="w-3 h-1 rounded"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="truncate max-w-20">{address.name}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </Card>
+          )}
+
+          {/* Boutons flottants mobile */}
+          {isMobile && (
+            <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleGetMyLocation}
+                className="h-10 w-10 p-0 rounded-full shadow-lg"
+              >
+                <Navigation className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant={showFilters ? "default" : "secondary"}
+                onClick={() => setShowFilters(!showFilters)}
+                className="h-10 w-10 p-0 rounded-full shadow-lg"
+              >
+                <Filter className="w-4 h-4" />
+              </Button>
+            </div>
           )}
 
           {/* Status indicators */}
