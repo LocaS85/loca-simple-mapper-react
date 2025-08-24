@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import MapboxSearchMap from '@/components/geosearch/MapboxSearchMap';
+import SimpleEnhancedSearchBar from '@/components/geosearch/SimpleEnhancedSearchBar';
 import { toast } from 'sonner';
 
 export default function Search() {
@@ -176,25 +178,18 @@ export default function Search() {
         <div className="absolute top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
           <div className="flex items-center gap-1 p-2">
             <div className="flex-1 max-w-2xl">
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Rechercher un lieu, une adresse..."
-                  value={searchQuery}
-                  onChange={handleSearchInputChange}
-                  className="pl-10 pr-12"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleGetMyLocation}
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2"
-                >
-                  <Navigation className="w-4 h-4" />
-                </Button>
-              </form>
+              <SimpleEnhancedSearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSearch={handleSearch}
+                onLocationSelect={(location) => {
+                  setUserLocation(location.coordinates);
+                  handleSearch(location.name);
+                }}
+                userLocation={userLocation}
+                placeholder="Rechercher des lieux..."
+                className="flex-1"
+              />
             </div>
             
             {/* Actions icônes uniquement - Desktop */}
@@ -467,28 +462,14 @@ export default function Search() {
 
         {/* Carte principale */}
         <div className="flex-1 relative" style={{ marginTop: '57px' }}>
-          <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <Map className="w-16 h-16 mx-auto text-muted-foreground" />
-              <div>
-                <h3 className="text-lg font-semibold">Carte Interactive</h3>
-                <p className="text-muted-foreground">
-                  {userLocation ? 'Prêt pour la recherche' : 'Activez la géolocalisation pour commencer'}
-                </p>
-                {!userLocation && (
-                  <Button onClick={handleGetMyLocation} className="mt-2">
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Obtenir ma position
-                  </Button>
-                )}
-              </div>
-              {results.length > 0 && (
-                <div className="text-sm text-muted-foreground">
-                  {results.length} résultat{results.length > 1 ? 's' : ''} trouvé{results.length > 1 ? 's' : ''}
-                </div>
-              )}
-            </div>
-          </div>
+          <MapboxSearchMap
+            results={results}
+            userLocation={userLocation}
+            onLocationChange={setUserLocation}
+            selectedAddresses={selectedAddresses}
+            transportMode={filters.transport}
+            className="w-full h-full"
+          />
 
           {/* Légende interactive avec multi-tracés */}
           {selectedAddresses.length > 0 && (

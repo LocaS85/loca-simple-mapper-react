@@ -22,7 +22,7 @@ interface MapboxPlace {
   }>;
 }
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoibG9jYXNpbXBsZSIsImEiOiJjbWF6Z3A1Ym4waXN6MmtzYzh4bWZ2YWIxIn0.tbWmkuCSJw4h_Ol1Q6ed0A';
+import { getMapboxToken } from '@/utils/mapboxConfig';
 
 export const mapboxSearchService = {
   async searchPlaces(
@@ -52,8 +52,9 @@ export const mapboxSearchService = {
       // Recherche principale avec bbox élargie
       const bbox = this.calculateBoundingBox(center, radius);
       
+      const token = await getMapboxToken();
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(enhancedQuery)}.json?` +
-        `access_token=${MAPBOX_TOKEN}&` +
+        `access_token=${token}&` +
         `proximity=${center[0]},${center[1]}&` +
         `limit=${limit}&` +
         `country=fr&` +
@@ -99,8 +100,9 @@ export const mapboxSearchService = {
 
     for (const searchTerm of searches) {
       try {
+        const token = await getMapboxToken();
         const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchTerm)}.json?` +
-          `access_token=${MAPBOX_TOKEN}&` +
+          `access_token=${token}&` +
           `proximity=${center[0]},${center[1]}&` +
           `limit=${limit}&` +
           `country=fr&` +
@@ -131,8 +133,9 @@ export const mapboxSearchService = {
     try {
       const { limit = 10 } = options;
       
+      const token = await getMapboxToken();
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
-        `access_token=${MAPBOX_TOKEN}&` +
+        `access_token=${token}&` +
         `proximity=${center[0]},${center[1]}&` +
         `limit=${limit}&` +
         `country=fr&` +
