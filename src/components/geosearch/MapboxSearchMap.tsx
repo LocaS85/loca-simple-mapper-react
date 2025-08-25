@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import { SearchResult } from '@/types/geosearch';
 import { TransportMode } from '@/lib/data/transportModes';
 import { getMapboxToken } from '@/utils/mapboxConfig';
@@ -89,32 +87,7 @@ const MapboxSearchMap: React.FC<MapboxSearchMapProps> = ({
           unit: 'metric'
         }));
 
-        // Geocoder with autosuggestion
-        const geocoder = new MapboxGeocoder({
-          accessToken: token,
-          mapboxgl,
-          marker: false,
-          placeholder: 'Rechercher une adresse…',
-          countries: 'fr',
-          language: 'fr',
-          types: 'address,poi,place',
-          proximity: userLocation ? {
-            longitude: userLocation[0],
-            latitude: userLocation[1]
-          } : undefined
-        });
-        map.addControl(geocoder, 'top-left');
-        geocoder.on('result', (e: any) => {
-          const [lng, lat] = e.result.center;
-          const newLocation: [number, number] = [lng, lat];
-          if (onLocationChange) {
-            onLocationChange(newLocation);
-          }
-          map.flyTo({
-            center: [lng, lat],
-            zoom: 14
-          });
-        });
+        // Mapbox geocoder supprimé - utilisation unique de la barre de recherche du header
 
         // Geolocation control
         const geolocateControl = new mapboxgl.GeolocateControl({

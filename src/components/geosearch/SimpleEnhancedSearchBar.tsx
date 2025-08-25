@@ -39,12 +39,17 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
       debounceRef.current = setTimeout(async () => {
         try {
           if (userLocation) {
-            const results = await mapboxSearchService.searchPlaces(value, userLocation, { limit: 5 });
+            // Recherche optimisée pour POI et établissements commerciaux
+            const results = await mapboxSearchService.searchPlaces(value, userLocation, { 
+              limit: 8,
+              categories: ['restaurant', 'retail', 'grocery', 'shopping', 'gas_station', 'pharmacy', 'hospital']
+            });
             setSuggestions(results);
             setShowSuggestions(true);
           }
         } catch (error) {
           console.error('Erreur autosuggestion:', error);
+          setSuggestions([]);
         }
       }, 300);
     } else {
