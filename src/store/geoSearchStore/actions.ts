@@ -186,8 +186,9 @@ export const createGeoSearchActions = (
       // Simplified cache check (skip spatial cache for now)
       console.log('🌍 Cache spatial bypassed pour cette version');
       
-      // Appel API Mapbox optimisé avec batch
-      const mapboxResults = await batchMapboxService.searchPlacesOptimized(searchQuery, userLocation, {
+      // Appel API Mapbox avec le service de recherche
+      const { mapboxSearchService } = await import('@/services/mapbox/searchService');
+      const mapboxResults = await mapboxSearchService.searchPlaces(searchQuery, userLocation, {
         limit: filters.aroundMeCount || 5,
         radius: filters.distance || 5,
         categories: Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : undefined

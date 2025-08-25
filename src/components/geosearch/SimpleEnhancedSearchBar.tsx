@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, X, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { mapboxSearchService } from '@/services/mapbox/searchService';
 
 interface SimpleEnhancedSearchBarProps {
   value: string;
@@ -24,14 +25,67 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
   disabled = false,
   className = ""
 }) => {
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout>();
+
+  // Auto-suggestion avec Mapbox
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    if (value.length >= 2) {
+      debounceRef.current = setTimeout(async () => {
+        try {
+          if (userLocation) {
+            const results = await mapboxSearchService.searchPlaces(value, userLocation, { limit: 5 });
+            setSuggestions(results);
+            setShowSuggestions(true);
+          }
+        } catch (error) {
+          console.error('Erreur autosuggestion:', error);
+        }
+      }, 300);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [value, userLocation]);
+
   const handleClear = () => {
     onChange('');
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && value.trim()) {
       onSearch(value);
+      setShowSuggestions(false);
     }
+    if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: any) => {
+    onChange(suggestion.name);
+    onSearch(suggestion.name);
+    if (onLocationSelect) {
+      onLocationSelect({
+        name: suggestion.name,
+        coordinates: suggestion.coordinates,
+        placeName: suggestion.address
+      });
+    }
+    setShowSuggestions(false);
   };
 
   return (
@@ -42,6 +96,8 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyPress={handleKeyPress}
+        onFocus={() => value.length >= 2 && setShowSuggestions(true)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
         placeholder={placeholder}
         disabled={disabled}
         className="pl-10 pr-10"
@@ -56,6 +112,30 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
         >
           <X className="h-3 w-3" />
         </Button>
+      )}
+      
+      {/* Suggestions dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer border-b last:border-b-0"
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm truncate">{suggestion.name}</div>
+                <div className="text-xs text-muted-foreground truncate">{suggestion.address}</div>
+                {suggestion.distance && (
+                  <div className="text-xs text-muted-foreground">
+                    {suggestion.distance.toFixed(1)} km
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
