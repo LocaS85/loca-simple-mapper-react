@@ -43,7 +43,10 @@ export default function Search() {
 
   // Initialize user location
   useEffect(() => {
+    console.log('🌍 Initialisation géolocalisation:', { currentLocation, userLocation });
+    
     if (currentLocation && !userLocation) {
+      console.log('📍 Définition userLocation depuis currentLocation:', currentLocation);
       setUserLocation([currentLocation[0], currentLocation[1]]);
     }
   }, [currentLocation, userLocation, setUserLocation]);

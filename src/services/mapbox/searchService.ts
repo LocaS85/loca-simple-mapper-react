@@ -44,41 +44,52 @@ export const mapboxSearchService = {
         }
       }
       
-      // Recherche générale améliorée
+      // Recherche générale améliorée avec logging
       if (!enhancedQuery || enhancedQuery.length < 2) {
         enhancedQuery = 'restaurant commerce magasin';
       }
+
+      console.log('🔍 Recherche Mapbox:', { query: enhancedQuery, center, options });
 
       // Recherche principale avec bbox élargie
       const bbox = this.calculateBoundingBox(center, radius);
       
       const token = await getMapboxToken();
+      console.log('🔑 Token Mapbox disponible:', !!token);
+      
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(enhancedQuery)}.json?` +
         `access_token=${token}&` +
         `proximity=${center[0]},${center[1]}&` +
         `limit=${limit}&` +
         `country=fr&` +
         `language=fr&` +
-        `types=poi,address,place&` +
+        `types=poi,poi.landmark,address,place,region,postcode,locality&` +
         `autocomplete=true&` +
         `bbox=${bbox.join(',')}`;
 
-      console.log('🔍 Recherche URL:', url);
+      console.log('📡 URL de recherche:', url);
       const response = await fetch(url);
       
       if (!response.ok) {
+        console.error('❌ Erreur API Mapbox:', response.status, response.statusText);
         throw new Error(`Erreur API Mapbox: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('📍 Résultats Mapbox:', data.features?.length || 0);
+      console.log('📊 Réponse Mapbox:', { 
+        features: data.features?.length || 0, 
+        query: enhancedQuery,
+        hasResults: !!data.features?.length 
+      });
       
       if (!data.features || data.features.length === 0) {
-        console.log('🔄 Recherche fallback sans bbox...');
+        console.log('🔄 Aucun résultat avec bbox, essai sans bbox...');
         return this.searchWithoutBbox(enhancedQuery, center, options);
       }
       
-      return data.features.map((feature: MapboxPlace) => this.convertToSearchResult(feature, center));
+      const results = data.features.map((feature: MapboxPlace) => this.convertToSearchResult(feature, center));
+      console.log('✅ Résultats finaux:', results);
+      return results;
     } catch (error) {
       console.error('❌ Erreur de recherche:', error);
       throw error;
@@ -133,6 +144,8 @@ export const mapboxSearchService = {
     try {
       const { limit = 10 } = options;
       
+      console.log('🔄 Recherche fallback sans bbox:', { query, center });
+      
       const token = await getMapboxToken();
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
         `access_token=${token}&` +
@@ -140,13 +153,24 @@ export const mapboxSearchService = {
         `limit=${limit}&` +
         `country=fr&` +
         `language=fr&` +
-        `types=poi,address,place&` +
+        `types=poi,poi.landmark,address,place,region,postcode,locality&` +
         `autocomplete=true`;
 
+      console.log('📡 URL fallback:', url);
       const response = await fetch(url);
-      const data = await response.json();
       
-      return data.features?.map((feature: MapboxPlace) => this.convertToSearchResult(feature, center)) || [];
+      if (!response.ok) {
+        console.error('❌ Erreur API fallback:', response.status);
+        return [];
+      }
+      
+      const data = await response.json();
+      console.log('📊 Résultats fallback:', data.features?.length || 0);
+      
+      const results = data.features?.map((feature: MapboxPlace) => this.convertToSearchResult(feature, center)) || [];
+      console.log('✅ Résultats fallback convertis:', results);
+      
+      return results;
     } catch (error) {
       console.error('❌ Erreur recherche fallback:', error);
       return [];

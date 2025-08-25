@@ -37,19 +37,28 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
 
     if (value.length >= 2) {
       debounceRef.current = setTimeout(async () => {
+        console.log('🔍 Recherche autosuggestion:', { query: value, userLocation });
+        
         try {
-          if (userLocation) {
-            // Recherche optimisée pour POI et établissements commerciaux
-            const results = await mapboxSearchService.searchPlaces(value, userLocation, { 
-              limit: 8,
-              categories: ['restaurant', 'retail', 'grocery', 'shopping', 'gas_station', 'pharmacy', 'hospital']
-            });
-            setSuggestions(results);
-            setShowSuggestions(true);
-          }
+          // Utilise userLocation ou Paris comme fallback
+          const searchLocation = userLocation || [2.3522, 48.8566] as [number, number]; // Paris
+          
+          console.log('📍 Position utilisée pour la recherche:', searchLocation);
+          
+          // Recherche optimisée pour POI et établissements commerciaux
+          const results = await mapboxSearchService.searchPlaces(value, searchLocation, { 
+            limit: 10,
+            categories: ['poi', 'address', 'place', 'region', 'postcode', 'locality', 'neighborhood', 'district']
+          });
+          
+          console.log('✅ Résultats reçus:', results);
+          setSuggestions(results);
+          setShowSuggestions(true);
+          
         } catch (error) {
-          console.error('Erreur autosuggestion:', error);
+          console.error('❌ Erreur autosuggestion:', error);
           setSuggestions([]);
+          setShowSuggestions(false);
         }
       }, 300);
     } else {
