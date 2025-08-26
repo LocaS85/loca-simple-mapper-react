@@ -55,6 +55,8 @@ export default function Search() {
     const searchTerm = query || searchQuery;
     if (!searchTerm.trim()) return;
     
+    console.log('🔍 Lancement recherche:', { searchTerm, userLocation });
+    
     // Add to search history
     setSearchHistory(prev => {
       const newHistory = [searchTerm, ...prev.filter(h => h !== searchTerm)].slice(0, 5);
@@ -63,6 +65,11 @@ export default function Search() {
 
     updateFilters({ query: searchTerm });
     await performSearch(searchTerm);
+    
+    // Afficher les résultats sur mobile
+    if (isMobile) {
+      setShowFilters(true);
+    }
   };
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,7 +193,9 @@ export default function Search() {
                 onChange={setSearchQuery}
                 onSearch={handleSearch}
                 onLocationSelect={(location) => {
+                  console.log('📍 Lieu sélectionné:', location);
                   setUserLocation(location.coordinates);
+                  setSelectedLocation(location);
                   handleSearch(location.name);
                 }}
                 userLocation={userLocation}
@@ -435,6 +444,9 @@ export default function Search() {
                   </TabsContent>
 
                   <TabsContent value="resultats" className="space-y-2 mt-4">
+                    <div className="text-sm text-muted-foreground mb-2">
+                      {results.length > 0 ? `${results.length} résultat${results.length > 1 ? 's' : ''} trouvé${results.length > 1 ? 's' : ''}` : 'Aucun résultat'}
+                    </div>
                     {results.length > 0 ? (
                       results.map((result, index) => (
                         <Card 

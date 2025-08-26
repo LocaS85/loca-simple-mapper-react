@@ -53,7 +53,13 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
           
           console.log('✅ Résultats reçus:', results);
           setSuggestions(results);
-          setShowSuggestions(true);
+          setShowSuggestions(results.length > 0);
+          
+          // Afficher un message si aucun résultat trouvé
+          if (results.length === 0) {
+            const { toast } = await import('sonner');
+            toast.info(`Aucun POI trouvé pour "${value}". Essayez un terme plus général.`);
+          }
           
         } catch (error) {
           console.error('❌ Erreur autosuggestion:', error);
@@ -135,9 +141,12 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
         </Button>
       )}
       
-      {/* Suggestions dropdown */}
+      {/* Suggestions dropdown avec amélioration POI */}
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+          <div className="p-2 text-xs text-muted-foreground bg-muted/50 border-b">
+            {suggestions.length} lieu{suggestions.length > 1 ? 'x' : ''} trouvé{suggestions.length > 1 ? 's' : ''}
+          </div>
           {suggestions.map((suggestion, index) => (
             <div
               key={index}
@@ -148,14 +157,28 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm truncate">{suggestion.name}</div>
                 <div className="text-xs text-muted-foreground truncate">{suggestion.address}</div>
-                {suggestion.distance && (
-                  <div className="text-xs text-muted-foreground">
-                    {suggestion.distance.toFixed(1)} km
-                  </div>
-                )}
+                <div className="flex items-center gap-2 mt-1">
+                  {suggestion.distance && (
+                    <div className="text-xs text-muted-foreground">
+                      {suggestion.distance.toFixed(1)} km
+                    </div>
+                  )}
+                  {suggestion.category && (
+                    <div className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">
+                      {suggestion.category}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+      
+      {/* Message si aucun résultat */}
+      {showSuggestions && suggestions.length === 0 && value.length >= 2 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 p-3 text-center text-muted-foreground text-sm">
+          Aucun lieu trouvé pour "{value}". Essayez un terme plus général.
         </div>
       )}
     </div>
