@@ -14,18 +14,16 @@ export const getMapboxToken = async (): Promise<string> => {
     }
     
     // 2. Essayer de récupérer le token depuis le secret Supabase via Edge Function
-    const response = await fetch('/api/mapbox-config', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.functions.invoke('mapbox-config');
     
-    if (response.ok) {
-      const data = await response.json();
-      if (data.token && data.token.startsWith('pk.')) {
-        return data.token;
-      }
+    if (!error && data?.token && data.token.startsWith('pk.')) {
+      console.log('✅ Token Mapbox récupéré depuis Supabase Edge Function');
+      return data.token;
+    }
+    
+    if (error) {
+      console.warn('⚠️ Erreur Edge Function Mapbox:', error);
     }
     
     // 3. Fallback vers localStorage si l'API n'est pas disponible

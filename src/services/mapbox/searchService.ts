@@ -51,8 +51,11 @@ export const mapboxSearchService = {
 
       console.log('🔍 Recherche Mapbox:', { query: enhancedQuery, center, options });
 
-      // Recherche principale avec bbox élargie
-      const bbox = this.calculateBoundingBox(center, radius);
+      // Recherche principale avec bbox élargie ou supprimée pour recherches spécifiques
+      let bbox;
+      if (!enhancedQuery.toLowerCase().includes('ikea') && !enhancedQuery.toLowerCase().includes('brand')) {
+        bbox = this.calculateBoundingBox(center, radius);
+      }
       
       const token = await getMapboxToken();
       console.log('🔑 Token Mapbox disponible:', !!token);
@@ -63,9 +66,9 @@ export const mapboxSearchService = {
         `limit=${limit}&` +
         `country=fr&` +
         `language=fr&` +
-        `types=poi,poi.landmark,address,place,region,postcode,locality&` +
-        `autocomplete=true&` +
-        `bbox=${bbox.join(',')}`;
+        `types=poi,poi.business,poi.landmark,place,address&` +
+        `autocomplete=true` +
+        (bbox ? `&bbox=${bbox.join(',')}` : '');
 
       console.log('📡 URL de recherche:', url);
       const response = await fetch(url);
@@ -118,7 +121,7 @@ export const mapboxSearchService = {
           `limit=${limit}&` +
           `country=fr&` +
           `language=fr&` +
-          `types=poi,place&` +
+          `types=poi,poi.business,poi.landmark,place&` +
           `autocomplete=true`;
 
         const response = await fetch(url);
@@ -153,7 +156,7 @@ export const mapboxSearchService = {
         `limit=${limit}&` +
         `country=fr&` +
         `language=fr&` +
-        `types=poi,poi.landmark,address,place,region,postcode,locality&` +
+        `types=poi,poi.business,poi.landmark,place,address&` +
         `autocomplete=true`;
 
       console.log('📡 URL fallback:', url);

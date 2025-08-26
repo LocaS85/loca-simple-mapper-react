@@ -57,6 +57,13 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
           
         } catch (error) {
           console.error('❌ Erreur autosuggestion:', error);
+          const { useToast } = await import('@/hooks/use-toast');
+          const { toast } = useToast();
+          toast({
+            title: "Erreur de recherche",
+            description: "Impossible de récupérer les suggestions. Vérifiez la configuration Mapbox.",
+            variant: "destructive",
+          });
           setSuggestions([]);
           setShowSuggestions(false);
         }
