@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Search as SearchIcon, Navigation, Filter, Share2, Download, Plus, Car, Bike, Clock, Map, Home, Users, Building, GraduationCap } from 'lucide-react';
+import ModernFilterPanel from '@/components/filters/ModernFilterPanel';
 import { useTranslation } from 'react-i18next';
 import SEOHead from '@/components/SEOHead';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
@@ -245,53 +246,27 @@ export default function Search() {
           <div className="w-80 border-r bg-card overflow-y-auto" style={{ marginTop: '57px' }}>
             <div className="p-4 space-y-6">
               
-              {/* Section 1: Filtres de transport */}
+              {/* Section 1: Filtres modernes */}
               <div>
-                <h3 className="text-lg font-semibold mb-4">Filtres de recherche</h3>
-                
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Mode de transport</label>
-                  <Select value={filters.transport} onValueChange={(value) => handleFiltersChange('transport', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un mode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="car">
-                        <div className="flex items-center gap-2">
-                          <Car className="w-4 h-4" />
-                          Voiture
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="walking">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          À pied
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="cycling">
-                        <div className="flex items-center gap-2">
-                          <Bike className="w-4 h-4" />
-                          Vélo
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Distance max (km)</label>
-                  <Slider
-                    value={[filters.distance]}
-                    onValueChange={([value]) => handleFiltersChange('distance', value)}
-                    max={50}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="text-sm text-muted-foreground">
-                    {filters.distance} km
-                  </div>
-                </div>
+                <ModernFilterPanel
+                  filters={{
+                    transport: filters.transport,
+                    distanceMode: 'distance',
+                    distance: filters.distance,
+                    unit: filters.unit,
+                    duration: filters.maxDuration,
+                    aroundMeCount: filters.aroundMeCount,
+                    category: Array.isArray(filters.category) ? filters.category[0] : filters.category
+                  }}
+                  onFilterChange={(key, value) => handleFiltersChange(key, value)}
+                  onClearFilter={(key) => {
+                    if (key === 'transport') handleFiltersChange('transport', 'walking');
+                    else if (key === 'distance') handleFiltersChange('distance', 10);
+                    else if (key === 'duration') handleFiltersChange('maxDuration', 15);
+                    else if (key === 'aroundMeCount') handleFiltersChange('aroundMeCount', 5);
+                    else if (key === 'category') handleFiltersChange('category', null);
+                  }}
+                />
               </div>
 
               <Separator />
