@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Search as SearchIcon, Navigation, Filter, Share2, Download, Plus, Car, Bike, Clock, Map, Home, Users, Building, GraduationCap } from 'lucide-react';
 import ModernFilterPanel from '@/components/filters/ModernFilterPanel';
+import OptimizedFilterButton from '@/components/filters/OptimizedFilterButton';
 import { useTranslation } from 'react-i18next';
 import SEOHead from '@/components/SEOHead';
 import { useGeoSearchStore } from '@/store/geoSearchStore';
@@ -34,9 +35,11 @@ export default function Search() {
     results,
     filters,
     isLoading,
+    distanceMode,
     setUserLocation,
     updateFilters,
-    performSearch
+    performSearch,
+    setDistanceMode
   } = useGeoSearchStore();
 
   const { coordinates: currentLocation, getCurrentLocation } = useEnhancedGeolocation();
@@ -208,7 +211,7 @@ export default function Search() {
             {/* Actions icônes uniquement - Desktop */}
             {!isMobile && (
               <div className="flex items-center gap-1">
-                {quickActions.map((action, index) => (
+                {quickActions.slice(0, -1).map((action, index) => (
                   <Button
                     key={index}
                     variant="ghost"
@@ -219,13 +222,18 @@ export default function Search() {
                     <action.icon className="w-4 h-4" />
                   </Button>
                 ))}
+                <OptimizedFilterButton
+                  onClick={() => setShowFilters(!showFilters)}
+                  filters={filters}
+                  distanceMode={distanceMode}
+                />
               </div>
             )}
 
             {/* Actions icônes uniquement - Mobile */}
             {isMobile && (
               <div className="flex items-center gap-1">
-                {quickActions.map((action, index) => (
+                {quickActions.slice(0, -1).map((action, index) => (
                   <Button
                     key={index}
                     variant="ghost"
@@ -236,6 +244,11 @@ export default function Search() {
                     <action.icon className="w-4 h-4" />
                   </Button>
                 ))}
+                <OptimizedFilterButton
+                  onClick={() => setShowFilters(!showFilters)}
+                  filters={filters}
+                  distanceMode={distanceMode}
+                />
               </div>
             )}
           </div>
@@ -251,21 +264,22 @@ export default function Search() {
                 <ModernFilterPanel
                   filters={{
                     transport: filters.transport,
-                    distanceMode: 'distance',
                     distance: filters.distance,
                     unit: filters.unit,
-                    duration: filters.maxDuration,
-                    aroundMeCount: filters.aroundMeCount,
-                    category: Array.isArray(filters.category) ? filters.category[0] : filters.category
+                    aroundMeCount: filters.aroundMeCount || 5,
+                    category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
+                    maxDuration: filters.maxDuration || 20
                   }}
+                  distanceMode={distanceMode}
                   onFilterChange={(key, value) => handleFiltersChange(key, value)}
                   onClearFilter={(key) => {
                     if (key === 'transport') handleFiltersChange('transport', 'walking');
                     else if (key === 'distance') handleFiltersChange('distance', 10);
-                    else if (key === 'duration') handleFiltersChange('maxDuration', 15);
+                    else if (key === 'maxDuration') handleFiltersChange('maxDuration', 20);
                     else if (key === 'aroundMeCount') handleFiltersChange('aroundMeCount', 5);
                     else if (key === 'category') handleFiltersChange('category', null);
                   }}
+                  onDistanceModeChange={setDistanceMode}
                 />
               </div>
 
@@ -499,14 +513,11 @@ export default function Search() {
               >
                 <Navigation className="w-4 h-4" />
               </Button>
-              <Button
-                size="sm"
-                variant={showFilters ? "default" : "secondary"}
+              <OptimizedFilterButton
                 onClick={() => setShowFilters(!showFilters)}
-                className="h-10 w-10 p-0 rounded-full shadow-lg"
-              >
-                <Filter className="w-4 h-4" />
-              </Button>
+                filters={filters}
+                distanceMode={distanceMode}
+              />
             </div>
           )}
 

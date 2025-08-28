@@ -5,4 +5,5 @@ export { default as FenetreFiltrageUnifiee } from './FenetreFiltrageUnifiee';
 export { default as ModernFilterPanel } from './ModernFilterPanel';
 export { default as TransportIconGrid } from './TransportIconGrid';
 export { default as DistanceDurationToggle } from './DistanceDurationToggle';
+export { default as OptimizedFilterButton } from './OptimizedFilterButton';
 export type { FenetreFiltrageProp } from './FenetreFiltrage';

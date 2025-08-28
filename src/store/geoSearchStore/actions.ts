@@ -125,6 +125,9 @@ export const createGeoSearchActions = (
   resetRetryCount: () =>
     set({ retryCount: 0 }),
 
+  setDistanceMode: (mode: 'distance' | 'duration') =>
+    set({ distanceMode: mode }),
+
   performSearch: async (query?: string) => {
     const { filters, updateFilters, loadResults } = get();
     

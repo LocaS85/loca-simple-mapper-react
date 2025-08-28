@@ -27,6 +27,7 @@ export interface GeoSearchStore {
   retryCount: number;
   searchCache: Map<string, SearchResult[]>;
   lastSearchParams: Record<string, unknown>;
+  distanceMode: 'distance' | 'duration';
 
   // Actions
   setUserLocation: (location: CoordinatesPair | null) => void;
@@ -47,6 +48,7 @@ export interface GeoSearchStore {
   performSearch: (query?: string) => Promise<void>;
   loadResults: () => Promise<void>;
   clearCache: () => void;
+  setDistanceMode: (mode: 'distance' | 'duration') => void;
 }
 
 export const defaultFilters: GeoSearchFilters = DEFAULT_FILTERS;
@@ -65,5 +67,6 @@ export const initialState = {
   networkStatus: 'online' as NetworkStatus,
   retryCount: 0,
   searchCache: new Map<string, SearchResult[]>(),
-  lastSearchParams: {} as Record<string, unknown>
+  lastSearchParams: {} as Record<string, unknown>,
+  distanceMode: 'distance' as 'distance' | 'duration'
 };

@@ -11,22 +11,25 @@ import { useSupabaseCategories, Category } from '@/hooks/useSupabaseCategories';
 interface ModernFilterPanelProps {
   filters: {
     transport: string;
-    distanceMode: 'distance' | 'duration';
     distance: number;
-    unit: 'km' | 'mi';
-    duration: number;
+    unit: string;
     aroundMeCount: number;
     category: string | null;
+    maxDuration: number;
   };
+  distanceMode: 'distance' | 'duration';
   onFilterChange: (key: string, value: any) => void;
   onClearFilter: (key: string) => void;
+  onDistanceModeChange: (mode: 'distance' | 'duration') => void;
   className?: string;
 }
 
 const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
   filters,
+  distanceMode,
   onFilterChange,
   onClearFilter,
+  onDistanceModeChange,
   className
 }) => {
   const { categories, loading } = useSupabaseCategories();
@@ -43,7 +46,7 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
       });
     }
     
-    if (filters.distanceMode === 'distance' && filters.distance !== 10) {
+    if (distanceMode === 'distance' && filters.distance !== 10) {
       badges.push({
         key: 'distance',
         label: `${filters.distance} ${filters.unit}`,
@@ -51,11 +54,11 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
       });
     }
     
-    if (filters.distanceMode === 'duration' && filters.duration !== 15) {
+    if (distanceMode === 'duration' && filters.maxDuration !== 20) {
       badges.push({
-        key: 'duration',
-        label: `${filters.duration} min`,
-        value: filters.duration
+        key: 'maxDuration',
+        label: `${filters.maxDuration} min`,
+        value: filters.maxDuration
       });
     }
     
@@ -115,14 +118,14 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
 
         {/* Toggle Distance/Durée */}
         <DistanceDurationToggle
-          mode={filters.distanceMode}
-          onModeChange={(mode) => onFilterChange('distanceMode', mode)}
+          mode={distanceMode}
+          onModeChange={onDistanceModeChange}
           distance={filters.distance}
           onDistanceChange={(distance) => onFilterChange('distance', distance)}
-          unit={filters.unit}
+          unit={filters.unit as 'km' | 'mi'}
           onUnitChange={(unit) => onFilterChange('unit', unit)}
-          duration={filters.duration}
-          onDurationChange={(duration) => onFilterChange('duration', duration)}
+          duration={filters.maxDuration}
+          onDurationChange={(duration) => onFilterChange('maxDuration', duration)}
         />
 
         {/* Nombre d'établissements */}
