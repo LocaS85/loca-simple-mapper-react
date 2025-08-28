@@ -16,6 +16,7 @@ interface ModernFilterPanelProps {
     aroundMeCount: number;
     category: string | null;
     maxDuration: number;
+    showMultiDirections?: boolean;
   };
   distanceMode: 'distance' | 'duration';
   onFilterChange: (key: string, value: any) => void;
@@ -46,7 +47,7 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
       });
     }
     
-    if (distanceMode === 'distance' && filters.distance !== 10) {
+    if (distanceMode === 'distance' && filters.distance !== 5) {
       badges.push({
         key: 'distance',
         label: `${filters.distance} ${filters.unit}`,
@@ -54,7 +55,7 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
       });
     }
     
-    if (distanceMode === 'duration' && filters.maxDuration !== 20) {
+    if (distanceMode === 'duration' && filters.maxDuration !== 30) {
       badges.push({
         key: 'maxDuration',
         label: `${filters.maxDuration} min`,
@@ -62,7 +63,7 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
       });
     }
     
-    if (filters.aroundMeCount !== 5) {
+    if (filters.aroundMeCount !== 10) {
       badges.push({
         key: 'aroundMeCount',
         label: `${filters.aroundMeCount} établissements`,
@@ -151,14 +152,14 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
         <div className="space-y-3">
           <Label className="text-sm font-medium">Catégorie</Label>
           <Select 
-            value={filters.category || ''} 
-            onValueChange={(value) => onFilterChange('category', value || null)}
+            value={filters.category || 'all'} 
+            onValueChange={(value) => onFilterChange('category', value === 'all' ? null : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Toutes les catégories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les catégories</SelectItem>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
               {categories.map((cat: Category) => (
                 <SelectItem key={cat.id} value={cat.id}>
                   <div className="flex items-center gap-2">

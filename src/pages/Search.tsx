@@ -266,17 +266,18 @@ export default function Search() {
                     transport: filters.transport,
                     distance: filters.distance,
                     unit: filters.unit,
-                    aroundMeCount: filters.aroundMeCount || 5,
+                    aroundMeCount: filters.aroundMeCount || 10,
                     category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
-                    maxDuration: filters.maxDuration || 20
+                    maxDuration: filters.maxDuration || 30,
+                    showMultiDirections: filters.showMultiDirections
                   }}
                   distanceMode={distanceMode}
                   onFilterChange={(key, value) => handleFiltersChange(key, value)}
                   onClearFilter={(key) => {
                     if (key === 'transport') handleFiltersChange('transport', 'walking');
-                    else if (key === 'distance') handleFiltersChange('distance', 10);
-                    else if (key === 'maxDuration') handleFiltersChange('maxDuration', 20);
-                    else if (key === 'aroundMeCount') handleFiltersChange('aroundMeCount', 5);
+                    else if (key === 'distance') handleFiltersChange('distance', 5);
+                    else if (key === 'maxDuration') handleFiltersChange('maxDuration', 30);
+                    else if (key === 'aroundMeCount') handleFiltersChange('aroundMeCount', 10);
                     else if (key === 'category') handleFiltersChange('category', null);
                   }}
                   onDistanceModeChange={setDistanceMode}
@@ -376,28 +377,28 @@ export default function Search() {
                   </TabsList>
                   
                   <TabsContent value="filtres" className="space-y-4 mt-4">
-                    <Select value={filters.transport} onValueChange={(value) => handleFiltersChange('transport', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Mode de transport" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="car">🚗 Voiture</SelectItem>
-                        <SelectItem value="walking">🚶 À pied</SelectItem>
-                        <SelectItem value="cycling">🚴 Vélo</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <div>
-                      <label className="text-sm font-medium">Distance: {filters.distance} km</label>
-                      <Slider
-                        value={[filters.distance]}
-                        onValueChange={([value]) => handleFiltersChange('distance', value)}
-                        max={50}
-                        min={1}
-                        step={1}
-                        className="mt-2"
-                      />
-                    </div>
+                    <ModernFilterPanel
+                      filters={{
+                        transport: filters.transport,
+                        distance: filters.distance,
+                        unit: filters.unit,
+                        aroundMeCount: filters.aroundMeCount || 10,
+                        category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
+                        maxDuration: filters.maxDuration || 30,
+                        showMultiDirections: filters.showMultiDirections
+                      }}
+                      distanceMode={distanceMode}
+                      onFilterChange={(key, value) => handleFiltersChange(key, value)}
+                      onClearFilter={(key) => {
+                        if (key === 'transport') handleFiltersChange('transport', 'walking');
+                        else if (key === 'distance') handleFiltersChange('distance', 5);
+                        else if (key === 'maxDuration') handleFiltersChange('maxDuration', 30);
+                        else if (key === 'aroundMeCount') handleFiltersChange('aroundMeCount', 10);
+                        else if (key === 'category') handleFiltersChange('category', null);
+                      }}
+                      onDistanceModeChange={setDistanceMode}
+                      className="space-y-4"
+                    />
                   </TabsContent>
 
                   <TabsContent value="adresses" className="space-y-2 mt-4">

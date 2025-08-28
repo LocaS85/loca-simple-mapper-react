@@ -23,9 +23,8 @@ const OptimizedFilterButton: React.FC<OptimizedFilterButtonProps> = ({
   const activeFiltersCount = [
     filters.transport !== 'walking',
     filters.category !== null,
-    filters.subcategory !== null,
-    distanceMode === 'distance' ? (filters.distance !== 10 || filters.unit !== 'km') : (filters.maxDuration !== 20),
-    filters.aroundMeCount !== 5,
+    distanceMode === 'distance' ? (filters.distance !== 5 || filters.unit !== 'km') : (filters.maxDuration !== 30),
+    filters.aroundMeCount !== 10,
     filters.showMultiDirections
   ].filter(Boolean).length;
 
