@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route } from "react-router-dom";
+import GlobalLayout from '@/components/layout/GlobalLayout';
 import Index from '@/pages/Index';
 import About from '@/pages/About';
 import Categories from '@/pages/Categories';
@@ -27,25 +28,25 @@ import Contact from '@/pages/Contact';
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/categories" element={<Categories />} />
-      <Route path="/recherche" element={<Search />} />
+      <Route path="/" element={<GlobalLayout><Index /></GlobalLayout>} />
+      <Route path="/about" element={<GlobalLayout><About /></GlobalLayout>} />
+      <Route path="/categories" element={<GlobalLayout><Categories /></GlobalLayout>} />
+      <Route path="/recherche" element={<GlobalLayout><Search /></GlobalLayout>} />
       
-      <Route path="/conditions" element={<TermsOfService />} />
-      <Route path="/confidentialite" element={<Privacy />} />
-      <Route path="/premium" element={<Premium />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/payment" element={<Payment />} />
-      <Route path="/account" element={<Account />} />
-      <Route path="/favorites" element={<Favorites />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/faq" element={<FAQ />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="/conditions" element={<GlobalLayout><TermsOfService /></GlobalLayout>} />
+      <Route path="/confidentialite" element={<GlobalLayout><Privacy /></GlobalLayout>} />
+      <Route path="/premium" element={<GlobalLayout><Premium /></GlobalLayout>} />
+      <Route path="/auth" element={<GlobalLayout><Auth /></GlobalLayout>} />
+      <Route path="/login" element={<GlobalLayout><Login /></GlobalLayout>} />
+      <Route path="/register" element={<GlobalLayout><Register /></GlobalLayout>} />
+      <Route path="/payment" element={<GlobalLayout><Payment /></GlobalLayout>} />
+      <Route path="/account" element={<GlobalLayout><Account /></GlobalLayout>} />
+      <Route path="/favorites" element={<GlobalLayout><Favorites /></GlobalLayout>} />
+      <Route path="/settings" element={<GlobalLayout><Settings /></GlobalLayout>} />
+      <Route path="/forgot-password" element={<GlobalLayout><ForgotPassword /></GlobalLayout>} />
+      <Route path="/faq" element={<GlobalLayout><FAQ /></GlobalLayout>} />
+      <Route path="/contact" element={<GlobalLayout><Contact /></GlobalLayout>} />
+      <Route path="*" element={<GlobalLayout><NotFound /></GlobalLayout>} />
     </Routes>
   );
 };
