@@ -19,7 +19,7 @@ const OptimizedFilterButton: React.FC<OptimizedFilterButtonProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // Calculer le nombre de filtres actifs
+  // Calculer le nombre de filtres actifs avec les bonnes valeurs par défaut
   const activeFiltersCount = [
     filters.transport !== 'walking',
     filters.category !== null,
@@ -32,26 +32,22 @@ const OptimizedFilterButton: React.FC<OptimizedFilterButtonProps> = ({
 
   return (
     <Button 
-      variant={hasActiveFilters ? "default" : "outline"}
+      variant="ghost"
+      size="icon"
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 relative",
-        hasActiveFilters && "bg-primary text-primary-foreground"
+        "relative h-10 w-10 rounded-lg border-2 transition-all duration-200",
+        hasActiveFilters 
+          ? "border-primary bg-primary/10 text-primary hover:bg-primary/20" 
+          : "border-border bg-background hover:bg-muted"
       )}
       aria-label={`${t('common.filters')} (${activeFiltersCount} actifs)`}
     >
-      <Filter className="h-4 w-4" />
-      <span>{t('common.filters')}</span>
+      <Filter className="h-5 w-5" />
       {hasActiveFilters && (
-        <>
-          <span className="bg-background text-foreground rounded-full h-5 w-5 text-xs flex items-center justify-center font-medium">
-            {activeFiltersCount}
-          </span>
-          <span className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
-          </span>
-        </>
+        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full h-5 w-5 text-xs font-medium flex items-center justify-center shadow-sm">
+          {activeFiltersCount}
+        </span>
       )}
     </Button>
   );

@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { X, MapPin } from 'lucide-react';
 import TransportIconGrid from './TransportIconGrid';
 import DistanceDurationToggle from './DistanceDurationToggle';
 import { useSupabaseCategories, Category } from '@/hooks/useSupabaseCategories';
+import CategoryIconService from '@/services/CategoryIconService';
 
 interface ModernFilterPanelProps {
   filters: {
@@ -34,6 +35,7 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
   className
 }) => {
   const { categories, loading } = useSupabaseCategories();
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   // Calculer les badges de filtres actifs
   const getActiveBadges = () => {
@@ -152,24 +154,70 @@ const ModernFilterPanel: React.FC<ModernFilterPanelProps> = ({
         <div className="space-y-3">
           <Label className="text-sm font-medium">Catégorie</Label>
           <Select 
-            value={filters.category || 'all'} 
-            onValueChange={(value) => onFilterChange('category', value === 'all' ? null : value)}
+            value={filters.category || "all"} 
+            onValueChange={(value) => {
+              const categoryValue = value === "all" ? null : value;
+              onFilterChange('category', categoryValue);
+              // Reset subcategory when category changes
+              setSelectedSubcategory(null);
+            }}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Toutes les catégories" />
+            <SelectTrigger className="flex items-center gap-2">
+              <SelectValue placeholder="Sélectionner une catégorie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Toutes les catégories</SelectItem>
-              {categories.map((cat: Category) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  <div className="flex items-center gap-2">
-                    <span>{cat.icon}</span>
-                    <span>{cat.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
+              <SelectItem value="all" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Toutes les catégories
+              </SelectItem>
+              {categories.map((category) => {
+                const IconComponent = CategoryIconService.getCategoryIcon(category);
+                return (
+                  <SelectItem key={category.id} value={category.id} className="flex items-center gap-2">
+                    <IconComponent className="h-4 w-4" style={{ color: category.color }} />
+                    {category.name}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
+
+          {/* Sélecteur de sous-catégorie */}
+          {filters.category && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Sous-catégorie</Label>
+              <Select 
+                value={selectedSubcategory || "all"} 
+                onValueChange={(value) => {
+                  const subcategoryValue = value === "all" ? null : value;
+                  setSelectedSubcategory(subcategoryValue);
+                  onFilterChange('subcategory', subcategoryValue);
+                }}
+              >
+                <SelectTrigger className="flex items-center gap-2">
+                  <SelectValue placeholder="Sélectionner une sous-catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Toutes les sous-catégories
+                  </SelectItem>
+                  {categories
+                    .find(cat => cat.id === filters.category)
+                    ?.subcategories?.map((subcategory) => {
+                      const parentCategory = categories.find(cat => cat.id === filters.category);
+                      const IconComponent = CategoryIconService.getSubcategoryIcon(subcategory, parentCategory);
+                      return (
+                        <SelectItem key={subcategory.id} value={subcategory.id} className="flex items-center gap-2">
+                          <IconComponent className="h-4 w-4" style={{ color: parentCategory?.color }} />
+                          {subcategory.name}
+                        </SelectItem>
+                      );
+                    })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </div>
     </div>

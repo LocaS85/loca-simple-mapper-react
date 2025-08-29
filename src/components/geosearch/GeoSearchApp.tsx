@@ -5,7 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import GoogleMapsLayout from './GoogleMapsLayout';
 
 import MapboxTokenSetup from './ui/MapboxTokenSetup';
-import GeoSearchHeader from './components/GeoSearchHeader';
+// Suppression du GeoSearchHeader redondant - utilisation de la page Search directement
 import RouteBackButton from '@/components/ui/RouteBackButton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EnhancedLoadingSpinner from '@/components/shared/EnhancedLoadingSpinner';
@@ -235,18 +235,7 @@ const GeoSearchApp: React.FC = () => {
         <AccessibilityProvider>
           <SecureMapboxProvider>
             <div className="h-screen flex flex-col">
-              {/* Header unifié avec contrôles centralisés */}
-              <GeoSearchHeader
-                searchQuery={filters.query || ''}
-                onSearch={handleSearch}
-                onLocationSelect={handleLocationSelect}
-                userLocation={userLocation}
-                resultsCount={results.length}
-                isLoading={isLoading}
-                onMyLocationClick={handleMyLocationClick}
-                isLocating={isLocating}
-                locationError={locationError}
-              />
+              {/* Header supprimé - gestion directe dans la page Search */}
               
 
               {/* Contenu principal */}

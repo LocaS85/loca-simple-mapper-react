@@ -103,6 +103,11 @@
     "showMultiDirections": "Itinéraires multiples",
     "adjust": "Ajuster",
     "maxDuration": "Durée maximale",
+    "selectCategory": "Sélectionner une catégorie",
+    "allCategories": "Toutes les catégories",
+    "subcategory": "Sous-catégorie",
+    "selectSubcategory": "Sélectionner une sous-catégorie", 
+    "allSubcategories": "Toutes les sous-catégories",
     "labels": {
       "maxDistance": "Distance max",
       "maxDuration": "Durée max"
