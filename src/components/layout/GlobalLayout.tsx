@@ -12,7 +12,7 @@ const GlobalLayout: React.FC<GlobalLayoutProps> = ({ children }) => {
   const location = useLocation();
   
   // Pages qui ne doivent pas afficher le header/footer
-  const hideHeaderFooterPaths = ['/geosearch', '/recherche'];
+  const hideHeaderFooterPaths = ['/geosearch', '/recherche', '/search'];
   const shouldHideHeaderFooter = hideHeaderFooterPaths.includes(location.pathname);
 
   if (shouldHideHeaderFooter) {
