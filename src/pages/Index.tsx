@@ -9,8 +9,6 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { ErrorBoundary } from 'react-error-boundary';
 import { ArrowRight, MapPin, Search, Heart, FileDown, Users, Star, CheckCircle, Play, Shield, Clock, Award } from 'lucide-react';
 import Logo from "@/components/ui/Logo";
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
 
 // Import images
 import heroImage from '@/assets/hero-modern.jpg';
@@ -127,9 +125,7 @@ export default function Index() {
 
   return (
     <ErrorBoundary FallbackComponent={HomeErrorFallback}>
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1">
+      <main className="flex-1">
           {/* Hero Section */}
           <section className="relative w-full py-20 md:py-32 overflow-hidden bg-gradient-to-br from-primary via-locasimple-blue to-locasimple-teal">
             <div 
@@ -419,9 +415,7 @@ export default function Index() {
               </div>
             </Container>
           </section>
-        </main>
-        <Footer />
-      </div>
+      </main>
     </ErrorBoundary>
   );
 }
