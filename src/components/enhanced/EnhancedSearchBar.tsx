@@ -77,14 +77,13 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = memo(({
       // Utiliser la position utilisateur si disponible, sinon Paris par défaut
       const center: [number, number] = userLocation || [2.3522, 48.8566];
       
-      const results = await enhancedGeocodingService.searchPlaces(
+      console.log('🔍 Autocomplétion POI améliorée:', { searchQuery, center });
+      
+      // Utiliser la nouvelle méthode de suggestions rapides
+      const results = await enhancedGeocodingService.getQuickSuggestions(
         searchQuery, 
         center, 
-        {
-          limit: 5,
-          radius: userLocation ? 20 : 50, // Rayon plus petit si position précise
-          language: 'fr'
-        }
+        5 // Limité à 5 suggestions pour l'autocomplétion
       );
       
       const formattedResults: SearchResultData[] = results.map((result, index) => ({
@@ -92,13 +91,39 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = memo(({
         name: result.name || result.address?.split(',')[0] || 'Lieu',
         address: result.address || 'Adresse non disponible',
         coordinates: result.coordinates,
-        distance: result.distance
+        distance: result.distance,
+        category: result.category
       }));
       
-      setSuggestions(formattedResults);
-      setShowSuggestions(formattedResults.length > 0);
+      // Ajouter des informations visuelles pour les marques
+      const enhancedResults = formattedResults.map(result => {
+        if (result.name.toLowerCase().includes('ikea')) {
+          return {
+            ...result,
+            name: `🛏️ ${result.name}`,
+            address: result.distance && result.distance > 10 
+              ? `${result.address} (${result.distance.toFixed(1)}km - recherche élargie)`
+              : result.address
+          };
+        }
+        
+        if (result.name.toLowerCase().includes('restaurant')) {
+          return { ...result, name: `🍽️ ${result.name}` };
+        }
+        
+        if (result.name.toLowerCase().includes('pharmacie')) {
+          return { ...result, name: `💊 ${result.name}` };
+        }
+        
+        return result;
+      });
+      
+      setSuggestions(enhancedResults);
+      setShowSuggestions(enhancedResults.length > 0);
+      
+      console.log('✅ Suggestions chargées:', enhancedResults.length);
     } catch (error) {
-      console.error('Erreur de recherche auto-suggestion:', error);
+      console.error('❌ Erreur de recherche auto-suggestion:', error);
       setSuggestions([]);
       setShowSuggestions(false);
     } finally {
