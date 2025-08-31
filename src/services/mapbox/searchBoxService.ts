@@ -56,21 +56,21 @@ export const searchBoxService = {
     } = {}
   ): Promise<SearchBoxSuggestion[]> {
     try {
-      const { limit = 10, types = ['poi'], language = 'fr', country = 'fr' } = options;
+      const { limit = 10, types = ['poi'], language = 'fr' } = options; // Retirer country pour expansion
       const token = await getMapboxToken();
       
       if (!token) throw new Error('Token Mapbox non disponible');
 
-      // URL avec paramètres optimisés pour POI
+      // URL avec paramètres optimisés pour POI sans contrainte géographique
       let url = `https://api.mapbox.com/search/searchbox/v1/suggest?` +
         `q=${encodeURIComponent(query)}&` +
         `access_token=${token}&` +
         `language=${language}&` +
         `limit=${limit}&` +
-        `country=${country}&` +
         `types=${types.join(',')}`;
+        // Retirer country pour permettre expansion géographique automatique
 
-      // Ajouter proximity si disponible
+      // Ajouter proximity si disponible (pour prioriser mais pas limiter)
       if (proximity) {
         url += `&proximity=${proximity[0]},${proximity[1]}`;
       }
@@ -137,23 +137,32 @@ export const searchBoxService = {
     } = {}
   ): Promise<SearchResult[]> {
     try {
-      const { limit = 10, categories } = options;
+      const { limit = 10, radius = 50, categories } = options; // Rayon élargi par défaut
       
-      // Déterminer les types POI selon la requête
-      const types = this.getOptimalPOITypes(query, categories);
-      
-      console.log('🎯 Recherche POI optimisée:', { query, types, center });
+      console.log('🎯 Search Box POI - Recherche avec expansion automatique:', { query, center, radius, categories });
 
-      // Étape 1: Obtenir les suggestions
-      const suggestions = await this.getSuggestions(query, center, {
+      // Recherche locale d'abord (avec proximity)
+      let suggestions = await this.getSuggestions(query, center, {
         limit,
-        types,
-        language: 'fr',
-        country: 'fr'
+        types: this.getOptimalPOITypes(query, categories),
+        language: 'fr'
       });
+      
+      console.log('📋 Suggestions locales:', suggestions.length);
+      
+      // Si peu de résultats, expansion automatique sans contrainte géographique
+      if (suggestions.length < 3) {
+        console.log('🔄 Expansion géographique automatique - recherche nationale');
+        suggestions = await this.getSuggestions(query, undefined, { // Pas de proximity pour recherche nationale
+          limit: limit * 2,
+          types: this.getOptimalPOITypes(query, categories),
+          language: 'fr'
+        });
+        console.log('📋 Suggestions élargies:', suggestions.length);
+      }
 
       if (suggestions.length === 0) {
-        console.log('🔄 Pas de suggestions, recherche élargie...');
+        console.log('🔄 Pas de suggestions, fallback API...');
         return await this.fallbackSearch(query, center, limit);
       }
 
@@ -185,31 +194,27 @@ export const searchBoxService = {
    * Détermine les types POI optimaux selon la requête
    */
   getOptimalPOITypes(query: string, categories?: string[]): string[] {
-    const lowerQuery = query.toLowerCase();
-    
-    // Types spécifiques selon les marques/catégories
-    if (lowerQuery.includes('ikea') || lowerQuery.includes('meuble')) {
-      return ['poi', 'poi.business', 'poi.shopping'];
+    if (categories && categories.length > 0) {
+      return categories;
     }
     
-    if (lowerQuery.includes('restaurant') || lowerQuery.includes('café')) {
-      return ['poi', 'poi.business', 'poi.food_and_beverage'];
+    const queryLower = query.toLowerCase();
+    
+    // Mapping intelligent selon le terme de recherche avec types Search Box API
+    if (queryLower.includes('restaurant') || queryLower.includes('café') || queryLower.includes('bistro')) {
+      return ['poi', 'poi.business'];
     }
     
-    if (lowerQuery.includes('pharmacie') || lowerQuery.includes('médecin')) {
-      return ['poi', 'poi.business', 'poi.medical'];
+    if (queryLower.includes('magasin') || queryLower.includes('commerce') || queryLower.includes('shopping') || queryLower.includes('ikea')) {
+      return ['poi', 'poi.business']; // Types Search Box optimaux pour commerce
     }
     
-    if (lowerQuery.includes('supermarché') || lowerQuery.includes('magasin')) {
-      return ['poi', 'poi.business', 'poi.shopping'];
+    if (queryLower.includes('pharmacie') || queryLower.includes('hôpital')) {
+      return ['poi', 'poi.business'];
     }
     
-    if (lowerQuery.includes('hôtel') || lowerQuery.includes('hébergement')) {
-      return ['poi', 'poi.business', 'poi.lodging'];
-    }
-
-    // Types par défaut pour une recherche large
-    return ['poi', 'poi.business', 'poi.landmark'];
+    // Types par défaut optimisés pour Search Box API
+    return ['poi', 'poi.business'];
   },
 
   /**

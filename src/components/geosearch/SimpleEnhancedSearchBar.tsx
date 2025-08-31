@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { mapboxSearchService } from '@/services/mapbox/searchService';
+import { enhancedGeocodingService } from '@/services/mapbox/enhancedGeocodingService';
 
 interface SimpleEnhancedSearchBarProps {
   value: string;
@@ -45,20 +45,24 @@ const SimpleEnhancedSearchBar: React.FC<SimpleEnhancedSearchBarProps> = ({
           
           console.log('📍 Position utilisée pour la recherche:', searchLocation);
           
-          // Recherche optimisée pour POI et établissements commerciaux
-          const results = await mapboxSearchService.searchPlaces(value, searchLocation, { 
+          // Recherche POI intelligente avec Search Box API et expansion géographique
+          const results = await enhancedGeocodingService.searchPlaces(value, searchLocation, { 
             limit: 10,
-            categories: ['poi', 'address', 'place', 'region', 'postcode', 'locality', 'neighborhood', 'district']
+            radius: 50, // Rayon initial
+            categories: ['poi', 'poi.business', 'poi.shopping', 'poi.retail', 'address']
           });
           
           console.log('✅ Résultats reçus:', results);
           setSuggestions(results);
           setShowSuggestions(results.length > 0);
           
-          // Afficher un message si aucun résultat trouvé
+          // Afficher un message informatif selon le type de résultats
           if (results.length === 0) {
             const { toast } = await import('sonner');
-            toast.info(`Aucun POI trouvé pour "${value}". Essayez un terme plus général.`);
+            toast.info(`Aucun lieu trouvé pour "${value}". Recherche élargie recommandée.`);
+          } else if (results.some(r => r.distance && r.distance > 25)) {
+            const { toast } = await import('sonner');
+            toast.success(`Recherche élargie activée - ${results.length} lieu${results.length > 1 ? 'x' : ''} trouvé${results.length > 1 ? 's' : ''}`);
           }
           
         } catch (error) {

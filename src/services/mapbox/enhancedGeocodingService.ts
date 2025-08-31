@@ -20,28 +20,28 @@ export const enhancedGeocodingService = {
       
       console.log('🚀 Enhanced Geocoding - Nouvelle recherche POI:', { query, center, options });
       
-      // Prioriser la recherche de marques pour les grandes enseignes
+      // Priorité aux résultats de marques avec expansion géographique intelligente
       const brandResults = await brandSearchService.searchBrand(query, center, {
         limit,
         expandRadius: true,
-        maxRadius: radius * 2 // Expansion jusqu'à 2x le rayon demandé
+        maxRadius: radius * 3 // Expansion plus large pour POI nationaux
       });
       
       if (brandResults.length > 0) {
-        console.log('✅ Résultats de marques trouvés:', brandResults.length);
+        console.log('🏷️ Résultats marques trouvés avec expansion:', brandResults.length);
         return brandResults.slice(0, limit);
       }
       
-      // Recherche POI standard avec la nouvelle API Search Box
-      console.log('🔍 Recherche POI standard...');
+      // Recherche POI standard avec Search Box API et expansion automatique
+      console.log('🔍 Recherche POI avec expansion automatique...');
       const poiResults = await searchBoxService.searchPOI(query, center, {
         limit,
-        radius,
-        categories: options.categories
+        radius: radius || 50, // Rayon élargi par défaut
+        categories: options.categories || ['poi', 'poi.business', 'poi.shopping', 'poi.retail']
       });
       
       if (poiResults.length > 0) {
-        console.log('✅ Résultats POI standard trouvés:', poiResults.length);
+        console.log('📍 Résultats POI standard avec expansion trouvés:', poiResults.length);
         return poiResults;
       }
       

@@ -189,11 +189,11 @@ export const createGeoSearchActions = (
       // Simplified cache check (skip spatial cache for now)
       console.log('🌍 Cache spatial bypassed pour cette version');
       
-      // Appel API Mapbox avec le service de recherche
-      const { mapboxSearchService } = await import('@/services/mapbox/searchService');
-      const mapboxResults = await mapboxSearchService.searchPlaces(searchQuery, userLocation, {
+      // Appel API Mapbox avec le service de recherche unifié et intelligent
+      const { enhancedGeocodingService } = await import('@/services/mapbox/enhancedGeocodingService');
+      const mapboxResults = await enhancedGeocodingService.searchPlaces(searchQuery, userLocation, {
         limit: filters.aroundMeCount || 5,
-        radius: filters.distance || 5,
+        radius: filters.distance || 50, // Rayon élargi pour meilleure couverture POI
         categories: Array.isArray(filters.category) ? filters.category : filters.category ? [filters.category] : undefined
       });
       
