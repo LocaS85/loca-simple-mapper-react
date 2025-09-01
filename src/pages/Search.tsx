@@ -1,35 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { MapPin, Search as SearchIcon, Navigation, Filter, Share2, Download, Plus, Car, Bike, Clock, Map, Home, Users, Building, GraduationCap } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { MapPin, Navigation, Filter, Share2, Download, Layers, Settings, X, Home, Users, Building, GraduationCap, Car, Bike, Clock, Map } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { debounce } from 'lodash';
+
+// Components
 import ModernFilterPanel from '@/components/filters/ModernFilterPanel';
 import OptimizedFilterButton from '@/components/filters/OptimizedFilterButton';
-import { useTranslation } from 'react-i18next';
+import EnhancedSearchBar from '@/components/geosearch/EnhancedSearchBar';
+import MapboxSearchMap from '@/components/geosearch/MapboxSearchMap';
+import MultiDirectionalSearch from '@/components/geosearch/MultiDirectionalSearch';
 import SEOHead from '@/components/SEOHead';
-import { useGeoSearchStore } from '@/store/geoSearchStore';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+
+// UI Components
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import MapboxSearchMap from '@/components/geosearch/MapboxSearchMap';
-import SimpleEnhancedSearchBar from '@/components/geosearch/SimpleEnhancedSearchBar';
-import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Hooks & Stores
+import { useGeoSearchStore } from '@/store/geoSearchStore';
+import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useSupabaseCategories } from '@/hooks/useSupabaseCategories';
+
+// Services & Utils
+import { CacheService } from '@/services/cacheService';
+import { AnalyticsService } from '@/services/analyticsService';
+import { OfflineStorageService } from '@/services/offlineStorageService';
+
+// Types
+interface SearchSettings {
+  autoSuggest: boolean;
+  multiDirections: boolean;
+  cacheEnabled: boolean;
+  offlineMode: boolean;
+  analyticsEnabled: boolean;
+  maxResults: number;
+  defaultTransport: string;
+}
+
+interface RouteData {
+  id: string;
+  coordinates: number[][];
+  color: string;
+  distance: number;
+  duration: number;
+  origin: [number, number];
+  destination: [number, number];
+  poiInfo: {
+    name: string;
+    category: string;
+    rating?: number;
+  };
+}
+
+// Services initialization
+const cacheService = new CacheService();
+const analyticsService = new AnalyticsService();
+const offlineStorage = new OfflineStorageService();
 
 export default function Search() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+
+  // États principaux
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [manualFiltersActive, setManualFiltersActive] = useState(false);
+  const [showMultiDirections, setShowMultiDirections] = useState(false);
+  const [multiRoutes, setMultiRoutes] = useState<RouteData[]>([]);
+  const [searchOrigin, setSearchOrigin] = useState<'position' | 'address'>('position');
+  const [selectedOriginAddress, setSelectedOriginAddress] = useState<any>(null);
   
+  // Paramètres utilisateur
+  const [settings, setSettings] = useState<SearchSettings>({
+    autoSuggest: true,
+    multiDirections: false,
+    cacheEnabled: true,
+    offlineMode: false,
+    analyticsEnabled: true,
+    maxResults: 3,
+    defaultTransport: 'walking'
+  });
+
+  // Store Zustand
   const {
     userLocation,
     results,
@@ -42,8 +105,42 @@ export default function Search() {
     setDistanceMode
   } = useGeoSearchStore();
 
+  // Géolocalisation
   const { coordinates: currentLocation, getCurrentLocation } = useEnhancedGeolocation();
   const { userAddresses, transportModes, loading: addressesLoading } = useSupabaseCategories();
+
+  // Initialisation
+  useEffect(() => {
+    // Charger les paramètres depuis le localStorage
+    const savedSettings = localStorage.getItem('searchSettings');
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+
+    // Charger l'historique de recherche
+    const savedHistory = localStorage.getItem('searchHistory');
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
+    }
+
+    // Initialiser le mode de transport par défaut
+    updateFilters({ transport: 'walking' });
+
+    // Charger les données offline si disponibles
+    if (settings.offlineMode) {
+      offlineStorage.loadOfflineData();
+    }
+  }, []);
+
+  // Sauvegarder les paramètres
+  useEffect(() => {
+    localStorage.setItem('searchSettings', JSON.stringify(settings));
+  }, [settings]);
+
+  // Sauvegarder l'historique
+  useEffect(() => {
+    localStorage.setItem('searchHistory', JSON.stringify(searchHistory.slice(0, 20)));
+  }, [searchHistory]);
 
   // Initialize user location
   useEffect(() => {
@@ -52,57 +149,206 @@ export default function Search() {
     if (currentLocation && !userLocation) {
       console.log('📍 Définition userLocation depuis currentLocation:', currentLocation);
       setUserLocation([currentLocation[0], currentLocation[1]]);
+      if (settings.analyticsEnabled) {
+        analyticsService.track('location_obtained', { method: 'auto' });
+      }
     }
-  }, [currentLocation, userLocation, setUserLocation]);
+  }, [currentLocation, userLocation, setUserLocation, settings.analyticsEnabled]);
 
-  const handleSearch = async (query?: string) => {
+  // Fonction de recherche optimisée avec cache
+  const handleSearch = useCallback(async (query?: string, skipFilters?: boolean) => {
     const searchTerm = query || searchQuery;
     if (!searchTerm.trim()) return;
-    
-    console.log('🔍 Lancement recherche:', { searchTerm, userLocation });
-    
-    // Add to search history
+
+    console.log('🔍 Recherche:', { searchTerm, userLocation, skipFilters });
+
+    // Vérifier le cache
+    if (settings.cacheEnabled) {
+      const cachedResults = await cacheService.get(searchTerm);
+      if (cachedResults) {
+        console.log('📦 Résultats depuis le cache');
+        toast.info('Résultats chargés depuis le cache');
+        // Utiliser les résultats cachés
+        return;
+      }
+    }
+
+    // Ajouter à l'historique
     setSearchHistory(prev => {
-      const newHistory = [searchTerm, ...prev.filter(h => h !== searchTerm)].slice(0, 5);
+      const newHistory = [searchTerm, ...prev.filter(h => h !== searchTerm)].slice(0, 20);
       return newHistory;
     });
 
-    updateFilters({ query: searchTerm });
-    await performSearch(searchTerm);
+    // Analytics
+    if (settings.analyticsEnabled) {
+      analyticsService.track('search_performed', {
+        query: searchTerm,
+        filters_active: manualFiltersActive,
+        transport_mode: filters.transport,
+        multi_directions: showMultiDirections
+      });
+    }
+
+    // Recherche avec ou sans filtres
+    if (!skipFilters && manualFiltersActive) {
+      updateFilters({ query: searchTerm });
+    }
     
+    // Lancer la recherche
+    await performSearch(searchTerm);
+
+    // Mettre en cache les résultats après la recherche
+    if (settings.cacheEnabled && results.length > 0) {
+      await cacheService.set(searchTerm, results);
+    }
+
+    // Si multi-directions est activé, calculer les routes
+    if (showMultiDirections && results.length > 0) {
+      await calculateMultiRoutes(results.slice(0, settings.maxResults));
+    }
+
     // Afficher les résultats sur mobile
-    if (isMobile) {
+    if (isMobile && results.length > 0) {
       setShowFilters(true);
     }
-  };
-
-  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSearch();
-  };
+  }, [searchQuery, userLocation, manualFiltersActive, filters, showMultiDirections, settings, performSearch, updateFilters, results]);
 
   const handleLocationSelect = (location: any) => {
     setSelectedLocation(location);
+  };
+
+  // Calculer les routes multiples
+  const calculateMultiRoutes = async (destinations: any[]) => {
+    if (!userLocation && !selectedOriginAddress) {
+      toast.error('Veuillez définir un point de départ');
+      return;
+    }
+
+    const origin = searchOrigin === 'position' 
+      ? userLocation 
+      : selectedOriginAddress?.coordinates;
+
+    if (!origin) return;
+
+    try {
+      const routes: RouteData[] = await Promise.all(
+        destinations.map(async (dest, index) => {
+          const routeData = await fetchRoute(origin, dest.coordinates, filters.transport);
+          return {
+            id: `route-${index}`,
+            coordinates: routeData.geometry.coordinates,
+            color: getTransportColor(filters.transport, index),
+            distance: routeData.distance,
+            duration: routeData.duration,
+            origin: origin as [number, number],
+            destination: dest.coordinates,
+            poiInfo: {
+              name: dest.name,
+              category: dest.category || 'POI',
+              rating: dest.rating
+            }
+          };
+        })
+      );
+
+      setMultiRoutes(routes);
+      
+      // Analytics
+      if (settings.analyticsEnabled) {
+        analyticsService.track('multi_routes_calculated', {
+          count: routes.length,
+          transport: filters.transport,
+          origin_type: searchOrigin
+        });
+      }
+    } catch (error) {
+      toast.error('Erreur lors du calcul des itinéraires');
+      console.error(error);
+    }
+  };
+
+  // Fonction pour récupérer une route via Mapbox
+  const fetchRoute = async (origin: [number, number], destination: [number, number], mode: string) => {
+    const profile = getMapboxProfile(mode);
+    const mapboxToken = process.env.VITE_MAPBOX_TOKEN || '';
+    const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${origin[0]},${origin[1]};${destination[0]},${destination[1]}`;
+    
+    const response = await fetch(`${url}?` + new URLSearchParams({
+      access_token: mapboxToken,
+      geometries: 'geojson',
+      language: 'fr',
+      overview: 'full'
+    }));
+
+    const data = await response.json();
+    
+    if (data.routes && data.routes[0]) {
+      return {
+        geometry: data.routes[0].geometry,
+        distance: data.routes[0].distance / 1000,
+        duration: data.routes[0].duration / 60
+      };
+    }
+    
+    throw new Error('Aucune route trouvée');
+  };
+
+  // Helpers
+  const getMapboxProfile = (mode: string) => {
+    switch (mode) {
+      case 'walking': return 'walking';
+      case 'cycling': return 'cycling';
+      case 'driving': return 'driving';
+      case 'transit': return 'driving';
+      default: return 'driving';
+    }
+  };
+
+  const getTransportColor = (mode: string, index: number) => {
+    const baseColors = {
+      walking: '#10B981',
+      cycling: '#3B82F6',
+      driving: '#F59E0B',
+      transit: '#8B5CF6'
+    };
+    
+    // Variation de couleur pour différencier les tracés
+    const variations = [0, 20, -20];
+    const baseColor = baseColors[mode as keyof typeof baseColors] || '#6B7280';
+    
+    return adjustColor(baseColor, variations[index % 3]);
+  };
+
+  const adjustColor = (color: string, amount: number): string => {
+    const num = parseInt(color.replace('#', ''), 16);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
   };
 
   const handleGetMyLocation = async () => {
     try {
       await getCurrentLocation();
       toast.success('Position obtenue avec succès');
+      if (settings.analyticsEnabled) {
+        analyticsService.track('location_obtained', { method: 'manual' });
+      }
     } catch (error) {
       toast.error('Impossible d\'obtenir votre position');
     }
   };
 
   const handleFiltersChange = (key: string, value: any) => {
-    const newFilters = { [key]: value };
-    updateFilters(newFilters);
+    setManualFiltersActive(true);
+    updateFilters({ [key]: value });
+    
     if (filters.query) {
       performSearch(filters.query);
+    }
+
+    if (settings.analyticsEnabled) {
+      analyticsService.track('filter_changed', { filter: key, value });
     }
   };
 
@@ -111,16 +357,38 @@ export default function Search() {
   };
 
   const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Recherche LocaSimple',
-        url: window.location.href
-      });
+    const shareData = {
+      title: 'Recherche LocaSimple',
+      text: `Itinéraire: ${searchQuery}`,
+      url: window.location.href
+    };
+
+    if (navigator.share && isMobile) {
+      navigator.share(shareData);
     } else {
       navigator.clipboard.writeText(window.location.href);
       toast.success('Lien copié dans le presse-papiers');
     }
+
+    if (settings.analyticsEnabled) {
+      analyticsService.track('share_initiated', { method: navigator.share ? 'native' : 'clipboard' });
+    }
   };
+
+  const toggleMultiDirections = () => {
+    setShowMultiDirections(!showMultiDirections);
+    setSettings(prev => ({ ...prev, multiDirections: !prev.multiDirections }));
+    
+    if (!showMultiDirections && results.length > 0) {
+      calculateMultiRoutes(results.slice(0, settings.maxResults));
+    }
+  };
+
+  // Optimisation avec debounce pour la recherche
+  const debouncedSearch = useMemo(
+    () => debounce((query: string) => handleSearch(query, false), 300),
+    [handleSearch]
+  );
 
   const handleOpenInMaps = (service: 'google' | 'waze' | 'apple') => {
     if (!selectedLocation) return;
@@ -142,10 +410,19 @@ export default function Search() {
     }
     
     window.open(url, '_blank');
+    
+    if (settings.analyticsEnabled) {
+      analyticsService.track('navigation_launched', {
+        poi_name: selectedLocation.name,
+        app: service,
+        transport: filters.transport
+      });
+    }
   };
 
   const quickActions = [
     { icon: Navigation, action: handleGetMyLocation },
+    { icon: Layers, action: toggleMultiDirections },
     { icon: Download, action: handleExportPDF },
     { icon: Share2, action: handleShare },
     { icon: Filter, action: () => setShowFilters(!showFilters) }
@@ -192,7 +469,7 @@ export default function Search() {
         <div className="absolute top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
           <div className="flex items-center gap-1 p-2">
             <div className="flex-1 max-w-2xl">
-              <SimpleEnhancedSearchBar
+              <EnhancedSearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
                 onSearch={handleSearch}
@@ -204,6 +481,7 @@ export default function Search() {
                 }}
                 userLocation={userLocation}
                 placeholder="Rechercher des lieux..."
+                recentSearches={searchHistory}
                 className="flex-1"
               />
             </div>
@@ -250,9 +528,23 @@ export default function Search() {
                   distanceMode={distanceMode}
                 />
               </div>
-            )}
           </div>
         </div>
+
+        {/* Barre de statut multi-directions */}
+        {showMultiDirections && (
+          <MultiDirectionalSearch
+            searchOrigin={searchOrigin}
+            onSearchOriginChange={setSearchOrigin}
+            selectedOriginAddress={selectedOriginAddress}
+            onOriginAddressChange={setSelectedOriginAddress}
+            userAddresses={userAddresses}
+            maxResults={settings.maxResults}
+            onMaxResultsChange={(value) => setSettings(prev => ({ ...prev, maxResults: value }))}
+            routeCount={multiRoutes.length}
+          />
+        )}
+      </div>
 
         {/* Panneau latéral enrichi - Desktop */}
         {!isMobile && showFilters && (
