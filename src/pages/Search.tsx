@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MapPin, Navigation, Filter, Share2, Download, Layers, Settings, X, Home, Users, Building, GraduationCap, Car, Bike, Clock, Map } from 'lucide-react';
+import { MapPin, Navigation, Filter, Share2, Download, Layers, Settings, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { debounce } from 'lodash';
+import { TransportMode } from '@/lib/data/transportModes';
 
 // Components
 import ModernFilterPanel from '@/components/filters/ModernFilterPanel';
@@ -42,7 +43,7 @@ interface SearchSettings {
   offlineMode: boolean;
   analyticsEnabled: boolean;
   maxResults: number;
-  defaultTransport: string;
+  defaultTransport: TransportMode;
 }
 
 interface RouteData {
@@ -68,6 +69,7 @@ const offlineStorage = new OfflineStorageService();
 export default function Search() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
   // États principaux
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
@@ -89,7 +91,7 @@ export default function Search() {
     offlineMode: false,
     analyticsEnabled: true,
     maxResults: 3,
-    defaultTransport: 'walking'
+    defaultTransport: 'walking' as TransportMode
   });
 
   // Store Zustand
@@ -124,7 +126,7 @@ export default function Search() {
     }
 
     // Initialiser le mode de transport par défaut
-    updateFilters({ transport: 'walking' });
+    updateFilters({ transport: settings.defaultTransport as TransportMode });
 
     // Charger les données offline si disponibles
     if (settings.offlineMode) {
@@ -142,12 +144,9 @@ export default function Search() {
     localStorage.setItem('searchHistory', JSON.stringify(searchHistory.slice(0, 20)));
   }, [searchHistory]);
 
-  // Initialize user location
+  // Géolocalisation automatique
   useEffect(() => {
-    console.log('🌍 Initialisation géolocalisation:', { currentLocation, userLocation });
-    
     if (currentLocation && !userLocation) {
-      console.log('📍 Définition userLocation depuis currentLocation:', currentLocation);
       setUserLocation([currentLocation[0], currentLocation[1]]);
       if (settings.analyticsEnabled) {
         analyticsService.track('location_obtained', { method: 'auto' });
@@ -194,10 +193,9 @@ export default function Search() {
       updateFilters({ query: searchTerm });
     }
     
-    // Lancer la recherche
     await performSearch(searchTerm);
 
-    // Mettre en cache les résultats après la recherche
+    // Mettre en cache les résultats si applicable
     if (settings.cacheEnabled && results.length > 0) {
       await cacheService.set(searchTerm, results);
     }
@@ -211,11 +209,7 @@ export default function Search() {
     if (isMobile && results.length > 0) {
       setShowFilters(true);
     }
-  }, [searchQuery, userLocation, manualFiltersActive, filters, showMultiDirections, settings, performSearch, updateFilters, results]);
-
-  const handleLocationSelect = (location: any) => {
-    setSelectedLocation(location);
-  };
+  }, [searchQuery, userLocation, manualFiltersActive, filters, showMultiDirections, settings, performSearch, updateFilters]);
 
   // Calculer les routes multiples
   const calculateMultiRoutes = async (destinations: any[]) => {
@@ -270,7 +264,6 @@ export default function Search() {
   // Fonction pour récupérer une route via Mapbox
   const fetchRoute = async (origin: [number, number], destination: [number, number], mode: string) => {
     const profile = getMapboxProfile(mode);
-    const mapboxToken = process.env.VITE_MAPBOX_TOKEN || '';
     const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${origin[0]},${origin[1]};${destination[0]},${destination[1]}`;
     
     const response = await fetch(`${url}?` + new URLSearchParams({
@@ -327,6 +320,7 @@ export default function Search() {
     return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
   };
 
+  // Gestionnaires d'événements
   const handleGetMyLocation = async () => {
     try {
       await getCurrentLocation();
@@ -353,6 +347,7 @@ export default function Search() {
   };
 
   const handleExportPDF = () => {
+    // TODO: Implémenter l'export PDF
     toast.info('Export PDF en développement');
   };
 
@@ -375,6 +370,16 @@ export default function Search() {
     }
   };
 
+  const handleNavigate = (poi: any, app: string) => {
+    if (settings.analyticsEnabled) {
+      analyticsService.track('navigation_launched', {
+        poi_name: poi.name,
+        app: app,
+        transport: filters.transport
+      });
+    }
+  };
+
   const toggleMultiDirections = () => {
     setShowMultiDirections(!showMultiDirections);
     setSettings(prev => ({ ...prev, multiDirections: !prev.multiDirections }));
@@ -390,366 +395,298 @@ export default function Search() {
     [handleSearch]
   );
 
-  const handleOpenInMaps = (service: 'google' | 'waze' | 'apple') => {
-    if (!selectedLocation) return;
-    
-    const { coordinates } = selectedLocation;
-    const [lng, lat] = coordinates;
-    
-    let url = '';
-    switch (service) {
-      case 'google':
-        url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-        break;
-      case 'waze':
-        url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
-        break;
-      case 'apple':
-        url = `http://maps.apple.com/?q=${lat},${lng}`;
-        break;
-    }
-    
-    window.open(url, '_blank');
-    
-    if (settings.analyticsEnabled) {
-      analyticsService.track('navigation_launched', {
-        poi_name: selectedLocation.name,
-        app: service,
-        transport: filters.transport
-      });
-    }
-  };
-
-  const quickActions = [
-    { icon: Navigation, action: handleGetMyLocation },
-    { icon: Layers, action: toggleMultiDirections },
-    { icon: Download, action: handleExportPDF },
-    { icon: Share2, action: handleShare },
-    { icon: Filter, action: () => setShowFilters(!showFilters) }
-  ];
-
-  const getCategoryIcon = (categoryType: string) => {
-    switch (categoryType) {
-      case 'main': return Home;
-      case 'family': return Users;
-      case 'work': return Building;
-      case 'school': return GraduationCap;
-      default: return MapPin;
-    }
-  };
-
-  const getCategoryColor = (categoryType: string) => {
-    switch (categoryType) {
-      case 'main': return '#3B82F6';
-      case 'family': return '#10B981';
-      case 'work': return '#F59E0B';
-      case 'school': return '#8B5CF6';
-      default: return '#6B7280';
-    }
-  };
-
-  const toggleAddressSelection = (addressId: string) => {
-    setSelectedAddresses(prev => 
-      prev.includes(addressId) 
-        ? prev.filter(id => id !== addressId)
-        : [...prev, addressId]
-    );
-  };
-
   return (
     <>
       <SEOHead 
-        title="Recherche géolocalisée - LocaSimple"
-        description="Recherchez des lieux autour de vous avec notre interface moderne. Planifiez vos itinéraires et gérez vos adresses personnelles."
-        keywords="recherche, géolocalisation, itinéraire, carte, navigation"
+        title="Recherche Multi-directionnelle - LocaSimple"
+        description="Recherchez et comparez plusieurs itinéraires simultanément. Visualisez jusqu'à 3 tracés sur la carte avec toutes les informations."
+        keywords="multi-directions, itinéraire multiple, recherche POI, navigation, comparaison trajets"
       />
       
       <div className="flex h-screen bg-background overflow-hidden">
-        {/* Header compact avec icônes uniquement */}
+        {/* Header avec recherche et actions */}
         <div className="absolute top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="flex items-center gap-1 p-2">
-            <div className="flex-1 max-w-2xl">
+          <div className="flex items-center gap-2 p-2">
+            {/* Barre de recherche améliorée */}
+            <div className="flex-1 max-w-3xl">
               <EnhancedSearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
-                onSearch={handleSearch}
+                onSearch={(query) => handleSearch(query, !manualFiltersActive)}
                 onLocationSelect={(location) => {
-                  console.log('📍 Lieu sélectionné:', location);
                   setUserLocation(location.coordinates);
                   setSelectedLocation(location);
-                  handleSearch(location.name);
+                  handleSearch(location.name, false);
                 }}
                 userLocation={userLocation}
-                placeholder="Rechercher des lieux..."
+                placeholder="Rechercher un lieu, restaurant, établissement..."
                 recentSearches={searchHistory}
-                className="flex-1"
+                mapboxToken={mapboxToken}
               />
             </div>
             
-            {/* Actions icônes uniquement - Desktop */}
-            {!isMobile && (
-              <div className="flex items-center gap-1">
-                {quickActions.slice(0, -1).map((action, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    size="sm"
-                    onClick={action.action}
-                    className="h-8 w-8 p-0"
-                  >
-                    <action.icon className="w-4 h-4" />
-                  </Button>
-                ))}
-                <OptimizedFilterButton
-                  onClick={() => setShowFilters(!showFilters)}
-                  filters={filters}
-                  distanceMode={distanceMode}
-                />
-              </div>
-            )}
-
-            {/* Actions icônes uniquement - Mobile */}
-            {isMobile && (
-              <div className="flex items-center gap-1">
-                {quickActions.slice(0, -1).map((action, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    size="sm"
-                    onClick={action.action}
-                    className="h-8 w-8 p-0"
-                  >
-                    <action.icon className="w-4 h-4" />
-                  </Button>
-                ))}
-                <OptimizedFilterButton
-                  onClick={() => setShowFilters(!showFilters)}
-                  filters={filters}
-                  distanceMode={distanceMode}
-                />
-              </div>
+            {/* Actions principales */}
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGetMyLocation}
+                className="h-8 w-8 p-0"
+                title="Ma position"
+              >
+                <Navigation className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant={showMultiDirections ? 'default' : 'ghost'}
+                size="sm"
+                onClick={toggleMultiDirections}
+                className="h-8 w-8 p-0"
+                title="Multi-directions"
+              >
+                <Layers className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShare}
+                className="h-8 w-8 p-0"
+                title="Partager"
+              >
+                <Share2 className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExportPDF}
+                className="h-8 w-8 p-0"
+                title="Exporter"
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+              
+              <OptimizedFilterButton
+                onClick={() => setShowFilters(!showFilters)}
+                filters={filters}
+                distanceMode={distanceMode}
+              />
+            </div>
           </div>
+
+          {/* Barre de statut multi-directions */}
+          {showMultiDirections && (
+            <div className="px-4 py-2 bg-primary/10 border-t">
+              <MultiDirectionalSearch
+                searchOrigin={searchOrigin}
+                onSearchOriginChange={setSearchOrigin}
+                selectedOriginAddress={selectedOriginAddress}
+                onOriginAddressChange={setSelectedOriginAddress}
+                userAddresses={userAddresses}
+                maxResults={settings.maxResults}
+                onMaxResultsChange={(value) => setSettings(prev => ({ ...prev, maxResults: value }))}
+                routeCount={multiRoutes.length}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Barre de statut multi-directions */}
-        {showMultiDirections && (
-          <MultiDirectionalSearch
-            searchOrigin={searchOrigin}
-            onSearchOriginChange={setSearchOrigin}
-            selectedOriginAddress={selectedOriginAddress}
-            onOriginAddressChange={setSelectedOriginAddress}
-            userAddresses={userAddresses}
-            maxResults={settings.maxResults}
-            onMaxResultsChange={(value) => setSettings(prev => ({ ...prev, maxResults: value }))}
-            routeCount={multiRoutes.length}
-          />
-        )}
-      </div>
+        {/* Carte principale */}
+        <div className="w-full h-full pt-16">
+          <MapboxSearchMap />
+        </div>
 
         {/* Panneau latéral enrichi - Desktop */}
-        {!isMobile && showFilters && (
-          <div className="w-80 border-r bg-card overflow-y-auto" style={{ marginTop: '57px' }}>
-            <div className="p-4 space-y-6">
-              
-              {/* Section 1: Filtres modernes */}
-              <div>
-                <ModernFilterPanel
-                  filters={{
-                    transport: filters.transport,
-                    distance: filters.distance,
-                    unit: filters.unit,
-                    aroundMeCount: filters.aroundMeCount || 10,
-                    category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
-                    maxDuration: filters.maxDuration || 30,
-                    showMultiDirections: filters.showMultiDirections
-                  }}
-                  distanceMode={distanceMode}
-                  onFilterChange={(key, value) => handleFiltersChange(key, value)}
-                  onClearFilter={(key) => {
-                    if (key === 'transport') handleFiltersChange('transport', 'walking');
-                    else if (key === 'distance') handleFiltersChange('distance', 5);
-                    else if (key === 'maxDuration') handleFiltersChange('maxDuration', 30);
-                    else if (key === 'aroundMeCount') handleFiltersChange('aroundMeCount', 10);
-                    else if (key === 'category') handleFiltersChange('category', null);
-                  }}
-                  onDistanceModeChange={setDistanceMode}
-                />
+        {!isMobile && (
+          <div 
+            className={`fixed top-16 right-0 h-[calc(100vh-4rem)] z-30 transition-all duration-300 bg-background border-l shadow-lg ${
+              showFilters || results.length > 0
+                ? 'w-96 translate-x-0' 
+                : 'w-0 translate-x-full overflow-hidden'
+            }`}
+          >
+            <div className="h-full flex flex-col">
+              {/* Header du panneau */}
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="font-semibold text-lg">
+                  {results.length > 0 
+                    ? `${results.length} résultat${results.length > 1 ? 's' : ''}` 
+                    : 'Filtres'
+                  }
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFilters(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
 
-              <Separator />
-
-              {/* Section 2: Mes Adresses */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Mes Adresses</h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {userAddresses.map((address) => {
-                    const Icon = getCategoryIcon(address.category_type || 'main');
-                    const color = getCategoryColor(address.category_type || 'main');
-                    const isSelected = selectedAddresses.includes(address.id);
-                    
-                    return (
-                      <Card 
-                        key={address.id}
-                        className={`p-3 cursor-pointer transition-all duration-200 ${
-                          isSelected ? 'border-2 shadow-md' : 'hover:bg-accent'
-                        }`}
-                        style={{ borderColor: isSelected ? color : undefined }}
-                        onClick={() => toggleAddressSelection(address.id)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-                            style={{ backgroundColor: color }}
-                          >
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-sm">{address.name}</h4>
-                            <p className="text-xs text-muted-foreground truncate">{address.address}</p>
-                            {address.role && (
-                              <span 
-                                className="text-xs px-2 py-1 rounded-full text-white mt-1 inline-block"
-                                style={{ backgroundColor: color }}
-                              >
-                                {address.role}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
+              {/* Contenu du panneau */}
+              <div className="flex-1 overflow-auto">
+                {/* Filtres avancés */}
+                <div className="p-4 border-b">
+                  <ModernFilterPanel
+                    filters={{
+                      transport: filters.transport,
+                      distance: filters.distance,
+                      unit: filters.unit || 'km',
+                      aroundMeCount: filters.aroundMeCount || 3,
+                      category: Array.isArray(filters.category) ? filters.category[0] || '' : filters.category || '',
+                      maxDuration: filters.maxDuration || 30
+                    }}
+                    onFilterChange={handleFiltersChange}
+                    distanceMode={distanceMode}
+                    onDistanceModeChange={setDistanceMode}
+                  />
                 </div>
-              </div>
 
-              <Separator />
-
-              {/* Section 3: Résultats de recherche */}
-              {results.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Résultats ({results.length})</h3>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                {/* Liste des résultats */}
+                {results.length > 0 && (
+                  <div className="p-4 space-y-3">
                     {results.map((result, index) => (
-                      <Card 
-                        key={index}
-                        className="p-3 hover:bg-accent cursor-pointer"
-                        onClick={() => handleLocationSelect(result)}
-                      >
-                        <div className="space-y-1">
+                      <Card key={result.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium text-sm">{result.name}</h4>
-                          <p className="text-xs text-muted-foreground">{result.address}</p>
-                          {result.distance && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Map className="w-3 h-3" />
-                              {result.distance.toFixed(1)} km
-                            </div>
-                          )}
+                          <Badge variant="secondary" className="text-xs">
+                            {result.category}
+                          </Badge>
                         </div>
+                        
+                        <p className="text-xs text-muted-foreground mb-3">{result.address}</p>
+                        
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">
+                            {distanceMode === 'distance' 
+                              ? `${result.distance?.toFixed(1) || '0'} km`
+                                : `${Math.round(Number(result.duration || 0))} min`
+                            }
+                          </span>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setSelectedLocation(result)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            Détails
+                          </Button>
+                        </div>
+
+                        {/* Route info si multi-directions */}
+                        {showMultiDirections && multiRoutes[index] && (
+                          <div className="mt-2 p-2 bg-muted rounded text-xs">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div 
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: multiRoutes[index].color }}
+                              />
+                              <span className="font-medium">Route {index + 1}</span>
+                            </div>
+                            <div className="text-muted-foreground">
+                              {multiRoutes[index].distance.toFixed(1)} km • {Math.round(multiRoutes[index].duration)} min
+                            </div>
+                          </div>
+                        )}
                       </Card>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Panneau latéral - Mobile avec tabs */}
+        {/* Panneau mobile */}
         {isMobile && (
           <Sheet open={showFilters} onOpenChange={setShowFilters}>
-            <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-4">Filtres et Options</h3>
-                
-                <Tabs defaultValue="filtres" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="filtres">Filtres</TabsTrigger>
-                    <TabsTrigger value="adresses">Mes Adresses</TabsTrigger>
-                    <TabsTrigger value="resultats">Résultats</TabsTrigger>
+            <SheetContent side="bottom" className="h-[80vh]">
+              <div className="h-full flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-lg">
+                    {results.length > 0 
+                      ? `${results.length} résultat${results.length > 1 ? 's' : ''}` 
+                      : 'Recherche'
+                    }
+                  </h3>
+                </div>
+
+                <Tabs defaultValue="results" className="flex-1">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="results">Résultats</TabsTrigger>
+                    <TabsTrigger value="filters">Filtres</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="filtres" className="space-y-4 mt-4">
+                  <TabsContent value="results" className="flex-1 overflow-auto mt-4">
+                    {results.length > 0 ? (
+                      <div className="space-y-3">
+                        {results.map((result, index) => (
+                          <Card key={result.id} className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium">{result.name}</h4>
+                              <Badge variant="secondary">
+                                {result.category}
+                              </Badge>
+                            </div>
+                            
+                            <p className="text-sm text-muted-foreground mb-3">{result.address}</p>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">
+                                {distanceMode === 'distance' 
+                                  ? `${result.distance?.toFixed(1) || '0'} km`
+                                  : `${Math.round(Number(result.duration || 0))} min`
+                                }
+                              </span>
+                              
+                              <Button 
+                                size="sm" 
+                                onClick={() => setSelectedLocation(result)}
+                              >
+                                Voir détails
+                              </Button>
+                            </div>
+
+                            {showMultiDirections && multiRoutes[index] && (
+                              <div className="mt-3 p-2 bg-muted rounded">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div 
+                                    className="w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: multiRoutes[index].color }}
+                                  />
+                                  <span className="font-medium text-sm">Route {index + 1}</span>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {multiRoutes[index].distance.toFixed(1)} km • {Math.round(multiRoutes[index].duration)} min
+                                </div>
+                              </div>
+                            )}
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Aucun résultat pour cette recherche
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="filters" className="flex-1 overflow-auto mt-4">
                     <ModernFilterPanel
                       filters={{
                         transport: filters.transport,
                         distance: filters.distance,
-                        unit: filters.unit,
-                        aroundMeCount: filters.aroundMeCount || 10,
-                        category: Array.isArray(filters.category) ? filters.category[0] : filters.category,
-                        maxDuration: filters.maxDuration || 30,
-                        showMultiDirections: filters.showMultiDirections
+                        unit: filters.unit || 'km',
+                        aroundMeCount: filters.aroundMeCount || 3,
+                        category: Array.isArray(filters.category) ? filters.category[0] || '' : filters.category || '',
+                        maxDuration: filters.maxDuration || 30
                       }}
+                      onFilterChange={handleFiltersChange}
                       distanceMode={distanceMode}
-                      onFilterChange={(key, value) => handleFiltersChange(key, value)}
-                      onClearFilter={(key) => {
-                        if (key === 'transport') handleFiltersChange('transport', 'walking');
-                        else if (key === 'distance') handleFiltersChange('distance', 5);
-                        else if (key === 'maxDuration') handleFiltersChange('maxDuration', 30);
-                        else if (key === 'aroundMeCount') handleFiltersChange('aroundMeCount', 10);
-                        else if (key === 'category') handleFiltersChange('category', null);
-                      }}
                       onDistanceModeChange={setDistanceMode}
-                      className="space-y-4"
                     />
-                  </TabsContent>
-
-                  <TabsContent value="adresses" className="space-y-2 mt-4">
-                    {userAddresses.map((address) => {
-                      const Icon = getCategoryIcon(address.category_type || 'main');
-                      const color = getCategoryColor(address.category_type || 'main');
-                      const isSelected = selectedAddresses.includes(address.id);
-                      
-                      return (
-                        <Card 
-                          key={address.id}
-                          className={`p-3 cursor-pointer transition-all ${
-                            isSelected ? 'border-2 shadow-md' : 'hover:bg-accent'
-                          }`}
-                          style={{ borderColor: isSelected ? color : undefined }}
-                          onClick={() => toggleAddressSelection(address.id)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div 
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
-                              style={{ backgroundColor: color }}
-                            >
-                              <Icon className="w-4 h-4" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm">{address.name}</h4>
-                              <p className="text-xs text-muted-foreground truncate">{address.address}</p>
-                            </div>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </TabsContent>
-
-                  <TabsContent value="resultats" className="space-y-2 mt-4">
-                    <div className="text-sm text-muted-foreground mb-2">
-                      {results.length > 0 ? `${results.length} résultat${results.length > 1 ? 's' : ''} trouvé${results.length > 1 ? 's' : ''}` : 'Aucun résultat'}
-                    </div>
-                    {results.length > 0 ? (
-                      results.map((result, index) => (
-                        <Card 
-                          key={index}
-                          className="p-3 hover:bg-accent"
-                          onClick={() => {
-                            handleLocationSelect(result);
-                            setShowFilters(false);
-                          }}
-                        >
-                          <div>
-                            <h5 className="font-medium text-sm">{result.name}</h5>
-                            <p className="text-xs text-muted-foreground">{result.address}</p>
-                          </div>
-                        </Card>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">Aucun résultat pour l'instant</p>
-                      </div>
-                    )}
                   </TabsContent>
                 </Tabs>
               </div>
@@ -757,111 +694,50 @@ export default function Search() {
           </Sheet>
         )}
 
-        {/* Carte principale */}
-        <div className="flex-1 relative" style={{ marginTop: '57px' }}>
-          <MapboxSearchMap
-            results={results}
-            userLocation={userLocation}
-            onLocationChange={setUserLocation}
-            selectedAddresses={selectedAddresses}
-            transportMode={filters.transport}
-            className="w-full h-full"
-          />
-
-          {/* Légende interactive avec multi-tracés */}
-          {selectedAddresses.length > 0 && (
-            <Card className="absolute bottom-4 right-4 p-3 bg-background/95 backdrop-blur">
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold">Itinéraires actifs</h4>
-                <div className="space-y-1">
-                  {selectedAddresses.map((addressId) => {
-                    const address = userAddresses.find(addr => addr.id === addressId);
-                    if (!address) return null;
-                    
-                    const color = getCategoryColor(address.category_type || 'main');
-                    
-                    return (
-                      <div key={addressId} className="flex items-center gap-2 text-xs">
-                        <div 
-                          className="w-3 h-1 rounded"
-                          style={{ backgroundColor: color }}
-                        />
-                        <span className="truncate max-w-20">{address.name}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Boutons flottants mobile */}
-          {isMobile && (
-            <div className="absolute bottom-4 left-4 flex flex-col gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={handleGetMyLocation}
-                className="h-10 w-10 p-0 rounded-full shadow-lg"
-              >
-                <Navigation className="w-4 h-4" />
-              </Button>
-              <OptimizedFilterButton
-                onClick={() => setShowFilters(!showFilters)}
-                filters={filters}
-                distanceMode={distanceMode}
-              />
-            </div>
-          )}
-
-          {/* Status indicators */}
-          {isLoading && (
-            <Card className="absolute top-4 left-4 p-3 bg-background/95 backdrop-blur">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                <span>Recherche en cours...</span>
-              </div>
-            </Card>
-          )}
-
-          {results.length > 0 && (
-            <Card className="absolute top-4 left-4 p-2 bg-background/95 backdrop-blur">
-              <Badge variant="secondary">
-                {results.length} résultat{results.length > 1 ? 's' : ''} trouvé{results.length > 1 ? 's' : ''}
-              </Badge>
-            </Card>
-          )}
-        </div>
-
-        {/* Popup détails lieu */}
+        {/* Popup de détails du lieu */}
         {selectedLocation && (
-          <Card className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-6 w-80 z-50 bg-background border shadow-lg">
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
+          <Card className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 z-40 shadow-lg">
+            <div className="p-4">
+              <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="font-semibold">{selectedLocation.name}</h3>
                   <p className="text-sm text-muted-foreground">{selectedLocation.address}</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedLocation(null)}>
-                  ×
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedLocation(null)}
+                >
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
-              
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => handleOpenInMaps('google')}
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {distanceMode === 'distance' 
+                      ? `${selectedLocation.distance?.toFixed(1) || '0'} km`
+                      : `${Math.round(selectedLocation.duration || 0)} min`
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleNavigate(selectedLocation, 'google')}
                 >
-                  <Map className="w-4 h-4 mr-2" />
                   Ouvrir dans Google Maps
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => handleOpenInMaps('waze')}
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => handleNavigate(selectedLocation, 'waze')}
                 >
-                  <Navigation className="w-4 h-4 mr-2" />
                   Ouvrir dans Waze
                 </Button>
               </div>
