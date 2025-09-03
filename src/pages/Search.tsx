@@ -211,6 +211,29 @@ export default function Search() {
     }
   }, [searchQuery, userLocation, manualFiltersActive, filters, showMultiDirections, settings, performSearch, updateFilters]);
 
+  // Fonction pour effacer un filtre spécifique
+  const handleClearFilter = (key: string) => {
+    switch (key) {
+      case 'transport':
+        updateFilters({ transport: 'walking' });
+        break;
+      case 'category':
+        updateFilters({ category: '' });
+        break;
+      case 'distance':
+        updateFilters({ distance: 1000 });
+        break;
+      case 'maxDuration':
+        updateFilters({ maxDuration: 30 });
+        break;
+      case 'aroundMeCount':
+        updateFilters({ aroundMeCount: 3 });
+        break;
+      default:
+        break;
+    }
+  };
+
   // Calculer les routes multiples
   const calculateMultiRoutes = async (destinations: any[]) => {
     if (!userLocation && !selectedOriginAddress) {
