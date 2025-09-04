@@ -8,20 +8,7 @@ interface ImportMeta {
   }
 }
 
-// Extending mapbox types
-declare module "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions" {
-  import mapboxgl from "mapbox-gl";
-  
-  export default class MapboxDirections implements mapboxgl.IControl {
-    constructor(options: any);
-    onAdd(map: mapboxgl.Map): HTMLElement;
-    onRemove(map: mapboxgl.Map): void;
-    setOrigin(coordinates: [number, number]): void;
-    setDestination(coordinates: [number, number]): void;
-    setProfile(profile: string): void;
-    on(event: string, callback: (e?: any) => void): void;
-  }
-}
+// Types are now handled natively without external dependencies
 
 // Fix type for MapboxGeocoder
 declare module "@mapbox/mapbox-gl-geocoder" {

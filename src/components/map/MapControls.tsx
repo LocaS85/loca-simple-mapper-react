@@ -8,7 +8,6 @@ import {
   MapRef
 } from "react-map-gl";
 import mapboxgl from "mapbox-gl";
-import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import { getMapboxTokenSync } from "@/utils/mapboxConfig";
 
@@ -22,29 +21,11 @@ interface MapControlsProps {
 }
 
 const MapControls: React.FC<MapControlsProps> = ({ mapRef, initialViewState }) => {
-  // Initialize Mapbox Directions and Geocoder
+  // Initialize Mapbox Geocoder only (Directions handled by separate component)
   useEffect(() => {
     if (!mapRef.current) return;
 
     const map = mapRef.current.getMap();
-
-    // Add directions control with proper typing
-    const directionsControl = new MapboxDirections({
-      accessToken: getMapboxTokenSync(),
-      unit: 'metric',
-      profile: 'mapbox/driving',
-      alternatives: true,
-      congestion: true,
-      language: 'fr-FR',
-      controls: {
-        inputs: true,
-        instructions: false,
-        profileSwitcher: true
-      }
-    });
-
-    // Use type assertion to handle type incompatibility
-    map.addControl(directionsControl as unknown as mapboxgl.IControl, 'top-left');
 
     // Add geocoder control for searching addresses with proper typing
     const geocoder = new MapboxGeocoder({
@@ -58,12 +39,9 @@ const MapControls: React.FC<MapControlsProps> = ({ mapRef, initialViewState }) =
         latitude: initialViewState.latitude
       }
     });
-    map.addControl(geocoder as unknown as mapboxgl.IControl);
+    map.addControl(geocoder as unknown as mapboxgl.IControl, 'top-left');
 
     return () => {
-      if (map.hasControl(directionsControl as unknown as mapboxgl.IControl)) {
-        map.removeControl(directionsControl as unknown as mapboxgl.IControl);
-      }
       if (map.hasControl(geocoder as unknown as mapboxgl.IControl)) {
         map.removeControl(geocoder as unknown as mapboxgl.IControl);
       }

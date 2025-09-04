@@ -1,8 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
-import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions';
-import { getMapboxToken } from '@/utils/mapboxConfig';
+import { MapboxDirectionsService } from '@/services/mapbox/directions';
 import { TransportMode } from '@/types/unified';
 import { useTranslation } from 'react-i18next';
 
@@ -38,80 +37,82 @@ const EnhancedMapboxDirections: React.FC<EnhancedMapboxDirectionsProps> = ({
   onRouteCalculated,
   showInstructions = false
 }) => {
-  const directionsRef = useRef<MapboxDirections | null>(null);
+  const directionsService = useRef(new MapboxDirectionsService());
+  const routeSourceId = useRef('enhanced-directions-route');
   const { t } = useTranslation();
 
-  useEffect(() => {
+  const clearRoute = () => {
+    if (!map) return;
+    
+    try {
+      if (map.getSource(routeSourceId.current)) {
+        map.removeLayer(`${routeSourceId.current}-line`);
+        map.removeSource(routeSourceId.current);
+      }
+    } catch (error) {
+      console.warn('Erreur lors du nettoyage de l\'itinéraire:', error);
+    }
+  };
+
+  const calculateRoute = async (originCoords: [number, number], destCoords: [number, number]) => {
     if (!map) return;
 
-    const token = getMapboxToken();
-    if (!token) {
-      console.error('Mapbox token manquant');
+    clearRoute();
+
+    try {
+      const route = await directionsService.current.getDirections(
+        originCoords,
+        destCoords,
+        transportMode
+      );
+
+      // Ajouter l'itinéraire à la carte
+      map.addSource(routeSourceId.current, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: route.geometry
+        }
+      });
+
+      map.addLayer({
+        id: `${routeSourceId.current}-line`,
+        type: 'line',
+        source: routeSourceId.current,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#3b82f6',
+          'line-width': 4,
+          'line-opacity': 0.8
+        }
+      });
+
+      // Callback avec les informations de l'itinéraire
+      if (onRouteCalculated) {
+        onRouteCalculated(route);
+      }
+
+    } catch (error) {
+      console.error('Erreur lors du calcul de l\'itinéraire:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!map || !origin || !destination) {
+      clearRoute();
       return;
     }
 
-    // Initialiser le contrôle de directions s'il n'existe pas déjà
-    if (!directionsRef.current) {
-      directionsRef.current = new MapboxDirections({
-        accessToken: token,
-        unit: 'metric',
-        profile: transportModeToProfile(transportMode),
-        alternatives: true,
-        congestion: true,
-        language: 'fr',
-        controls: {
-          inputs: true,
-          instructions: showInstructions,
-          profileSwitcher: true
-        },
-        placeholderOrigin: t('map.startPoint'),
-        placeholderDestination: t('map.destination')
-      });
+    calculateRoute(origin, destination);
 
-      // Utiliser l'assertion de type pour résoudre l'erreur de compatibilité
-      map.addControl(directionsRef.current as unknown as mapboxgl.IControl, 'top-left');
-      
-      // Écouter les événements de route
-      directionsRef.current.on('route', (e) => {
-        if (e && e.route && e.route[0] && onRouteCalculated) {
-          const route = e.route[0];
-          onRouteCalculated({
-            distance: route.distance,
-            duration: route.duration,
-            geometry: route.geometry
-          });
-        }
-      });
-    }
-
-    // Mettre à jour le mode de transport si nécessaire
-    if (directionsRef.current) {
-      directionsRef.current.setProfile(transportModeToProfile(transportMode));
-    }
-
-    // Définir l'origine et la destination si fournies
-    if (directionsRef.current) {
-      if (origin) {
-        directionsRef.current.setOrigin([origin[0], origin[1]]);
-      }
-      
-      if (destination) {
-        directionsRef.current.setDestination([destination[0], destination[1]]);
-      }
-    }
-
-    // Nettoyer à la destruction
     return () => {
-      if (directionsRef.current && map) {
-        try {
-          map.removeControl(directionsRef.current as unknown as mapboxgl.IControl);
-        } catch (e) {
-          console.warn('Erreur lors du retrait du contrôle de directions:', e);
-        }
-        directionsRef.current = null;
-      }
+      clearRoute();
     };
-  }, [map, transportMode, origin, destination, showInstructions, t, onRouteCalculated]);
+  }, [map, transportMode, origin, destination, onRouteCalculated]);
 
   // Ce composant ne rend rien directement, il manipule juste la carte
   return null;

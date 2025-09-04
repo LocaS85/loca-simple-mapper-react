@@ -7,6 +7,7 @@ export { default as EnhancedMapboxSearch } from './EnhancedMapboxSearch';
 export { default as EnhancedMapboxDirections } from './EnhancedMapboxDirections';
 export { default as MultiRouteDisplay } from './MultiRouteDisplay';
 export { default as EnhancedLocationButton } from './EnhancedLocationButton';
+export { NativeDirectionsControl } from './NativeDirectionsControl';
 
 // Hook d'intégration
 export { usePOIIntegration } from '../../hooks/usePOIIntegration';
