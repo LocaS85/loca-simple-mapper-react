@@ -517,7 +517,13 @@ export default function Search() {
 
         {/* Carte principale */}
         <div className="w-full h-full pt-16">
-          <MapboxSearchMap />
+          <MapboxSearchMap 
+            results={results}
+            userLocation={userLocation}
+            transportMode={filters.transport}
+            selectedAddresses={selectedAddresses}
+            onLocationChange={setUserLocation}
+          />
         </div>
 
         {/* Panneau latéral enrichi - Desktop */}
@@ -563,6 +569,7 @@ export default function Search() {
                     onFilterChange={handleFiltersChange}
                     distanceMode={distanceMode}
                     onDistanceModeChange={setDistanceMode}
+                    onClearFilter={handleClearFilter}
                   />
                 </div>
 
@@ -709,6 +716,7 @@ export default function Search() {
                       onFilterChange={handleFiltersChange}
                       distanceMode={distanceMode}
                       onDistanceModeChange={setDistanceMode}
+                      onClearFilter={handleClearFilter}
                     />
                   </TabsContent>
                 </Tabs>
