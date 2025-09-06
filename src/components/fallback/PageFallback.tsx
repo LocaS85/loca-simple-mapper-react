@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 
 interface PageFallbackProps {
@@ -42,11 +41,13 @@ const PageFallback: React.FC<PageFallbackProps> = ({
           )}
           
           {showHomeButton && (
-            <Button asChild variant="outline" className="flex items-center gap-2">
-              <Link to="/">
-                <Home className="h-4 w-4" />
-                Accueil
-              </Link>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => window.location.href = '/'}
+            >
+              <Home className="h-4 w-4" />
+              Accueil
             </Button>
           )}
         </div>

@@ -70,6 +70,8 @@ export default function Search() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+  
+  console.log('🔍 Search component loading...', { mapboxToken: !!mapboxToken });
 
   // États principaux
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
