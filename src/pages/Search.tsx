@@ -69,7 +69,7 @@ const offlineStorage = new OfflineStorageService();
 export default function Search() {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
   // États principaux
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
