@@ -137,56 +137,70 @@ export const searchBoxService = {
     } = {}
   ): Promise<SearchResult[]> {
     try {
-      const { limit = 10, radius = 50, categories } = options; // Rayon élargi par défaut
+      console.log('🔍 SearchBox POI - Recherche optimisée:', { query, center, options });
       
-      console.log('🎯 Search Box POI - Recherche avec expansion automatique:', { query, center, radius, categories });
-
-      // Recherche locale d'abord (avec proximity)
-      let suggestions = await this.getSuggestions(query, center, {
-        limit,
-        types: this.getOptimalPOITypes(query, categories),
+      const { limit = 10, radius = 50, categories } = options;
+      const validLimit = Math.min(limit, 10); // Mapbox Search Box limite à 10
+      const types = this.getOptimalPOITypes(query, categories);
+      
+      // Recherche prioritaire avec types optimisés
+      const suggestions = await this.getSuggestions(query, center, {
+        limit: validLimit,
+        types,
         language: 'fr'
       });
       
-      console.log('📋 Suggestions locales:', suggestions.length);
+      console.log('🎯 SearchBox - Suggestions trouvées:', suggestions.length);
       
-      // Si peu de résultats, expansion automatique sans contrainte géographique
-      if (suggestions.length < 3) {
-        console.log('🔄 Expansion géographique automatique - recherche nationale');
-        suggestions = await this.getSuggestions(query, undefined, { // Pas de proximity pour recherche nationale
-          limit: limit * 2,
-          types: this.getOptimalPOITypes(query, categories),
+      if (suggestions.length === 0) {
+        console.log('🔄 SearchBox - Aucun résultat, expansion...');
+        // Fallback avec types plus larges
+        const fallbackSuggestions = await this.getSuggestions(query, center, {
+          limit: validLimit,
+          types: ['poi', 'poi.business', 'address'],
           language: 'fr'
         });
-        console.log('📋 Suggestions élargies:', suggestions.length);
+        
+        if (fallbackSuggestions.length === 0) {
+          return await this.fallbackSearch(query, center, validLimit);
+        }
+        
+        suggestions.push(...fallbackSuggestions);
       }
-
-      if (suggestions.length === 0) {
-        console.log('🔄 Pas de suggestions, fallback API...');
-        return await this.fallbackSearch(query, center, limit);
-      }
-
-      // Étape 2: Récupérer les détails pour chaque suggestion
-      const results: SearchResult[] = [];
       
-      for (const suggestion of suggestions.slice(0, limit)) {
+      // Convertir les suggestions en résultats complets
+      const searchResults: SearchResult[] = [];
+      
+      for (const suggestion of suggestions.slice(0, validLimit)) {
         try {
           const feature = await this.retrieveFeature(suggestion.mapbox_id);
           if (feature) {
-            const searchResult = this.convertToSearchResult(feature, center, suggestion);
-            results.push(searchResult);
+            const result = this.convertToSearchResult(feature, center, suggestion);
+            searchResults.push(result);
           }
         } catch (error) {
-          console.error('❌ Erreur récupération détail:', error);
+          console.warn('⚠️ Erreur récupération feature:', suggestion.mapbox_id, error);
+          // Créer un résultat basique à partir de la suggestion
+          const basicResult: SearchResult = {
+            id: suggestion.mapbox_id,
+            name: suggestion.text,
+            address: suggestion.context?.place?.name || suggestion.text,
+            coordinates: [0, 0], // Coordonnées manquantes dans suggestion
+            type: 'poi',
+            category: 'general',
+            distance: 0,
+            duration: 0
+          };
+          searchResults.push(basicResult);
         }
       }
-
-      console.log('✅ Résultats POI finaux:', results.length);
-      return results.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      
+      console.log('✅ SearchBox POI - Résultats finaux:', searchResults.length);
+      return searchResults;
       
     } catch (error) {
-      console.error('❌ Erreur searchPOI:', error);
-      return await this.fallbackSearch(query, center, options.limit || 10);
+      console.error('❌ SearchBox POI Error:', error);
+      return await this.fallbackSearch(query, center, Math.min(options.limit || 10, 10));
     }
   },
 
@@ -194,27 +208,35 @@ export const searchBoxService = {
    * Détermine les types POI optimaux selon la requête
    */
   getOptimalPOITypes(query: string, categories?: string[]): string[] {
-    if (categories && categories.length > 0) {
-      return categories;
-    }
-    
     const queryLower = query.toLowerCase();
     
-    // Mapping intelligent selon le terme de recherche avec types Search Box API
-    if (queryLower.includes('restaurant') || queryLower.includes('café') || queryLower.includes('bistro')) {
-      return ['poi', 'poi.business'];
+    // Types POI valides pour Mapbox Search Box API
+    const validTypes = ['poi', 'poi.business', 'address', 'place'];
+    
+    // Si des catégories sont spécifiées, filtrer seulement les types valides
+    if (categories && categories.length > 0) {
+      return categories.filter(cat => validTypes.includes(cat) || cat.startsWith('poi'));
     }
     
-    if (queryLower.includes('magasin') || queryLower.includes('commerce') || queryLower.includes('shopping') || queryLower.includes('ikea')) {
-      return ['poi', 'poi.business']; // Types Search Box optimaux pour commerce
+    // Mapping optimisé avec types valides
+    if (queryLower.includes('restaurant') || queryLower.includes('café') || queryLower.includes('bar')) {
+      return ['poi.business', 'poi'];
     }
     
-    if (queryLower.includes('pharmacie') || queryLower.includes('hôpital')) {
-      return ['poi', 'poi.business'];
+    if (queryLower.includes('supermarché') || queryLower.includes('magasin') || queryLower.includes('shop') || queryLower.includes('ikea')) {
+      return ['poi.business', 'poi'];
     }
     
-    // Types par défaut optimisés pour Search Box API
-    return ['poi', 'poi.business'];
+    if (queryLower.includes('pharmacie') || queryLower.includes('hôpital') || queryLower.includes('médecin')) {
+      return ['poi.business', 'poi'];
+    }
+    
+    if (queryLower.includes('station') || queryLower.includes('essence') || queryLower.includes('carburant')) {
+      return ['poi.business', 'poi'];
+    }
+    
+    // Par défaut, types génériques valides
+    return ['poi', 'poi.business', 'address'];
   },
 
   /**

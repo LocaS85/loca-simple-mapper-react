@@ -12,6 +12,9 @@ import EnhancedSearchBar from '@/components/geosearch/EnhancedSearchBar';
 import MapboxSearchMap from '@/components/geosearch/MapboxSearchMap';
 import MultiDirectionalSearch from '@/components/geosearch/MultiDirectionalSearch';
 import SEOHead from '@/components/SEOHead';
+import AddressSelector from '@/components/geosearch/components/AddressSelector';
+import { GeoSearchIntegration } from '@/components/geosearch/GeoSearchIntegration';
+import MapboxSetup from '@/components/geosearch/ui/MapboxTokenSetup';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -35,7 +38,7 @@ import { CacheService } from '@/services/cacheService';
 import { AnalyticsService } from '@/services/analyticsService';
 import { OfflineStorageService } from '@/services/offlineStorageService';
 
-// Types
+// Interfaces
 interface SearchSettings {
   autoSuggest: boolean;
   multiDirections: boolean;

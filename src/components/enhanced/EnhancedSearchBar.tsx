@@ -24,6 +24,21 @@ interface SearchResultData {
   category?: string;
 }
 
+// Helper function pour ajouter des emojis
+const enhanceResultWithEmoji = (name: string, query: string): string => {
+  const nameLower = name.toLowerCase();
+  const queryLower = query.toLowerCase();
+  
+  if (nameLower.includes('ikea')) return `🛏️ ${name}`;
+  if (nameLower.includes('restaurant') || queryLower.includes('restaurant')) return `🍽️ ${name}`;
+  if (nameLower.includes('pharmacie') || queryLower.includes('pharmacie')) return `💊 ${name}`;
+  if (nameLower.includes('café') || queryLower.includes('café')) return `☕ ${name}`;
+  if (nameLower.includes('supermarché') || queryLower.includes('supermarché')) return `🛒 ${name}`;
+  if (nameLower.includes('banque') || queryLower.includes('banque')) return `🏦 ${name}`;
+  
+  return name;
+};
+
 interface EnhancedSearchBarProps {
   value?: string;
   onSearch: (query: string) => void;
@@ -77,55 +92,54 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = memo(({
       // Utiliser la position utilisateur si disponible, sinon Paris par défaut
       const center: [number, number] = userLocation || [2.3522, 48.8566];
       
-      console.log('🔍 Autocomplétion POI améliorée:', { searchQuery, center });
+      console.log('🔍 Auto-suggestions avec SearchBox API:', { searchQuery, center });
       
-      // Utiliser la nouvelle méthode de suggestions rapides
-      const results = await enhancedGeocodingService.getQuickSuggestions(
-        searchQuery, 
-        center, 
-        5 // Limité à 5 suggestions pour l'autocomplétion
-      );
-      
-      const formattedResults: SearchResultData[] = results.map((result, index) => ({
-        id: result.id || `result-${index}`,
-        name: result.name || result.address?.split(',')[0] || 'Lieu',
-        address: result.address || 'Adresse non disponible',
-        coordinates: result.coordinates,
-        distance: result.distance,
-        category: result.category
-      }));
-      
-      // Ajouter des informations visuelles pour les marques
-      const enhancedResults = formattedResults.map(result => {
-        if (result.name.toLowerCase().includes('ikea')) {
-          return {
-            ...result,
-            name: `🛏️ ${result.name}`,
-            address: result.distance && result.distance > 10 
-              ? `${result.address} (${result.distance.toFixed(1)}km - recherche élargie)`
-              : result.address
-          };
-        }
-        
-        if (result.name.toLowerCase().includes('restaurant')) {
-          return { ...result, name: `🍽️ ${result.name}` };
-        }
-        
-        if (result.name.toLowerCase().includes('pharmacie')) {
-          return { ...result, name: `💊 ${result.name}` };
-        }
-        
-        return result;
+      // Utiliser directement le service SearchBox pour des suggestions réelles
+      const { searchBoxService } = await import('@/services/mapbox/searchBoxService');
+      const suggestions = await searchBoxService.getSuggestions(searchQuery, center, {
+        limit: 5,
+        language: 'fr'
       });
       
-      setSuggestions(enhancedResults);
-      setShowSuggestions(enhancedResults.length > 0);
+      console.log('📋 Suggestions SearchBox reçues:', suggestions.length);
       
-      console.log('✅ Suggestions chargées:', enhancedResults.length);
+      // Convertir les suggestions Mapbox en format SearchResult
+      const results: SearchResultData[] = suggestions.map(suggestion => ({
+        id: suggestion.mapbox_id,
+        name: enhanceResultWithEmoji(suggestion.text, searchQuery),
+        address: suggestion.context?.place?.name || suggestion.text,
+        coordinates: [0, 0] as [number, number], // Les coordonnées seront récupérées via retrieveFeature
+        distance: 0,
+        category: 'general'
+      }));
+      
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+      console.log('✅ Auto-suggestions formatées:', results.length);
+      
     } catch (error) {
-      console.error('❌ Erreur de recherche auto-suggestion:', error);
-      setSuggestions([]);
-      setShowSuggestions(false);
+      console.error('❌ Erreur suggestions SearchBox:', error);
+      // Fallback vers l'ancien service
+      try {
+        const center: [number, number] = userLocation || [2.3522, 48.8566];
+        const results = await enhancedGeocodingService.getQuickSuggestions(
+          searchQuery,
+          center,
+          5
+        );
+      // Ajouter des informations visuelles pour les marques avec helper
+      const enhancedResults: SearchResultData[] = results.map(result => ({
+        ...result,
+        name: enhanceResultWithEmoji(result.name, searchQuery),
+        address: result.address || 'Adresse non disponible'
+      }));
+        setSuggestions(enhancedResults);
+        setShowSuggestions(true);
+        console.log('🔄 Fallback suggestions chargées:', enhancedResults.length);
+      } catch (fallbackError) {
+        console.error('❌ Fallback suggestions failed:', fallbackError);
+        setSuggestions([]);
+      }
     } finally {
       setIsSearching(false);
     }

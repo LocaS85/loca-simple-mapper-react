@@ -106,20 +106,24 @@ const GeoSearchFiltersSheet: React.FC<GeoSearchFiltersSheetProps> = ({
           {/* Mode de transport */}
           <div className="space-y-3">
             <h3 className="text-lg font-medium">Mode de transport</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {transportModes.map((mode) => (
-                <Button
+                <button
                   key={mode.id}
-                  variant={filters.transport === mode.id ? "default" : "outline"}
-                  className={cn(
-                    "flex items-center gap-2 justify-start",
-                    filters.transport === mode.id && "bg-primary text-primary-foreground"
-                  )}
                   onClick={() => onFiltersChange({ transport: mode.id as any })}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-200",
+                    "min-h-[60px] text-xs",
+                    filters.transport === mode.id 
+                      ? "bg-primary text-primary-foreground border-primary" 
+                      : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                  )}
                 >
-                  {mode.icon}
-                  <span>{mode.name}</span>
-                </Button>
+                  <div className="mb-1">
+                    {mode.icon}
+                  </div>
+                  <span className="text-[10px] font-medium">{mode.name}</span>
+                </button>
               ))}
             </div>
           </div>
