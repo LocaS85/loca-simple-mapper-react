@@ -109,7 +109,9 @@ export default function Search() {
     setUserLocation,
     updateFilters,
     performSearch,
-    setDistanceMode
+    setDistanceMode,
+    setResults,
+    setIsLoading
   } = useGeoSearchStore();
 
   // Géolocalisation
@@ -159,22 +161,63 @@ export default function Search() {
     }
   }, [currentLocation, userLocation, setUserLocation, settings.analyticsEnabled]);
 
-  // Fonction de recherche optimisée avec cache
+  // Fonction de recherche POI optimisée avec cache et SearchBox API
   const handleSearch = useCallback(async (query?: string, skipFilters?: boolean) => {
     const searchTerm = query || searchQuery;
     if (!searchTerm.trim()) return;
 
-    console.log('🔍 Recherche:', { searchTerm, userLocation, skipFilters });
+    console.log('🔍 Recherche POI optimisée:', { searchTerm, userLocation, skipFilters });
 
     // Vérifier le cache
     if (settings.cacheEnabled) {
-      const cachedResults = await cacheService.get(searchTerm);
+      const cacheKey = `poi_search_${searchTerm}_${userLocation?.[0] || 0}_${userLocation?.[1] || 0}`;
+      const cachedResults = await cacheService.get(cacheKey);
       if (cachedResults) {
-        console.log('📦 Résultats depuis le cache');
+        console.log('📦 POI depuis le cache');
         toast.info('Résultats chargés depuis le cache');
-        // Utiliser les résultats cachés
+        if (Array.isArray(cachedResults)) {
+          setResults(cachedResults);
+        }
         return;
       }
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const searchLocation = userLocation || [2.3522, 48.8566]; // Paris par défaut
+      
+      // Utiliser SearchBox API pour recherche POI optimisée
+      const { searchBoxService } = await import('@/services/mapbox/searchBoxService');
+      const searchResults = await searchBoxService.searchPOI(searchTerm, searchLocation, {
+        limit: settings.maxResults,
+        radius: 50 // 50km pour capture large d'établissements
+      });
+
+      console.log('🎯 Résultats POI reçus:', searchResults.length);
+      setResults(searchResults);
+
+      // Mettre en cache les résultats POI
+      if (settings.cacheEnabled && searchResults.length > 0) {
+        const cacheKey = `poi_search_${searchTerm}_${searchLocation[0]}_${searchLocation[1]}`;
+        await cacheService.set(cacheKey, searchResults, 300000); // 5 minutes
+      }
+
+      // Analytics POI
+      if (settings.analyticsEnabled) {
+        analyticsService.track('poi_search_performed', { 
+          query: searchTerm, 
+          results_count: searchResults.length,
+          location: searchLocation,
+          has_coordinates: searchResults.filter(r => r.coordinates[0] !== 0).length
+        });
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur recherche POI:', error);
+      toast.error('Erreur lors de la recherche d\'établissements');
+    } finally {
+      setIsLoading(false);
     }
 
     // Ajouter à l'historique

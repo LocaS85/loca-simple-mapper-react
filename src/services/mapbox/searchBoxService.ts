@@ -125,7 +125,7 @@ export const searchBoxService = {
   },
 
   /**
-   * Recherche POI optimisée avec Search Box API
+   * Recherche POI optimisée avec Search Box API - Flux complet
    */
   async searchPOI(
     query: string,
@@ -141,62 +141,68 @@ export const searchBoxService = {
       
       const { limit = 10, radius = 50, categories } = options;
       const validLimit = Math.min(limit, 10); // Mapbox Search Box limite à 10
+      
+      // Types optimisés selon la requête pour meilleurs POI
       const types = this.getOptimalPOITypes(query, categories);
       
-      // Recherche prioritaire avec types optimisés
-      const suggestions = await this.getSuggestions(query, center, {
+      // 1. Recherche prioritaire avec types optimisés (sans contrainte géographique)
+      let suggestions = await this.getSuggestions(query, center, {
         limit: validLimit,
         types,
         language: 'fr'
       });
       
-      console.log('🎯 SearchBox - Suggestions trouvées:', suggestions.length);
+      console.log('🎯 SearchBox - Suggestions trouvées:', suggestions.length, 'avec types:', types);
       
-      if (suggestions.length === 0) {
-        console.log('🔄 SearchBox - Aucun résultat, expansion...');
-        // Fallback avec types plus larges
+      // 2. Fallback progressif si pas assez de résultats
+      if (suggestions.length < Math.min(3, validLimit)) {
+        console.log('🔄 SearchBox - Expansion recherche...');
+        
+        // Essayer avec types plus larges
         const fallbackSuggestions = await this.getSuggestions(query, center, {
           limit: validLimit,
-          types: ['poi', 'poi.business', 'address'],
+          types: ['poi', 'poi.business', 'address', 'place'],
           language: 'fr'
         });
         
-        if (fallbackSuggestions.length === 0) {
-          return await this.fallbackSearch(query, center, validLimit);
-        }
+        // Merger sans doublons
+        const existingIds = new Set(suggestions.map(s => s.mapbox_id));
+        const newSuggestions = fallbackSuggestions.filter(s => !existingIds.has(s.mapbox_id));
+        suggestions.push(...newSuggestions);
         
-        suggestions.push(...fallbackSuggestions);
+        console.log('📈 Expansion résultats:', suggestions.length);
       }
       
-      // Convertir les suggestions en résultats complets
-      const searchResults: SearchResult[] = [];
+      // 3. Fallback ultime si toujours pas de résultats
+      if (suggestions.length === 0) {
+        console.log('🆘 Fallback vers ancienne API...');
+        return await this.fallbackSearch(query, center, validLimit);
+      }
       
-      for (const suggestion of suggestions.slice(0, validLimit)) {
+      // 4. Convertir suggestions → features complètes avec coordonnées
+      const searchResults: SearchResult[] = [];
+      const processPromises = suggestions.slice(0, validLimit).map(async (suggestion) => {
         try {
           const feature = await this.retrieveFeature(suggestion.mapbox_id);
-          if (feature) {
+          if (feature && feature.geometry && feature.geometry.coordinates) {
             const result = this.convertToSearchResult(feature, center, suggestion);
-            searchResults.push(result);
+            return result;
+          } else {
+            console.warn('⚠️ Feature sans coordonnées:', suggestion.mapbox_id);
+            return null;
           }
         } catch (error) {
           console.warn('⚠️ Erreur récupération feature:', suggestion.mapbox_id, error);
-          // Créer un résultat basique à partir de la suggestion
-          const basicResult: SearchResult = {
-            id: suggestion.mapbox_id,
-            name: suggestion.text,
-            address: suggestion.context?.place?.name || suggestion.text,
-            coordinates: [0, 0], // Coordonnées manquantes dans suggestion
-            type: 'poi',
-            category: 'general',
-            distance: 0,
-            duration: 0
-          };
-          searchResults.push(basicResult);
+          return null;
         }
-      }
+      });
       
-      console.log('✅ SearchBox POI - Résultats finaux:', searchResults.length);
-      return searchResults;
+      // Attendre toutes les conversions en parallèle
+      const results = await Promise.all(processPromises);
+      const validResults = results.filter((result): result is SearchResult => result !== null);
+      
+      console.log('✅ SearchBox POI - Résultats avec coordonnées:', validResults.length, '/', suggestions.length);
+      return validResults;
       
     } catch (error) {
       console.error('❌ SearchBox POI Error:', error);
@@ -205,12 +211,12 @@ export const searchBoxService = {
   },
 
   /**
-   * Détermine les types POI optimaux selon la requête
+   * Détermine les types POI optimaux selon la requête - Spécialisé établissements
    */
   getOptimalPOITypes(query: string, categories?: string[]): string[] {
     const queryLower = query.toLowerCase();
     
-    // Types POI valides pour Mapbox Search Box API
+    // Types POI valides pour Mapbox Search Box API 2024
     const validTypes = ['poi', 'poi.business', 'address', 'place'];
     
     // Si des catégories sont spécifiées, filtrer seulement les types valides
@@ -218,25 +224,44 @@ export const searchBoxService = {
       return categories.filter(cat => validTypes.includes(cat) || cat.startsWith('poi'));
     }
     
-    // Mapping optimisé avec types valides
-    if (queryLower.includes('restaurant') || queryLower.includes('café') || queryLower.includes('bar')) {
+    // Mapping spécialisé pour établissements et marques
+    if (queryLower.includes('ikea') || queryLower.includes('decathlon') || queryLower.includes('carrefour') || 
+        queryLower.includes('leclerc') || queryLower.includes('auchan') || queryLower.includes('lidl')) {
+      return ['poi.business', 'poi']; // Priorité commerce
+    }
+    
+    if (queryLower.includes('mcdonald') || queryLower.includes('mcdo') || queryLower.includes('kfc') || 
+        queryLower.includes('burger king') || queryLower.includes('quick')) {
+      return ['poi.business', 'poi']; // Fast-food prioritaire
+    }
+    
+    if (queryLower.includes('restaurant') || queryLower.includes('café') || queryLower.includes('bar') || 
+        queryLower.includes('brasserie') || queryLower.includes('bistrot')) {
       return ['poi.business', 'poi'];
     }
     
-    if (queryLower.includes('supermarché') || queryLower.includes('magasin') || queryLower.includes('shop') || queryLower.includes('ikea')) {
+    if (queryLower.includes('supermarché') || queryLower.includes('magasin') || queryLower.includes('shop') || 
+        queryLower.includes('commerce') || queryLower.includes('boutique')) {
       return ['poi.business', 'poi'];
     }
     
-    if (queryLower.includes('pharmacie') || queryLower.includes('hôpital') || queryLower.includes('médecin')) {
+    if (queryLower.includes('pharmacie') || queryLower.includes('hôpital') || queryLower.includes('médecin') || 
+        queryLower.includes('clinique') || queryLower.includes('cabinet')) {
       return ['poi.business', 'poi'];
     }
     
-    if (queryLower.includes('station') || queryLower.includes('essence') || queryLower.includes('carburant')) {
+    if (queryLower.includes('station') || queryLower.includes('essence') || queryLower.includes('carburant') || 
+        queryLower.includes('total') || queryLower.includes('shell') || queryLower.includes('bp')) {
       return ['poi.business', 'poi'];
     }
     
-    // Par défaut, types génériques valides
-    return ['poi', 'poi.business', 'address'];
+    if (queryLower.includes('banque') || queryLower.includes('crédit') || queryLower.includes('bnp') || 
+        queryLower.includes('société générale') || queryLower.includes('lcl')) {
+      return ['poi.business', 'poi'];
+    }
+    
+    // Par défaut, tous types POI pour capture large
+    return ['poi', 'poi.business'];
   },
 
   /**
@@ -319,16 +344,53 @@ export const searchBoxService = {
   },
 
   /**
-   * Inférence de catégorie
+   * Inférence de catégorie intelligente pour établissements
    */
   inferCategory(name: string): string {
     const lowerName = name.toLowerCase();
-    if (lowerName.includes('ikea') || lowerName.includes('meuble')) return 'shopping';
-    if (lowerName.includes('restaurant') || lowerName.includes('café')) return 'restaurant';
-    if (lowerName.includes('pharmacie')) return 'health';
-    if (lowerName.includes('magasin') || lowerName.includes('commerce')) return 'shopping';
-    if (lowerName.includes('hôtel')) return 'lodging';
-    if (lowerName.includes('parc')) return 'park';
+    
+    // Grandes marques et enseignes
+    if (lowerName.includes('ikea') || lowerName.includes('decathlon') || lowerName.includes('carrefour') || 
+        lowerName.includes('leclerc') || lowerName.includes('auchan') || lowerName.includes('lidl') || 
+        lowerName.includes('magasin') || lowerName.includes('commerce') || lowerName.includes('boutique')) {
+      return 'shopping';
+    }
+    
+    // Restauration
+    if (lowerName.includes('mcdonald') || lowerName.includes('mcdo') || lowerName.includes('kfc') || 
+        lowerName.includes('burger king') || lowerName.includes('quick') || lowerName.includes('restaurant') || 
+        lowerName.includes('café') || lowerName.includes('bar') || lowerName.includes('brasserie')) {
+      return 'restaurant';
+    }
+    
+    // Santé
+    if (lowerName.includes('pharmacie') || lowerName.includes('hôpital') || lowerName.includes('médecin') || 
+        lowerName.includes('clinique') || lowerName.includes('cabinet')) {
+      return 'health';
+    }
+    
+    // Services financiers
+    if (lowerName.includes('banque') || lowerName.includes('crédit') || lowerName.includes('bnp') || 
+        lowerName.includes('société générale') || lowerName.includes('lcl')) {
+      return 'finance';
+    }
+    
+    // Stations service
+    if (lowerName.includes('station') || lowerName.includes('essence') || lowerName.includes('carburant') || 
+        lowerName.includes('total') || lowerName.includes('shell') || lowerName.includes('bp')) {
+      return 'fuel';
+    }
+    
+    // Hébergement
+    if (lowerName.includes('hôtel') || lowerName.includes('auberge') || lowerName.includes('camping')) {
+      return 'lodging';
+    }
+    
+    // Loisirs
+    if (lowerName.includes('parc') || lowerName.includes('cinéma') || lowerName.includes('théâtre')) {
+      return 'entertainment';
+    }
+    
     return 'place';
   },
 

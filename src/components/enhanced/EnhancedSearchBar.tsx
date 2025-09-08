@@ -94,28 +94,54 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = memo(({
       
       console.log('🔍 Auto-suggestions avec SearchBox API:', { searchQuery, center });
       
-      // Utiliser directement le service SearchBox pour des suggestions réelles
+      // Utiliser directement le service SearchBox pour des suggestions réelles avec coordonnées
       const { searchBoxService } = await import('@/services/mapbox/searchBoxService');
       const suggestions = await searchBoxService.getSuggestions(searchQuery, center, {
         limit: 5,
+        types: searchBoxService.getOptimalPOITypes(searchQuery),
         language: 'fr'
       });
       
       console.log('📋 Suggestions SearchBox reçues:', suggestions.length);
       
-      // Convertir les suggestions Mapbox en format SearchResult
-      const results: SearchResultData[] = suggestions.map(suggestion => ({
-        id: suggestion.mapbox_id,
-        name: enhanceResultWithEmoji(suggestion.text, searchQuery),
-        address: suggestion.context?.place?.name || suggestion.text,
-        coordinates: [0, 0] as [number, number], // Les coordonnées seront récupérées via retrieveFeature
-        distance: 0,
-        category: 'general'
-      }));
+      // Récupérer les détails complets avec coordonnées pour chaque suggestion
+      const results: SearchResultData[] = [];
+      
+      for (const suggestion of suggestions.slice(0, 5)) {
+        try {
+          // Récupérer les détails complets avec coordonnées
+          const feature = await searchBoxService.retrieveFeature(suggestion.mapbox_id);
+          
+          if (feature && feature.geometry.coordinates) {
+            const distance = searchBoxService.calculateDistance(center, feature.geometry.coordinates);
+            
+            results.push({
+              id: suggestion.mapbox_id,
+              name: enhanceResultWithEmoji(feature.properties.name || suggestion.text, searchQuery),
+              address: searchBoxService.buildAddress(feature, suggestion),
+              coordinates: feature.geometry.coordinates,
+              distance: Math.round(distance * 10) / 10,
+              category: feature.properties.category || searchBoxService.inferCategory(feature.properties.name || suggestion.text)
+            });
+          } else {
+            // Fallback sans coordonnées précises
+            results.push({
+              id: suggestion.mapbox_id,
+              name: enhanceResultWithEmoji(suggestion.text, searchQuery),
+              address: suggestion.context?.place?.name || suggestion.text,
+              coordinates: [0, 0] as [number, number],
+              distance: 0,
+              category: 'general'
+            });
+          }
+        } catch (error) {
+          console.warn('⚠️ Erreur récupération suggestion:', suggestion.mapbox_id, error);
+        }
+      }
       
       setSuggestions(results);
       setShowSuggestions(results.length > 0);
-      console.log('✅ Auto-suggestions formatées:', results.length);
+      console.log('✅ Auto-suggestions avec coordonnées:', results.length);
       
     } catch (error) {
       console.error('❌ Erreur suggestions SearchBox:', error);
