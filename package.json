@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:prod": "npm install --legacy-peer-deps && vite build",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "health-check": "node -e \"require('./src/utils/configHealth.ts')\""
+    "health-check": "node -e \"require('./src/utils/configHealth.ts')\"",
+    "deploy": "npm run build:prod && vercel"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -74,7 +76,7 @@
     "leaflet-geosearch": "^4.2.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.462.0",
-    "mapbox-gl": "^3.12.0",
+    "mapbox-gl": "^2.15.0",
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
@@ -133,7 +135,7 @@
       "*.config.js",
       "*.config.ts"
     ]
-,
+  },
   "overrides": {
     "@mapbox/mapbox-gl-directions": {
       "mapbox-gl": "$mapbox-gl"
