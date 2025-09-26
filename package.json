@@ -133,5 +133,13 @@
       "*.config.js",
       "*.config.ts"
     ]
+,
+  "overrides": {
+    "@mapbox/mapbox-gl-directions": {
+      "mapbox-gl": "$mapbox-gl"
+    },
+    "@mapbox/mapbox-gl-geocoder": {
+      "mapbox-gl": "$mapbox-gl"
+    }
   }
 }
