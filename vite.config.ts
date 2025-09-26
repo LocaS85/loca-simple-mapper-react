@@ -1,11 +1,10 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import checker from "vite-plugin-checker";
 
-// On surveille uniquement src pour éviter EMFILE
+// Configuration optimisée pour LocaSimple
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -13,7 +12,7 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: true
     },
-    // On ignore tout sauf src (c’est lui qu’on édite et qui importe tout)
+    // Optimisation watch pour éviter EMFILE
     watch: {
       ignored: [
         '**/node_modules/**',
@@ -44,7 +43,14 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    include: ['react-map-gl', 'mapbox-gl', '@mapbox/mapbox-sdk'],
+    include: [
+      'react-map-gl', 
+      'mapbox-gl', 
+      '@mapbox/mapbox-sdk',
+      '@mapbox/mapbox-gl-geocoder',
+      'leaflet',
+      'react-leaflet'
+    ],
     esbuildOptions: {
       define: {
         global: 'globalThis',
@@ -58,7 +64,8 @@ export default defineConfig(({ mode }) => ({
       onwarn(warning, defaultHandler) {
         if (
           warning.code === 'MODULE_LEVEL_DIRECTIVE' ||
-          warning.code === 'CIRCULAR_DEPENDENCY'
+          warning.code === 'CIRCULAR_DEPENDENCY' ||
+          warning.code === 'EVAL'
         ) {
           return;
         }
@@ -66,22 +73,50 @@ export default defineConfig(({ mode }) => ({
       },
       output: {
         manualChunks: {
-          'mapbox-vendor': ['mapbox-gl', 'react-map-gl', '@mapbox/mapbox-sdk'],
+          'mapbox-vendor': [
+            'mapbox-gl', 
+            'react-map-gl', 
+            '@mapbox/mapbox-sdk',
+            '@mapbox/mapbox-gl-geocoder'
+          ],
+          'leaflet-vendor': [
+            'leaflet',
+            'react-leaflet',
+            'leaflet-geosearch'
+          ],
           'ui-vendor': [
             '@radix-ui/react-dialog',
             '@radix-ui/react-popover',
-            '@radix-ui/react-select'
+            '@radix-ui/react-select',
+            '@radix-ui/react-toast'
+          ],
+          'utils-vendor': [
+            'lodash',
+            'date-fns',
+            'clsx',
+            'zod'
           ]
         }
       }
     },
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1500,
+    target: 'esnext'
   },
   define: {
     global: 'globalThis',
-    __DEV__: mode === 'development'
+    __DEV__: mode === 'development',
+    'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production')
   },
   esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+    logOverride: { 
+      'this-is-undefined-in-esm': 'silent',
+      'suspicious-comment': 'silent'
+    },
+    target: 'esnext'
+  },
+  // Configuration spécifique pour Vercel
+  preview: {
+    port: 8080,
+    host: true
   }
 }));
